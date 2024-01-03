@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+
+  frontend:
+      container_name: react-dev
+      build:
+        context: react
+      volumes:
+        - ./frontend/public:/app/public
+        - ./frontend/src:/app/src
+      ports:
+        - 3000:3000
+      restart: on-failure
+
+  backend:
+      container_name: django-dev
+      build:
+        context: django
+      command: >
+        bash -c "
+            python manage.py migrate --run-syncdb &&
+            python manage.py makemigrations && 
+            python manage.py migrate && 
+            python manage.py runserver 0.0.0.0:8000
+        "
+      volumes:
+      - ./backend:/code
+      ports:
+      - 8000:8000
+      
