@@ -5,7 +5,7 @@ import AuthContext from '../context/AuthContext';
 
 const HomePage = () => {
   let [operTypes, setOperTypes] = useState([]);
-  let { authTokens, logoutUser } = useContext(AuthContext);
+  let { authTokens, logoutUser, user } = useContext(AuthContext);
 
   useEffect(() => {
     getOperTypes();
@@ -31,7 +31,7 @@ const HomePage = () => {
 
   return (
     <div>
-      
+      { user && <p>Hello {user.username}</p> }
       <table>
         <thead>
           <tr>

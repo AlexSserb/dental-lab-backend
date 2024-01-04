@@ -7,26 +7,48 @@ import {
 import AuthContext from '../context/AuthContext';
 
 
-const LoginPage = () => {
-  let { loginUser, message, setMessage } = useContext(AuthContext);
+const RegisterPage = () => {
+  let { registerUser, message, setMessage } = useContext(AuthContext);
 
   useEffect(() => {
     setMessage("");
   }, [setMessage])
 
+  const handleRegister = (e) => {
+    e.preventDefault();
+
+    setMessage("");
+
+    if (e.target.password.value !== e.target.passwordRepeat.value) {
+      setMessage("Пароли не совпадают.");
+    }
+    else {
+      registerUser(e);
+    }
+  }
+
   return (
     <div className="card card-container col-md-7 col-sm-60 mx-auto p-0 mt-5">
       <h3 className="text-success text-uppercase text-center mt-4">
-        Вход
+        Регистрация
       </h3>
       <div className='m-4'>
-        <Form onSubmit={loginUser}>
+        <Form onSubmit={handleRegister}>
           <FormGroup>
             <Label for="username">Имя</Label>
             <Input
               type="text"
               name="username"
               placeholder="Введите имя"
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="email">Почта</Label>
+            <Input
+              type="email"
+              name="email"
+              placeholder="Введите почту"
               required
             />
           </FormGroup>
@@ -39,6 +61,15 @@ const LoginPage = () => {
               required
             />
           </FormGroup>
+          <FormGroup>
+            <Label for="passwordRepeat">Повтор пароля</Label>
+            <Input
+              type="password"
+              name="passwordRepeat"
+              placeholder="Введите пароль еще раз"
+              required
+            />
+          </FormGroup>
           {message && (
             <div className="form-group">
               <div className="alert alert-danger" role="alert">
@@ -46,9 +77,9 @@ const LoginPage = () => {
               </div>
             </div>
           )}
-          <p><Link to="/registration">Зарегистрироваться</Link></p>
+          <p><Link to="/login">Уже есть аккаунт</Link></p>
           <Button type="submit" color="success">
-            Войти
+            Зарегистрироваться
           </Button>
         </Form>
       </div>
@@ -56,5 +87,5 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage;
+export default RegisterPage;
 

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import *
 from rest_framework.response import Response
@@ -17,15 +18,18 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def signup(request):
+def register(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         user = User.objects.get(username=request.data['username'])
         user.set_password(request.data['password'])
         user.save()
-        token = Token.objects.create(user=user)
-        return Response({"token": token.key, "user": serializer.data})
+        
+        refresh = CustomTokenObtainPairSerializer.get_token(user)
+
+        return Response({ 'refresh': str(refresh), 'access': str(refresh.access_token) })
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

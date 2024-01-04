@@ -14,6 +14,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(required=False)
     class Meta:
         model = User
         fields = ['id', 'username', 'password', 'email']

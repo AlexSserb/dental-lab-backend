@@ -13,18 +13,21 @@ export const AuthProvider = ({children}) => {
 		JSON.parse(localStorage.getItem('authTokens')) : null);
 	let [user, setUser] = useState(() => localStorage.getItem('authTokens') ? 
 		jwtDecode(localStorage.getItem('authTokens')) : null);
+
 	let [loading, setLoading] = useState(true);
+	let [message, setMessage] = useState("");
 
 	let navigate = useNavigate();
 
-	let loginUser = async (e) => {
+	let loginUser = (e) => {
 		e.preventDefault();
+		setMessage("");
 		axios.post('/api/token/',
 			{ 
 				'username': e.target.username.value, 
 				'password': e.target.password.value 
 			})
-			.then((res) => {
+			.then(res => {
 				setAuthTokens(res.data);
 				setUser(jwtDecode(res.data.access));
 				localStorage.setItem('authTokens', JSON.stringify(res.data));
@@ -32,7 +35,32 @@ export const AuthProvider = ({children}) => {
 			})
 			.catch(err => {
 				console.log(err);
-				alert('Something went wrong!')
+				if (err.response?.status === 401) {
+					setMessage("Неверное имя или пароль.");
+				}
+				else {
+					setMessage("Ошибка. Не удалось подключиться к серверу.");
+				}
+			});
+	}
+
+	let registerUser = (e) => {
+		e.preventDefault();
+		axios.post('/api/register/',
+			{
+				'username': e.target.username.value, 
+				'email': e.target.email.value,
+				'password': e.target.password.value 
+			})
+			.then(res => {
+				setAuthTokens(res.data);
+				setUser(jwtDecode(res.data.access));
+				localStorage.setItem('authTokens', JSON.stringify(res.data));
+				navigate('/');
+			})
+			.catch(err => {
+				console.log(err);
+				setMessage("Ошибка регистрации.");
 			});
 	}
 
@@ -59,6 +87,9 @@ export const AuthProvider = ({children}) => {
 		user: user,
 		authTokens: authTokens,
 		loginUser: loginUser,
+		registerUser: registerUser,
+		message: message,
+		setMessage: setMessage,
 		logoutUser: logoutUser
 	}
 

@@ -1,20 +1,22 @@
 import './App.css';
 import { Routes, Route } from 'react-router-dom'
-import PrivateRoute from './utils/PrivateRoute.js'
 import { AuthProvider } from './context/AuthContext'
 
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
-import Header from './components/Header';
+import ResponsiveAppBar from './components/ResponsiveAppBar';
+import RegisterPage from './pages/RegisterPage';
+
 
 function App() {
   return (
     <div className="App">
       <AuthProvider>
-        <Header/>
+        <ResponsiveAppBar/>
         <Routes>
           <Route exact path='/' element={<HomePage/>} />
           <Route path='/login' element={<LoginPage/>} />
+          <Route path='/registration' element={<RegisterPage/>} />
         </Routes>
       </AuthProvider>
     </div>
