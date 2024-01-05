@@ -38,8 +38,14 @@ def register(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getOperationTypes(request):
-    user = request.user
-    print(user)
     operation_types = OperationType.objects.all()
     serializer = OperationTypeSerializer(operation_types, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getUserProfileData(request):
+    user = request.user
+    serializer = UserProfileSerializer(user)
     return Response(serializer.data)

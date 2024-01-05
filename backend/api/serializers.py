@@ -19,6 +19,15 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'password', 'email']
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для вывода данных в профиле пользователя
+    """
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'created_at']
+
+
 class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType

@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route exact path='/' element={<HomePage/>} />
           <Route path='/login' element={<LoginPage/>} />
           <Route path='/registration' element={<RegisterPage/>} />
+          <Route path='/profile' element={<ProfilePage/>} />
         </Routes>
       </AuthProvider>
     </div>
