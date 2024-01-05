@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'api',
 ]
 
-# AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'api.User'
 
 # Application definition
 

@@ -1,7 +1,7 @@
 from .serializers import *
 
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+User = get_user_model()
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -22,7 +24,7 @@ def register(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        user = User.objects.get(username=request.data['username'])
+        user = User.objects.get(email=request.data['email'])
         user.set_password(request.data['password'])
         user.save()
         

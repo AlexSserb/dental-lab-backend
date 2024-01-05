@@ -31,7 +31,7 @@ const HomePage = () => {
 
   return (
     <div>
-      { user && <p>Hello {user.username}</p> }
+      { user && <p>Your email is {user.email}</p> }
       <table>
         <thead>
           <tr>

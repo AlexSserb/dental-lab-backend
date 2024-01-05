@@ -24,7 +24,7 @@ export const AuthProvider = ({children}) => {
 		setMessage("");
 		axios.post('/api/token/',
 			{ 
-				'username': e.target.username.value, 
+				'email': e.target.email.value, 
 				'password': e.target.password.value 
 			})
 			.then(res => {
@@ -48,7 +48,6 @@ export const AuthProvider = ({children}) => {
 		e.preventDefault();
 		axios.post('/api/register/',
 			{
-				'username': e.target.username.value, 
 				'email': e.target.email.value,
 				'password': e.target.password.value 
 			})

@@ -15,18 +15,17 @@ const LoginPage = () => {
   }, [setMessage])
 
   return (
-    <div className="card card-container col-md-7 col-sm-60 mx-auto p-0 mt-5">
+    <div className="card card-container col-md-4 col-sm-60 mx-auto p-0 mt-5">
       <h3 className="text-success text-uppercase text-center mt-4">
         Вход
       </h3>
       <div className='m-4'>
         <Form onSubmit={loginUser}>
           <FormGroup>
-            <Label for="username">Имя</Label>
+            <Label for="email">Почта</Label>
             <Input
-              type="text"
-              name="username"
-              placeholder="Введите имя"
+              type="email"
+              name="email"
               required
             />
           </FormGroup>
@@ -35,11 +34,10 @@ const LoginPage = () => {
             <Input
               type="password"
               name="password"
-              placeholder="Введите пароль"
               required
             />
           </FormGroup>
-          {message && (
+          { message && (
             <div className="form-group">
               <div className="alert alert-danger" role="alert">
                 {message}

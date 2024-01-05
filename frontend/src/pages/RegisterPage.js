@@ -28,27 +28,17 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="card card-container col-md-7 col-sm-60 mx-auto p-0 mt-5">
+    <div className="card card-container col-md-4 col-sm-60 mx-auto p-0 mt-5">
       <h3 className="text-success text-uppercase text-center mt-4">
         Регистрация
       </h3>
       <div className='m-4'>
         <Form onSubmit={handleRegister}>
           <FormGroup>
-            <Label for="username">Имя</Label>
-            <Input
-              type="text"
-              name="username"
-              placeholder="Введите имя"
-              required
-            />
-          </FormGroup>
-          <FormGroup>
             <Label for="email">Почта</Label>
             <Input
               type="email"
               name="email"
-              placeholder="Введите почту"
               required
             />
           </FormGroup>
@@ -57,7 +47,6 @@ const RegisterPage = () => {
             <Input
               type="password"
               name="password"
-              placeholder="Введите пароль"
               required
             />
           </FormGroup>
@@ -66,7 +55,6 @@ const RegisterPage = () => {
             <Input
               type="password"
               name="passwordRepeat"
-              placeholder="Введите пароль еще раз"
               required
             />
           </FormGroup>
