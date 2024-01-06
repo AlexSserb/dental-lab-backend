@@ -36,10 +36,10 @@ export const AuthProvider = ({children}) => {
 			.catch(err => {
 				console.log(err);
 				if (err.response?.status === 401) {
-					setMessage("Неверное имя или пароль.");
+					setMessage("Неверный почтовый адрес или пароль.");
 				}
 				else {
-					setMessage("Ошибка. Не удалось подключиться к серверу.");
+					defaultAuthErrorHandling(err, "Ошибка входа в систему.");
 				}
 			});
 	}
@@ -60,9 +60,26 @@ export const AuthProvider = ({children}) => {
 				navigate('/');
 			})
 			.catch(err => {
-				console.log(err);
-				setMessage("Ошибка регистрации.");
+				if (err.response?.data?.email[0] === "user with this email already exists.") {
+					setMessage("Ошибка. Пользователь с данным почтовым адресом уже зарегистрирован.");
+				}
+				else if (err.response?.data?.email[0] === "Enter a valid email address.") {
+					setMessage("Ошибка. Введите корректный почтовый адрес.");
+				}
+				else {
+					defaultAuthErrorHandling(err, "Ошибка регистрации.");
+				}
 			});
+	}
+
+	let defaultAuthErrorHandling = (err, defaultErrorMsg) => {
+		if (!err.response) {
+			setMessage("Ошибка. Не удалось подключиться к серверу.");
+		}
+		else {
+			console.log(err);
+			setMessage(defaultErrorMsg);
+		}
 	}
 
 	let logoutUser = () => {
