@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(required=False)
     class Meta:
         model = User
-        fields = ['id', 'password', 'email']
+        fields = ['id', 'password', 'email', 'first_name', 'last_name']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

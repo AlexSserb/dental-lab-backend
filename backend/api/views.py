@@ -2,6 +2,7 @@ from .serializers import *
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -25,6 +26,7 @@ def register(request):
     if serializer.is_valid():
         serializer.save()
         user = User.objects.get(email=request.data['email'])
+        user.last_login = timezone.now()
         user.set_password(request.data['password'])
         user.save()
         

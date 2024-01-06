@@ -35,6 +35,22 @@ const RegisterPage = () => {
       <div className='m-4'>
         <Form onSubmit={handleRegister}>
           <FormGroup>
+            <Label for="firstName">Имя</Label>
+            <Input
+              type="text"
+              name="firstName"
+              required
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="lastName">Фамилия</Label>
+            <Input
+              type="text"
+              name="lastName"
+              required
+            />
+          </FormGroup>
+          <FormGroup>
             <Label for="email">Почта</Label>
             <Input
               type="email"
