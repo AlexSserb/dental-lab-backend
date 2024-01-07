@@ -1,19 +1,38 @@
 from rest_framework import permissions
-from models import User
+from .models import User
 
 
-class IsOwner(permissions.BasePermission):
+class IsDirector(permissions.BasePermission):
     """
-    Object-level permission to only allow owners of an object to edit it.
-    Assumes the model instance has an `owner` attribute.
+        Permission class for director.
+        Director can access everyone root in the application.
     """
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='Director')
 
-    def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS:
-            return True
 
-        # Instance must have an attribute named `user`.
-        return obj.user == request.user
+class IsLabAdmin(permissions.BasePermission):
+    """
+        Permission class for laboratory administrator.
+        Administrator have not access to statistics and cannot perform the operations of technicians.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='Lab admin')
 
+
+class IsChiefTech(permissions.BasePermission):
+    """
+        Permission class for chief technician.
+        Chief technician have not access to statistics and cannot form an order from ordered products.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='Lead tech')
+
+
+class IsTech(permissions.BasePermission):
+    """
+        Permission class for technician.
+        Technician can get and complit his operations.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.groups.filter(name='Tech')

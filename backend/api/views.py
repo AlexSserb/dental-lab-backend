@@ -1,7 +1,9 @@
 from .serializers import *
+from .permissions import *
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.views.generic.list import ListView
 from django.utils import timezone
 
 from rest_framework import status
@@ -10,6 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import *
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 User = get_user_model()
@@ -37,12 +40,14 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def getOperationTypes(request):
-    operation_types = OperationType.objects.all()
-    serializer = OperationTypeSerializer(operation_types, many=True)
-    return Response(serializer.data)
+class OperationTypesView(APIView):
+    serializer_class = OperationTypeSerializer
+    permission_classes = [IsDirector | IsLabAdmin]
+
+    def get(self, request, *args, **kwargs):
+        operation_types = OperationType.objects.all()
+        serializer = self.serializer_class(operation_types, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

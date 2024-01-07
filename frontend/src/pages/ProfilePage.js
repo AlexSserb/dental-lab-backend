@@ -13,7 +13,10 @@ const RegisterPage = () => {
   let navigate = useNavigate();
 
   useEffect(() => {
-    if (!authTokens) navigate('/login');
+    if (!authTokens || !authTokens.access) {
+      navigate('/login');
+      return;
+    }
     profileService.getProfileData(authTokens.access)
       .then(res => {
         setUserData({
