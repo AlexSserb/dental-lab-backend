@@ -155,11 +155,11 @@ function ResponsiveAppBar() {
                 onClose={handleCloseUserMenu}
               >
                 <MenuItem>
-                  <Link style={{ textDecoration: "none", color: "black" }} textAlign="center" 
+                  <Link style={{ textDecoration: "none", color: "black" }}
                     onClick={handleCloseUserMenu} to="/profile">ПРОФИЛЬ</Link>
                 </MenuItem>
                 <MenuItem>  
-                  <Link style={{ textDecoration: "none", color: "black" }} textAlign="center" 
+                  <Link style={{ textDecoration: "none", color: "black" }}
                     onClick={logoutUserAndCloseUserMenu} to="/login">ВЫЙТИ</Link>
                 </MenuItem>
               </Menu>
