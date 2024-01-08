@@ -101,9 +101,24 @@ export const AuthProvider = ({children}) => {
 			.finally(() => setLoading(false));
 	}
 
+	let userGroupToString = (group) => {
+		if (group) {
+			switch (group) {
+				case "Director":
+					return "директор";
+				case "Lab admin":
+					return "администратор лаборатории";
+				case "Chief tech":
+					return "главный техник";
+			}
+		}
+		return "Врач";
+	}
+
 	let contextData = {
 		user: user,
 		authTokens: authTokens,
+		userGroupToString: userGroupToString,
 		loginUser: loginUser,
 		registerUser: registerUser,
 		message: message,

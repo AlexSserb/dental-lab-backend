@@ -9,7 +9,7 @@ import profileService from "../servicies/ProfileService";
 
 const RegisterPage = () => {
   let [ userData, setUserData ] = useState({});
-  let { authTokens } = useContext(AuthContext);
+  let { authTokens, userGroupToString } = useContext(AuthContext);
   let navigate = useNavigate();
 
   useEffect(() => {
@@ -22,13 +22,15 @@ const RegisterPage = () => {
         setUserData({
             email: res.data.email,
             firstName: res.data.first_name,
-            lastName: res.data.last_name
+            lastName: res.data.last_name,
+            group: userGroupToString(res.data.group),
+            createdAt: res.data.created_at
         });
       })
       .catch(err => {
         console.log(err);
       });
-  }, [authTokens, setUserData, navigate])
+  }, [authTokens, setUserData, navigate, userGroupToString])
 
 
   return (
@@ -39,7 +41,9 @@ const RegisterPage = () => {
       <div className='m-4'>
         <Label>Имя: { userData.firstName }</Label><hr/>
         <Label>Фамилия: { userData.lastName }</Label><hr/>
-        <Label>Почтовый адрес: { userData.email }</Label>
+        <Label>Почтовый адрес: { userData.email }</Label><hr/>
+        <Label>Роль: { userData.group }</Label><hr/>
+        <Label>Дата регистрации: { userData.createdAt }</Label>
       </div>
     </div>
   )

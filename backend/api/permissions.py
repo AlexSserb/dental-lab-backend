@@ -26,7 +26,7 @@ class IsChiefTech(permissions.BasePermission):
         Chief technician have not access to statistics and cannot form an order from ordered products.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='Lead tech')
+        return request.user and request.user.groups.filter(name='Chief tech')
 
 
 class IsTech(permissions.BasePermission):

@@ -55,4 +55,4 @@ class OperationTypesView(APIView):
 def getUserProfileData(request):
     user = request.user
     serializer = UserProfileSerializer(user)
-    return Response(serializer.data)
+    return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
