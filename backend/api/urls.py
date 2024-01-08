@@ -9,5 +9,6 @@ urlpatterns = [
     path('register/', views.register, name='user-registration'),
 
     path('profile/', views.getUserProfileData, name='user-profile'),
-    path('operation_types/', views.OperationTypesView.as_view(), name='operation-types'),
+    path('operation_types/', views.OperationTypeList.as_view(), name='operation-types'),
+    path('operation_types/<pk>/', views.OperationTypeDetail.as_view()),
 ]

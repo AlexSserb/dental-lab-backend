@@ -15,6 +15,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+        Сериализатор для регистрации пользователя
+    """
     id = serializers.UUIDField(required=False)
     class Meta:
         model = User
@@ -23,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для вывода данных в профиле пользователя
+        Сериализатор для вывода данных в профиле пользователя
     """
     class Meta:
         model = User

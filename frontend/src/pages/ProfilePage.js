@@ -1,7 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import {
-  Label
-} from "reactstrap";
+import { Label } from "reactstrap";
 import { useNavigate } from 'react-router-dom';
 
 import AuthContext from "../context/AuthContext";

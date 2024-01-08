@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
+import OperationTypesPage from './pages/OperationTypesPage';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path='/login' element={<LoginPage/>} />
           <Route path='/registration' element={<RegisterPage/>} />
           <Route path='/profile' element={<ProfilePage/>} />
+          <Route path='/operations' element={<OperationTypesPage/>} />
         </Routes>
       </AuthProvider>
     </div>
