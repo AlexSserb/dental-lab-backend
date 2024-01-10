@@ -71,4 +71,29 @@ class UserAdmin(BaseUserAdmin):
 
 
 admin.site.register(User, UserAdmin)
+
 admin.site.register(OperationType)
+
+class OperationTypeProductTypeInline(admin.TabularInline):
+    verbose_name = 'операция для выполнения изделия'
+    verbose_name_plural = 'операции для выполнения изделия'
+    model = OperationTypeProductType
+    extra = 1
+
+class ProductTypeAdmin(admin.ModelAdmin):
+    inlines = (
+        OperationTypeProductTypeInline,
+    )
+    fieldsets = (
+        (None, { 'fields': ('name', ), }),
+    )
+
+
+admin.site.register(ProductType, ProductTypeAdmin)
+
+admin.site.register(OperationStatus)
+admin.site.register(ProductStatus)
+admin.site.register(OrderStatus)
+admin.site.register(Order)
+admin.site.register(Product)
+admin.site.register(Operation)

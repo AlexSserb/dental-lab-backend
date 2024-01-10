@@ -38,8 +38,88 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f'{self.email}'
 
 
-# Справочник операций
+# Справочник видов операций
 class OperationType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
     exec_time = models.TimeField(auto_now=False, auto_now_add=False)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+# Справочник видов изделий
+class ProductType(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+# Связь многие-ко-многим для видов изделий и соответствующих видов операций
+class OperationTypeProductType(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    operation_type = models.ForeignKey(OperationType, related_name='product_types', on_delete=models.CASCADE)
+    product_type = models.ForeignKey(ProductType, related_name='operation_types', on_delete=models.CASCADE)
+    number_of_operations = models.PositiveIntegerField(default=1)
+
+
+# Статусы операций
+class OperationStatus(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+# Статусы операций
+class ProductStatus(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+class OrderStatus(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f'{self.name}'
+
+
+# Заказы
+class Order(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
+    status = models.ForeignKey(OrderStatus, related_name='orders', on_delete=models.CASCADE)
+    order_date = models.DateField(auto_now=True)
+    discount = models.DecimalField(max_digits=3, decimal_places=2)
+
+    def __str__(self):
+        return f'Заказ для {self.user.last_name} {self.user.first_name}, дата создания: {self.order_date}'
+
+
+# Изделия
+class Product(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    product_type = models.ForeignKey(ProductType, related_name='products', on_delete=models.CASCADE)
+    product_status = models.ForeignKey(ProductStatus, related_name='products', on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Изделие "{self.product_type.name}" для заказа от даты {self.order.order_date}'
+
+
+# Операции
+class Operation(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    operation_type = models.ForeignKey(OperationType, related_name='operations', on_delete=models.CASCADE)
+    operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Операция "{self.operation_type.name}" для изделия "{self.product.product_type}" от даты {self.product.order.order_date}'
