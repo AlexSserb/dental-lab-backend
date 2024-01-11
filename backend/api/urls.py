@@ -11,4 +11,5 @@ urlpatterns = [
     path('profile/', views.getUserProfileData, name='user-profile'),
     path('operation_types/', views.OperationTypeList.as_view(), name='operation-types'),
     path('operation_types/<pk>/', views.OperationTypeDetail.as_view()),
+    path('orders/', views.getOrdersForUser, name='orders-for-user'),
 ]

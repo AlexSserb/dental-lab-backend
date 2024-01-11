@@ -88,3 +88,12 @@ def getUserProfileData(request):
     user = request.user
     serializer = UserProfileSerializer(user)
     return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getOrdersForUser(request):
+    user = request.user
+    orders = Order.objects.filter(user=user)
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)

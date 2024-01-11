@@ -37,4 +37,17 @@ class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType
         fields = ['id', 'name', 'exec_time']
-        
+
+
+class OrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderStatus
+        fields = ['id', 'name']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    status = OrderStatusSerializer(read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'order_date']
