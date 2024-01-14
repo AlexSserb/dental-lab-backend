@@ -14,6 +14,7 @@ from rest_framework.permissions import *
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema
 
 User = get_user_model()
 
@@ -22,6 +23,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
+@extend_schema(request=UserSerializer, responses=CustomTokenObtainPairSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -82,6 +84,7 @@ class OperationTypeDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(responses=UserProfileSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getUserProfileData(request):
@@ -90,6 +93,7 @@ def getUserProfileData(request):
     return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
 
 
+@extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getOrdersForUser(request):
@@ -99,6 +103,7 @@ def getOrdersForUser(request):
     return Response(serializer.data)
 
 
+@extend_schema(responses=ProductSerializer)
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def getProductsForOrder(request, pk):

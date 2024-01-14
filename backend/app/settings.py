@@ -24,11 +24,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
+    # External Packages
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-
+    'drf_spectacular',
+    # Internal Apps
     'api',
 ]
 
@@ -172,7 +173,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':
     (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -212,4 +214,9 @@ SIMPLE_JWT = {
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+}
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'DentalLab project API',
 }
