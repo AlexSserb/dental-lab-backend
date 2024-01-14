@@ -62,7 +62,6 @@ class OperationTypeProductType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     operation_type = models.ForeignKey(OperationType, related_name='product_types', on_delete=models.CASCADE)
     product_type = models.ForeignKey(ProductType, related_name='operation_types', on_delete=models.CASCADE)
-    number_of_operations = models.PositiveIntegerField(default=1)
 
 
 # Статусы операций
@@ -108,7 +107,8 @@ class Product(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     product_type = models.ForeignKey(ProductType, related_name='products', on_delete=models.CASCADE)
     product_status = models.ForeignKey(ProductStatus, related_name='products', on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE)
+    amount = models.IntegerField(default=1)
 
     def __str__(self):
         return f'Изделие "{self.product_type.name}" для заказа от даты {self.order.order_date}'

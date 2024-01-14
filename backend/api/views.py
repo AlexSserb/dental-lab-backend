@@ -97,3 +97,11 @@ def getOrdersForUser(request):
     orders = Order.objects.filter(user=user)
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def getProductsForOrder(request, pk):
+    products = Product.objects.filter(order=pk)
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
