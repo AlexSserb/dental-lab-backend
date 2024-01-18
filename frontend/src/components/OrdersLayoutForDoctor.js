@@ -6,6 +6,7 @@ import AuthContext from '../context/AuthContext';
 import orderService from '../servicies/OrderService';
 import { useNavigate } from 'react-router-dom';
 import productService from '../servicies/ProductService';
+import ToothMarks from './ToothMarks';
 
 
 const OrdersLayoutForDoctor = () => {
@@ -70,6 +71,7 @@ const OrdersLayoutForDoctor = () => {
 				<td>{product.product_type.name}</td>
 				<td>{product.product_status.name}</td>
         <td>{product.amount}</td>
+        <td><ToothMarks teethList={product.teeth}/></td>
     	</tr>
   	));
   }
@@ -109,20 +111,23 @@ const OrdersLayoutForDoctor = () => {
             <FormGroup>
               {
                 products.length > 0 ? 
-                <Table className="card card-container col-sm-60 p-3 mt-4"> 
+                <>
                   <Label for="products">Изделия</Label>
-                  <thead> 
-                    <tr> 
-                      <th>№</th>
-                      <th>Тип изделия</th> 
-                      <th>Статус</th>
-                      <th>Количество</th>
-                    </tr> 
-                  </thead> 
-                  <tbody> 
-                    { renderProducts() }
-                  </tbody> 
-                </Table> 
+                  <Table bordered> 
+                    <thead> 
+                      <tr> 
+                        <th>№</th>
+                        <th>Тип изделия</th> 
+                        <th>Статус</th>
+                        <th>Количество</th>
+                        <th>Отметки</th>
+                      </tr> 
+                    </thead> 
+                    <tbody> 
+                      { renderProducts() }
+                    </tbody> 
+                  </Table> 
+                </>
                 : <Label for="products">Изделия для заказа</Label>
               }
             </FormGroup>
