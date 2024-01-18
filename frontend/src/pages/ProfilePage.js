@@ -37,10 +37,10 @@ const RegisterPage = () => {
         Профиль
       </h3>
       <div className='m-4'>
-        <Label>Имя: { userData.firstName }</Label><hr/>
         <Label>Фамилия: { userData.lastName }</Label><hr/>
+        <Label>Имя: { userData.firstName }</Label><hr/>
         <Label>Почтовый адрес: { userData.email }</Label><hr/>
-        <Label>Роль: { userData.group }</Label><hr/>
+        <Label>Должность: { userData.group }</Label><hr/>
         <Label>Дата регистрации: { userData.createdAt }</Label>
       </div>
     </div>

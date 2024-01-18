@@ -119,7 +119,7 @@ const OrdersLayoutForDoctor = () => {
                         <th>№</th>
                         <th>Тип изделия</th> 
                         <th>Статус</th>
-                        <th>Количество</th>
+                        <th>Кол-во</th>
                         <th>Отметки</th>
                       </tr> 
                     </thead> 
@@ -136,7 +136,7 @@ const OrdersLayoutForDoctor = () => {
               <Input type="text" value={currOrder?.status?.name} disabled/>
             </FormGroup>
             <FormGroup>
-              <Label for="cost">Цена за заказ</Label>
+              <Label for="cost">Стоимость заказа</Label>
               <Input
                 type="number" min="1" step="any"
                 name="password" value="TODO" disabled

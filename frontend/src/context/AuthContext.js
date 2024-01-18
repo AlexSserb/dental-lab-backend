@@ -22,7 +22,7 @@ export const AuthProvider = ({children}) => {
 	let loginUser = (e) => {
 		e.preventDefault();
 		setMessage("");
-		axios.post('/api/token/',
+		axios.post('/accounts/token/',
 			{ 
 				'email': e.target.email.value, 
 				'password': e.target.password.value 
@@ -46,7 +46,7 @@ export const AuthProvider = ({children}) => {
 
 	let registerUser = (e) => {
 		e.preventDefault();
-		axios.post('/api/register/',
+		axios.post('/accounts/register/',
 			{
 				'first_name': e.target.firstName.value,
 				'last_name': e.target.lastName.value,
@@ -90,7 +90,7 @@ export const AuthProvider = ({children}) => {
 
 	let updateToken = () => {
 		console.log('Update token call!');
-		axios.post('/api/token/refresh/',
+		axios.post('/accounts/token/refresh/',
 			{ 'refresh': authTokens?.refresh })
 			.then((res) => {
 				setAuthTokens(res.data);

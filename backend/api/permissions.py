@@ -1,5 +1,8 @@
 from rest_framework import permissions
-from .models import User
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 class IsDirector(permissions.BasePermission):
