@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 import uuid 
 
@@ -34,6 +35,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     objects = CustomUserManager()
 
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
     def __str__(self):
         return f'{self.email}'
 
@@ -44,6 +49,10 @@ class OperationType(models.Model):
     name = models.CharField(max_length=128)
     exec_time = models.TimeField(auto_now=False, auto_now_add=False)
 
+    class Meta:
+        verbose_name = "Тип операции"
+        verbose_name_plural = "Типы операций"
+
     def __str__(self):
         return f'{self.name}'
 
@@ -52,6 +61,10 @@ class OperationType(models.Model):
 class ProductType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
+
+    class Meta:
+        verbose_name = "Тип изделия"
+        verbose_name_plural = "Типы изделий"
 
     def __str__(self):
         return f'{self.name}'
@@ -69,6 +82,10 @@ class OperationStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
 
+    class Meta:
+        verbose_name = "Статус операции"
+        verbose_name_plural = "Статусы операций"
+
     def __str__(self):
         return f'{self.name}'
 
@@ -78,6 +95,10 @@ class ProductStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
 
+    class Meta:
+        verbose_name = "Статус изделия"
+        verbose_name_plural = "Статусы изделий"
+
     def __str__(self):
         return f'{self.name}'
 
@@ -85,6 +106,10 @@ class ProductStatus(models.Model):
 class OrderStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
+
+    class Meta:
+        verbose_name = "Статус заказа"
+        verbose_name_plural = "Статусы заказов"
 
     def __str__(self):
         return f'{self.name}'
@@ -98,6 +123,10 @@ class Order(models.Model):
     order_date = models.DateField(auto_now=True)
     discount = models.DecimalField(max_digits=3, decimal_places=2)
 
+    class Meta:
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
+
     def __str__(self):
         return f'Заказ для {self.user.last_name} {self.user.first_name}, дата создания: {self.order_date}'
 
@@ -110,8 +139,29 @@ class Product(models.Model):
     order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE)
     amount = models.IntegerField(default=1)
 
+    class Meta:
+        verbose_name = "Изделие"
+        verbose_name_plural = "Изделия"
+
     def __str__(self):
         return f'Изделие "{self.product_type.name}" для заказа от даты {self.order.order_date}'
+
+
+class Tooth(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    product = models.ForeignKey(Product, related_name='teeth', on_delete=models.CASCADE)
+    is_upper_jaw = models.BooleanField()
+    is_right_side = models.BooleanField()
+    tooth_number = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)])
+    
+    class Meta:
+        verbose_name = "Отмеченный зуб"
+        verbose_name_plural = "Отмеченные зубы"
+
+    def __str__(self):
+        jaw = 'верхняя челюсть' if self.is_upper_jaw else 'нижняя челюсть'
+        side = 'правая сторона' if self.is_right_side else 'левая сторона'
+        return f'Зуб под номером {self.tooth_number}, {jaw}, {side}, для изделия "{self.product.product_type.name}"'
 
 
 # Операции
@@ -120,6 +170,10 @@ class Operation(models.Model):
     operation_type = models.ForeignKey(OperationType, related_name='operations', on_delete=models.CASCADE)
     operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Операция"
+        verbose_name_plural = "Операции"
 
     def __str__(self):
         return f'Операция "{self.operation_type.name}" для изделия "{self.product.product_type}" от даты {self.product.order.order_date}'
