@@ -26,7 +26,7 @@ class ProductStatusSerializer(serializers.ModelSerializer):
 class ToothSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tooth
-        fields = ['id', 'product', 'is_upper_jaw', 'is_right_side', 'tooth_number']
+        fields = ['id', 'product', 'tooth_number']
 
 class ProductSerializer(serializers.ModelSerializer):
     product_type = ProductTypeSerializer(read_only=True)

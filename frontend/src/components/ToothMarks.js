@@ -3,45 +3,63 @@ import React, { useState, useEffect } from 'react';
 
 const ToothMarks = ({ teethList }) => {
   const [ teeth, setTeeth ] = useState(teethList);
-	const [ teethNumbers, setTeethNumbers ] = useState([8,7,6,5,4,3,2,1,1,2,3,4,5,6,7,8]);
+	const [ markedTeeth, setMarkedTeeth ] = useState(new Set());
 	const [ upperJaw, setUpperJaw ] = useState([]);
 	const [ lowerJaw, setLowerJaw ] = useState([]);
 
+	const fillUpperJaw = () => {
+		let arrUpperJaw = [];
+		for (let num = 18; num >= 11; num--) {
+			arrUpperJaw.push(num);
+		}
+		for (let num = 21; num <= 28; num++) {
+			arrUpperJaw.push(num)
+		}
+		setUpperJaw(arrUpperJaw);
+	}
+
+	const fillLowerJaw = () => {
+		let arrLowerJaw = [];
+		for (let num = 48; num >= 41; num--) {
+			arrLowerJaw.push(num);
+		}
+		for (let num = 31; num <= 38; num++) {
+			arrLowerJaw.push(num)
+		}
+		setLowerJaw(arrLowerJaw);
+	}
+
   useEffect(() => {
-		let arrUpperJaw = Array(16).fill(false);
-		let arrLowerJaw = Array(16).fill(false);
+		fillUpperJaw();
+		fillLowerJaw();
 
+		let markedTeethTemp = new Set();
 		for (let i = 0; i < teeth.length; i++) {
-			let toothIndex = teeth[i].tooth_number - 1;
-
-			if (teeth[i].is_right_side) {
-				toothIndex = 8 - toothIndex;
-			}
-			if (!teeth[i].is_right_side) {
-				toothIndex = 8 + toothIndex;
-			}
-
-			if (teeth[i].is_upper_jaw) arrUpperJaw[toothIndex] = true;
-			else arrLowerJaw[toothIndex] = true;
+			markedTeethTemp.add(teeth[i].tooth_number);
 		}
 
-		setLowerJaw(arrLowerJaw);
-		setUpperJaw(arrUpperJaw);
+		setMarkedTeeth(markedTeethTemp);
   }, []);
 
 
-	const getToothMark = (isMarked) => {
-		let background = isMarked ? "black" : "white";
+	const getToothMark = (number) => {
+		let background = markedTeeth.has(number) ? "black" : "white";
+		let color = markedTeeth.has(number) ? "white" : "black";
 
 		return (
 			<div style={{
 				display: "flex",
-				width: "20px",
-				height: "20px",
+				width: "25px",
+				height: "25px",
 				backgroundColor: background,
+				color: color,
 				border: '1px solid black',
-				borderRadius: "50%"
+				borderRadius: "50%",
+				textAlign: 'center'
 			}}>
+				<p style={{paddingLeft : '2px'}}>
+					{number}
+				</p>
 			</div>
 		)
 	}
@@ -49,13 +67,6 @@ const ToothMarks = ({ teethList }) => {
   return (
     <div>
 			<table className="text-center"> 
-        <thead> 
-          <tr> 
-						{ teethNumbers.map(number => {
-							return <th class="p-1">{number}</th>
-						})}
-          </tr> 
-        </thead> 
         <tbody> 
           <tr>
 						{ upperJaw.map(tooth => {
