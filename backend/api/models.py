@@ -114,18 +114,14 @@ class Product(models.Model):
 class Tooth(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     product = models.ForeignKey(Product, related_name='teeth', on_delete=models.CASCADE)
-    is_upper_jaw = models.BooleanField()
-    is_right_side = models.BooleanField()
-    tooth_number = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(8)])
+    tooth_number = models.PositiveIntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)])
     
     class Meta:
         verbose_name = "Отмеченный зуб"
         verbose_name_plural = "Отмеченные зубы"
 
     def __str__(self):
-        jaw = 'верхняя челюсть' if self.is_upper_jaw else 'нижняя челюсть'
-        side = 'правая сторона' if self.is_right_side else 'левая сторона'
-        return f'Зуб под номером {self.tooth_number}, {jaw}, {side}, для изделия "{self.product.product_type.name}"'
+        return f'Зуб под номером {self.tooth_number} для изделия "{self.product.product_type.name}"'
 
 
 # Операции
