@@ -10,7 +10,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         token['group'] = user.groups.values_list('name', flat=True).first()
-        print(token['group'])
         return token
 
 
