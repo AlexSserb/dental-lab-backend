@@ -10,7 +10,7 @@ admin.site.register(OperationType)
 class OperationTypeProductTypeInline(admin.TabularInline):
     verbose_name = 'операция для выполнения изделия'
     verbose_name_plural = 'операции для выполнения изделия'
-    model = OperationTypeProductType
+    model = ProductType.operation_types.through
     extra = 1
 
 class ProductTypeAdmin(admin.ModelAdmin):
@@ -18,7 +18,7 @@ class ProductTypeAdmin(admin.ModelAdmin):
         OperationTypeProductTypeInline,
     )
     fieldsets = (
-        (None, { 'fields': ('name', ), }),
+        (None, { 'fields': ('name',), }),
     )
 
 

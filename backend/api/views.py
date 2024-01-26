@@ -71,7 +71,7 @@ def getOrdersForUser(request):
 
 @extend_schema(responses=ProductSerializer)
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def getProductsForOrder(request, pk):
     products = Product.objects.filter(order=pk)
     serializer = ProductSerializer(products, many=True)

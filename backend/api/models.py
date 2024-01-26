@@ -25,6 +25,7 @@ class OperationType(models.Model):
 class ProductType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
+    operation_types = models.ManyToManyField(OperationType, related_name='product_types')
 
     class Meta:
         verbose_name = "Тип изделия"
@@ -32,13 +33,6 @@ class ProductType(models.Model):
 
     def __str__(self):
         return f'{self.name}'
-
-
-# Связь многие-ко-многим для видов изделий и соответствующих видов операций
-class OperationTypeProductType(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    operation_type = models.ForeignKey(OperationType, related_name='product_types', on_delete=models.CASCADE)
-    product_type = models.ForeignKey(ProductType, related_name='operation_types', on_delete=models.CASCADE)
 
 
 # Статусы операций

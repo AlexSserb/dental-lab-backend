@@ -1,0 +1,44 @@
+[
+    {
+        "model": "api.operationtype",
+        "pk": "842cb14e-a654-4081-8334-b87917a62040",
+        "fields": {
+            "name": "Operation type 1",
+            "exec_time": "01:10:00"
+        }
+    },
+    {
+        "model": "api.operationtype",
+        "pk": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
+        "fields": {
+            "name": "Operation type 2",
+            "exec_time": "01:00:00"
+        }
+    },
+    {
+        "model": "api.operationtype",
+        "pk": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
+        "fields": {
+            "name": "Operation type 3",
+            "exec_time": "00:35:00"
+        }
+    },
+
+
+    {
+        "model": "api.producttype",
+        "pk": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+        "fields": {
+            "name": "Product type 1",
+            "operation_types": ["842cb14e-a654-4081-8334-b87917a62040", "61e5d3e3-f999-4fd6-be1a-778cc1ce3332"]
+        }
+    },
+    {
+        "model": "api.producttype",
+        "pk": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+        "fields": {
+            "name": "Product type 2",
+            "operation_types": ["61e5d3e3-f999-4fd6-be1a-778cc1ce3332", "b44d904a-9e53-417a-ba1c-9047e302d6a8"]
+        }
+    }
+]
