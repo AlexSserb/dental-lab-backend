@@ -62,11 +62,11 @@ class ProductStatus(models.Model):
 
     @staticmethod
     def get_default_status():
-        return ProductStatus.objects.filter(id='45580d30-0dd4-489d-869f-791bd991b2e5').first()
-        if not order_status:
-            order_status = OrderStatus.objects.create(id='45580d30-0dd4-489d-869f-791bd991b2e5', 
-                name='Отправлено для формирования заказа')
-        return order_status
+        status_name = 'Отправлено для формирования заказа'
+        status = ProductStatus.objects.filter(name=status_name).first()
+        if not status:
+            status = ProductStatus.objects.create(name=status_name)
+        return status
 
 
 class OrderStatus(models.Model):
@@ -82,11 +82,11 @@ class OrderStatus(models.Model):
 
     @staticmethod
     def get_default_status():
-        order_status = OrderStatus.objects.filter(id='40182114-bf8a-4e78-a5d3-491c778611eb').first()
-        if not order_status:
-            order_status = OrderStatus.objects.create(id='40182114-bf8a-4e78-a5d3-491c778611eb', 
-                name='Отправлено для формирования заказа')
-        return order_status
+        status_name = 'Отправлено для формирования заказа'
+        status = OrderStatus.objects.filter(name=status_name).first()
+        if not status:
+            status = OrderStatus.objects.create(name=status_name)
+        return status
 
 
 # Заказы
