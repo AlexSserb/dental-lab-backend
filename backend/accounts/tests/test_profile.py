@@ -7,9 +7,9 @@ from django.urls import reverse
 from django.contrib.auth.models import Group
 
 
-class ProfileViewTest(TestCase):
+class ProfileTest(TestCase):
     """
-        Testing view for profile data
+        Integration tests for profile
     """
     fixtures = ['./accounts/fixtures/test_data.json',]
 

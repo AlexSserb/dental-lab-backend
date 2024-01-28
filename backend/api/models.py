@@ -60,6 +60,14 @@ class ProductStatus(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+    @staticmethod
+    def get_default_status():
+        return ProductStatus.objects.filter(id='45580d30-0dd4-489d-869f-791bd991b2e5').first()
+        if not order_status:
+            order_status = OrderStatus.objects.create(id='45580d30-0dd4-489d-869f-791bd991b2e5', 
+                name='Отправлено для формирования заказа')
+        return order_status
+
 
 class OrderStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
@@ -71,6 +79,14 @@ class OrderStatus(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+    @staticmethod
+    def get_default_status():
+        order_status = OrderStatus.objects.filter(id='40182114-bf8a-4e78-a5d3-491c778611eb').first()
+        if not order_status:
+            order_status = OrderStatus.objects.create(id='40182114-bf8a-4e78-a5d3-491c778611eb', 
+                name='Отправлено для формирования заказа')
+        return order_status
 
 
 # Заказы
@@ -103,6 +119,27 @@ class Product(models.Model):
 
     def __str__(self):
         return f'Изделие "{self.product_type.name}" для заказа от даты {self.order.order_date}'
+
+    @staticmethod
+    def products_from_product_types(product_types: list[dict], order: Order):
+        for product_type in product_types:
+            product_type_id = product_type.get("product_type_id", None)
+            if not product_type_id:
+                print('Не указан тип изделия')
+                continue
+
+            product_type_inst = ProductType.objects.filter(id=product_type_id).first()
+            if not product_type_inst:
+                print('Указан несуществующий тип изделия.')
+                continue
+
+            amount = product_type.get("amount", None)
+            if not amount:
+                print('Не указано количество изделий')
+                continue
+            
+            product = Product.objects.create(product_type=product_type_inst, amount=amount,
+                order=order, product_status=ProductStatus.get_default_status())
 
 
 class Tooth(models.Model):

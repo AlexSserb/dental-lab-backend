@@ -62,7 +62,7 @@ class OperationTypeDetail(APIView):
 @extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getOrdersForUser(request):
+def get_orders_for_user(request):
     user = request.user
     orders = Order.objects.filter(user=user)
     serializer = OrderSerializer(orders, many=True)
@@ -72,8 +72,17 @@ def getOrdersForUser(request):
 @extend_schema(responses=ProductSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getProductsForOrder(request, pk):
+def get_products_for_order(request, pk):
     products = Product.objects.filter(order=pk)
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
-    
+
+
+@extend_schema(request=ManyProductsFromUserSerializer)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_order(request):
+    order = Order.objects.create(user=request.user, status=OrderStatus.get_default_status(), discount=0)
+    Product.products_from_product_types(request.data['product_types'], order)
+
+    return Response(status=status.HTTP_200_OK)

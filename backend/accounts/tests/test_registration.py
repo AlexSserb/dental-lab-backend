@@ -4,9 +4,9 @@ from accounts.models import User
 from django.urls import reverse
 
 
-class RegistrationViewTest(TestCase):
+class RegistrationTest(TestCase):
     """
-        Testing view for registration
+        Integration tests for registration
     """
 
     URL = '/accounts'

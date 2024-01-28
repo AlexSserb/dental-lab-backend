@@ -49,3 +49,11 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'status', 'order_date', 'discount']
+
+
+class ProductFromUserSerializer(serializers.Serializer):
+    product_type_id = serializers.CharField(required=True)
+    amount = serializers.IntegerField(required=True, min_value=1)
+    
+class ManyProductsFromUserSerializer(serializers.Serializer):
+    product_types = ProductFromUserSerializer(many=True)

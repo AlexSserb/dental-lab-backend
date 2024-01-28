@@ -2,6 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from django.urls import reverse
 from django.contrib.auth.models import Group
+from django.core.serializers import serialize
 from datetime import datetime
 from uuid import uuid4
 
@@ -9,9 +10,9 @@ from accounts.models import User
 from api.models import *
 
 
-class ViewsTest(TestCase):
+class OrdersTest(TestCase):
     """
-        Testing views for api
+        Integration tests for orders and products
     """
     fixtures = ['./api/fixtures/groups_data.json', './api/fixtures/test_data_statuses.json',
         './api/fixtures/operation_and_product_types.json']
@@ -32,15 +33,14 @@ class ViewsTest(TestCase):
     def setUp(self):
         response = self.client.post('/accounts/token/', data={'email': self.email, 'password': self.password})
         self.token = response.data['access']
-
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
     def test_get_orders_correct(self):
         order = Order.objects.create(user=self.user, discount=0.05,
             status=OrderStatus.objects.filter(name="At work").first())
         
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = client.get(self.URL + '/orders/')
+        response = self.client.get(self.URL + '/orders/')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
@@ -69,9 +69,7 @@ class ViewsTest(TestCase):
         tooth2 = Tooth.objects.create(product=product1, tooth_number=12)
         tooth3 = Tooth.objects.create(product=product2, tooth_number=25)
         
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = client.get(self.URL + '/products/' + str(order.id), follow=True)
+        response = self.client.get(self.URL + '/products/' + str(order.id), follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
@@ -89,5 +87,39 @@ class ViewsTest(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
         response = client.get(self.URL + '/products/123', follow=True)
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_create_order(self):
+        product_types_data = { 'product_types' : [
+            { 'product_type_id': 'a038f028-cfda-4e8b-b971-44cf7d5b84ae', 'amount': 4 },
+            { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2 },
+        ]}
+        
+        response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
+        
+        self.assertEqual(response.status_code, 200)
+
+        # Check that order created correctly
+        orders = Order.objects.filter(user=self.user).all()
+        self.assertEqual(len(orders), 1)
+        self.assertEqual(orders[0].discount, 0)
+        self.assertEqual(orders[0].status.name, OrderStatus.get_default_status().name)
+
+        # Check that products created correctly
+        products = orders[0].products.all()
+        self.assertEqual(len(products), 2)
+        product1, product2 = (products[0], products[1]) if \
+            products[0].amount == 4 else (products[1], products[0])
+        self.assertEqual(product1.product_type.name, 'Product type 1')
+        self.assertEqual(product2.product_type.name, 'Product type 2')
+        self.assertEqual(product2.amount, 2)
+        self.assertEqual(product1.product_status.name, ProductStatus.get_default_status().name)
+        self.assertEqual(product1.product_status.name, product2.product_status.name)
+        
+    def test_create_order_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.get(self.URL + '/create_order/')
 
         self.assertEqual(response.status_code, 401)
