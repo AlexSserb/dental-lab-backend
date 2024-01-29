@@ -124,22 +124,23 @@ class Product(models.Model):
     def products_from_product_types(product_types: list[dict], order: Order):
         for product_type in product_types:
             product_type_id = product_type.get("product_type_id", None)
-            if not product_type_id:
-                print('Не указан тип изделия')
-                continue
+            teeth = product_type.get('teeth', None)
+            amount = product_type.get('amount', None)
 
-            product_type_inst = ProductType.objects.filter(id=product_type_id).first()
-            if not product_type_inst:
-                print('Указан несуществующий тип изделия.')
-                continue
-
-            amount = product_type.get("amount", None)
-            if not amount:
-                print('Не указано количество изделий')
-                continue
+            if  product_type_id and amount and teeth and type(teeth) is list:
+                product_type_inst = ProductType.objects.filter(id=product_type_id).first()
+                
+                if not product_type_inst:
+                    print('Указан несуществующий тип изделия.')
+                    continue
             
-            product = Product.objects.create(product_type=product_type_inst, amount=amount,
-                order=order, product_status=ProductStatus.get_default_status())
+                product = Product.objects.create(product_type=product_type_inst, amount=amount,
+                    order=order, product_status=ProductStatus.get_default_status())
+
+                for tooth in teeth:
+                    Tooth.objects.create(product=product, tooth_number=tooth)
+            else:
+                print('Переданы некорректные данные об изделиях.')
 
 
 class Tooth(models.Model):

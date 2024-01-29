@@ -92,8 +92,8 @@ class OrdersTest(TestCase):
 
     def test_create_order(self):
         product_types_data = { 'product_types' : [
-            { 'product_type_id': 'a038f028-cfda-4e8b-b971-44cf7d5b84ae', 'amount': 4 },
-            { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2 },
+            { 'product_type_id': 'a038f028-cfda-4e8b-b971-44cf7d5b84ae', 'amount': 4, 'teeth': [11, 12, 22, 31] },
+            { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2, 'teeth': [45, 46] },
         ]}
         
         response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
@@ -106,7 +106,7 @@ class OrdersTest(TestCase):
         self.assertEqual(orders[0].discount, 0)
         self.assertEqual(orders[0].status.name, OrderStatus.get_default_status().name)
 
-        # Check that products created correctly
+		# Check that products created correctly
         products = orders[0].products.all()
         self.assertEqual(len(products), 2)
         product1, product2 = (products[0], products[1]) if \
@@ -116,10 +116,25 @@ class OrdersTest(TestCase):
         self.assertEqual(product2.amount, 2)
         self.assertEqual(product1.product_status.name, ProductStatus.get_default_status().name)
         self.assertEqual(product1.product_status.name, product2.product_status.name)
+		
+        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product1))
+        self.assertEqual(teeth_nums, set((11, 12, 22, 31)))
+        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product2))
+        self.assertEqual(teeth_nums, set((45, 46)))
         
     def test_create_order_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/create_order/')
+        response = client.post(self.URL + '/create_order/')
 
         self.assertEqual(response.status_code, 401)
+
+    def test_create_order_incorrect_data(self):
+        # Incorrect data => tooth number 90 is not correct
+        product_types_data = { 'product_types' : [
+            { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2, 'teeth': [90, 46] },
+        ]}
+
+        response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
+
+        self.assertEqual(response.status_code, 400)

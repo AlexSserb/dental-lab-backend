@@ -54,6 +54,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class ProductFromUserSerializer(serializers.Serializer):
     product_type_id = serializers.CharField(required=True)
     amount = serializers.IntegerField(required=True, min_value=1)
+    teeth = serializers.ListField(child=serializers.IntegerField(min_value=11, max_value=48), required=True)
     
 class ManyProductsFromUserSerializer(serializers.Serializer):
     product_types = ProductFromUserSerializer(many=True)

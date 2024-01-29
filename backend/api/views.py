@@ -82,7 +82,10 @@ def get_products_for_order(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_order(request):
-    order = Order.objects.create(user=request.user, status=OrderStatus.get_default_status(), discount=0)
-    Product.products_from_product_types(request.data['product_types'], order)
+    serializer = ManyProductsFromUserSerializer(data=request.data)
+    if serializer.is_valid():
+        order = Order.objects.create(user=request.user, status=OrderStatus.get_default_status(), discount=0)
+        Product.products_from_product_types(request.data['product_types'], order)
+        return Response(status=status.HTTP_200_OK)
 
-    return Response(status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
