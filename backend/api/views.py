@@ -59,6 +59,16 @@ class OperationTypeDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ProductTypeList(APIView):
+    serializer_class = ProductTypeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        product_types = ProductType.objects.all()
+        serializer = self.serializer_class(product_types, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

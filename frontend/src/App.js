@@ -8,6 +8,7 @@ import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import OperationTypesPage from './pages/OperationTypesPage';
+import CreateOrderLayout from './components/CreateOrderLayout';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path='/registration' element={<RegisterPage/>} />
           <Route path='/profile' element={<ProfilePage/>} />
           <Route path='/operations' element={<OperationTypesPage/>} />
+          <Route path='/create_order' element={<CreateOrderLayout/>} />
         </Routes>
       </AuthProvider>
     </div>

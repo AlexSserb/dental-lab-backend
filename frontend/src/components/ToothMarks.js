@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 
 const ToothMarks = ({ teethList }) => {
-  const [ teeth, setTeeth ] = useState(teethList);
-	const [ markedTeeth, setMarkedTeeth ] = useState(new Set());
+	const [ markedTeeth, setMarkedTeeth ] = useState(new Set(teethList));
 	const [ upperJaw, setUpperJaw ] = useState([]);
 	const [ lowerJaw, setLowerJaw ] = useState([]);
 
@@ -32,13 +31,6 @@ const ToothMarks = ({ teethList }) => {
   useEffect(() => {
 		fillUpperJaw();
 		fillLowerJaw();
-
-		let markedTeethTemp = new Set();
-		for (let i = 0; i < teeth.length; i++) {
-			markedTeethTemp.add(teeth[i].tooth_number);
-		}
-
-		setMarkedTeeth(markedTeethTemp);
   }, []);
 
 

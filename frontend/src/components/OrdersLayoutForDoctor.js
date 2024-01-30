@@ -65,13 +65,13 @@ const OrdersLayoutForDoctor = () => {
 
   const renderProducts = () => {
     let i = 1;
-    return products.map((product) => (
+    return products.map(product => (
       <tr key={product.id}> 
         <td>{i++}</td>
 				<td>{product.product_type.name}</td>
 				<td>{product.product_status.name}</td>
         <td>{product.amount}</td>
-        <td><ToothMarks teethList={product.teeth}/></td>
+        <td><ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)}/></td>
     	</tr>
   	));
   }
@@ -79,7 +79,8 @@ const OrdersLayoutForDoctor = () => {
   return (
     <div style={{display: 'flex'}}>
       <div>
-        <h3 className='p-4 pt-5'>Заказы</h3> 
+        <h3 className='m-4 mt-5'>Заказы</h3> 
+        <Button className="mx-4" color="primary" onClick={() => {navigate("/create_order")}}>Оформить заказ</Button>
         <div className='col-md-50 px-4'>
         { 
           orders.length > 0 ? 
