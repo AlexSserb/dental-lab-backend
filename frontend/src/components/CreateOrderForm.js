@@ -12,12 +12,12 @@ import {
 } from "reactstrap";
 
 import ToothMarks from "./ToothMarks";
-import productTypesService from "./../servicies/ProductTypesService";
+import productTypesService from "../servicies/ProductTypesService";
 import orderService from "../servicies/OrderService";
 import AuthContext from '../context/AuthContext';
 
 
-const CreateOrderLayout = () => {
+const CreateOrderForm = () => {
   let { authTokens } = useContext(AuthContext);
   let [ listOfProducts, setListOfProducts ] = useState([]);
   let [ allProductTypes, setAllProductTypes ] = useState([]);
@@ -236,4 +236,4 @@ const CreateOrderLayout = () => {
     </div>
   );
 }
-export default CreateOrderLayout;
+export default CreateOrderForm;

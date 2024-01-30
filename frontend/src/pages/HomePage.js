@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 
 import AuthContext from '../context/AuthContext';
-import OrdersLayoutForDoctor from '../components/OrdersLayoutForDoctor';
+import PhysicianOrderList from '../components/PhysicianOrderList';
 
 const HomePage = () => {
   let { user, authTokens, userGroupToString } = useContext(AuthContext);
@@ -11,7 +11,7 @@ const HomePage = () => {
   return (
     <div>
       { userGroup === "Врач" ? (
-        <OrdersLayoutForDoctor />
+        <PhysicianOrderList />
       ) : (
         <></>
       )}
