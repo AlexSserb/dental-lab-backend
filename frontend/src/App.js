@@ -7,13 +7,12 @@ import LoginPage from './pages/LoginPage'
 import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
-import OperationTypesPage from './pages/OperationTypesPage';
 import CreateOrderForm from './components/CreateOrderForm';
 
 
 function App() {
   return (
-    <div className="App">
+    <div>
       <AuthProvider>
         <ResponsiveAppBar/>
         <Routes>
@@ -21,7 +20,6 @@ function App() {
           <Route path='/login' element={<LoginPage/>} />
           <Route path='/registration' element={<RegisterPage/>} />
           <Route path='/profile' element={<ProfilePage/>} />
-          <Route path='/operations' element={<OperationTypesPage/>} />
           <Route path='/create_order' element={<CreateOrderForm/>} />
         </Routes>
       </AuthProvider>

@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Form, FormGroup, Table, Label, Input, Button } from "reactstrap";
 import InfoIcon from '@mui/icons-material/Info';
-import { Box, Typography, Grid, TextField, Stack } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  Grid, 
+  TextField, 
+  Stack, 
+  Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
+  Button,
+  Paper
+} from '@mui/material';
 import AuthContext from '../context/AuthContext';
 import orderService from '../servicies/OrderService';
 import { useNavigate } from 'react-router-dom';
@@ -10,11 +18,11 @@ import ToothMarks from './ToothMarks';
 
 
 const PhysicianOrderList = () => {
-  let { user, authTokens, userGroupToString } = useContext(AuthContext);
-  const [userGroup, setUserGroup] = useState(userGroupToString());
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [currOrder, setCurrOrder] = useState({});
+  const { authTokens, userGroupToString } = useContext(AuthContext);
+  const [ userGroup, setUserGroup ] = useState(userGroupToString());
+  const [ orders, setOrders ] = useState([]);
+  const [ products, setProducts ] = useState([]);
+  const [ currOrder, setCurrOrder ] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,58 +58,61 @@ const PhysicianOrderList = () => {
   const renderOrders = () => {
     let i = 1;
     return orders.map((order) => (
-      <tr key={order.id}>
-        <td>{i++}</td>
-        <td className="text-nowrap">{order.order_date}</td>
-        <td>{order.status.name}</td>
-        <td className="text-center">
+      <TableRow key={order.id}>
+        <TableCell>{i++}</TableCell>
+        <TableCell sx={{textWrap: "nowrap"}}>{order.order_date}</TableCell>
+        <TableCell>{order.status.name}</TableCell>
+        <TableCell sx={{textAlign: "center"}}>
           <Button onClick={() => getOrderInfo(order)}>
             <InfoIcon />
           </Button>
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
     ));
   };
 
   const renderProducts = () => {
     let i = 1;
     return products.map(product => (
-      <tr key={product.id}>
-        <td>{i++}</td>
-        <td>{product.product_type.name}</td>
-        <td>{product.product_status.name}</td>
-        <td>{product.amount}</td>
-        <td><ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)} /></td>
-      </tr>
+      <TableRow key={product.id}>
+        <TableCell>{i++}</TableCell>
+        <TableCell>{product.product_type.name}</TableCell>
+        <TableCell>{product.product_status.name}</TableCell>
+        <TableCell>{product.amount}</TableCell>
+        <TableCell><ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)} /></TableCell>
+      </TableRow>
     ));
   }
 
   return (
-    <Grid container spacing={3} >
+    <Grid container spacing={3} wrap="wrap-reverse">
       <Grid item xs={4}>
         <h3 className='m-4 mt-5'>Заказы</h3>
-        <Button className="mx-4" color="primary" onClick={() => { navigate("/create_order") }}>Оформить заказ</Button>
-        <div className='col-md-50 px-4'>
-          {
-            orders.length > 0 ?
-              <div>
-                <Table className="mt-4">
-                  <thead>
-                    <tr>
-                      <th>№</th>
-                      <th>Дата</th>
-                      <th>Статус</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {renderOrders()}
-                  </tbody>
-                </Table>
-              </div>
-              : <div className="mt-3">Нет заказов</div>
-          }
-        </div>
+        <Button variant="contained" onClick={() => { navigate("/create_order") }}
+          sx={{
+            margin: "15px"
+          }}>
+          Оформить заказ
+        </Button>
+        {
+          orders.length > 0 ?
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>№</TableCell>
+                  <TableCell>Дата</TableCell>
+                  <TableCell>Статус</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {renderOrders()}
+              </TableBody>
+            </Table>
+            </TableContainer>
+            : <div className="mt-3">Нет заказов</div>
+        }
       </Grid>
       <Grid item xs={8}>
         <Box sx={{
@@ -118,23 +129,23 @@ const PhysicianOrderList = () => {
             <Stack spacing={2}>
               {
                 products.length > 0 ?
-                  <>
+                  <TableContainer component={Paper}>
                     <Table label='Изделия'>
-                      <thead>
-                        <tr>
-                          <th>№</th>
-                          <th>Тип изделия</th>
-                          <th>Статус</th>
-                          <th style={{width: "8%"}}>Кол-во</th>
-                          <th>Отметки</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>№</TableCell>
+                          <TableCell>Тип изделия</TableCell>
+                          <TableCell>Статус</TableCell>
+                          <TableCell style={{ width: "8%" }}>Кол-во</TableCell>
+                          <TableCell>Отметки</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
                         {renderProducts()}
-                      </tbody>
+                      </TableBody>
                     </Table>
-                  </>
-                  : <Label for="products">Изделия для заказа</Label>
+                  </TableContainer>
+                  : <p for="products">Изделия для заказа</p>
               }
               <TextField
                 InputProps={{

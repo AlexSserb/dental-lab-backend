@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Label } from "reactstrap";
 import { useNavigate } from 'react-router-dom';
 
 import AuthContext from "../context/AuthContext";
@@ -37,11 +36,11 @@ const RegisterPage = () => {
         Профиль
       </h3>
       <div className='m-4'>
-        <Label>Фамилия: { userData.lastName }</Label><hr/>
-        <Label>Имя: { userData.firstName }</Label><hr/>
-        <Label>Почтовый адрес: { userData.email }</Label><hr/>
-        <Label>Должность: { userData.group }</Label><hr/>
-        <Label>Дата регистрации: { userData.createdAt }</Label>
+        <p>Фамилия: { userData.lastName }</p><hr/>
+        <p>Имя: { userData.firstName }</p><hr/>
+        <p>Почтовый адрес: { userData.email }</p><hr/>
+        <p>Должность: { userData.group }</p><hr/>
+        <p>Дата регистрации: { userData.createdAt }</p>
       </div>
     </div>
   )
