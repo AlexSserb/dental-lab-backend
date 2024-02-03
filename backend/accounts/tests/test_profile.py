@@ -25,7 +25,7 @@ class ProfileTest(TestCase):
         user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
         user.set_password(cls.password)
         user.save()
-        user.groups.add(Group.objects.filter(name='Director').first().id)
+        user.groups.add(1)
 
     def setUp(self):
         response = self.client.post(self.URL + '/token/', data={'email': self.email, 'password': self.password})

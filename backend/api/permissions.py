@@ -11,7 +11,7 @@ class IsDirector(permissions.BasePermission):
         Director can access everyone root in the application.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='Director')
+        return request.user and request.user.groups.filter(id=1)
 
 
 class IsLabAdmin(permissions.BasePermission):
@@ -20,7 +20,7 @@ class IsLabAdmin(permissions.BasePermission):
         Administrator have not access to statistics and cannot perform the operations of technicians.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='Lab admin')
+        return request.user and request.user.groups.filter(id=2)
 
 
 class IsChiefTech(permissions.BasePermission):
@@ -29,7 +29,7 @@ class IsChiefTech(permissions.BasePermission):
         Chief technician have not access to statistics and cannot form an order from ordered products.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='Chief tech')
+        return request.user and request.user.groups.filter(id=3)
 
 
 class IsTech(permissions.BasePermission):
@@ -38,4 +38,4 @@ class IsTech(permissions.BasePermission):
         Technician can get and complit his operations.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(name='Tech')
+        return request.user and request.user.groups.filter(id__in=(4, 5, 6, 7))

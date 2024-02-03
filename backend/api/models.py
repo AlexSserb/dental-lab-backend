@@ -7,18 +7,33 @@ import uuid
 
 User = get_user_model()
 
+
 # Справочник видов операций
 class OperationType(models.Model):
+    class OperationGroup(models.TextChoices):
+        MODELS = 'MO', 'Модели'
+        CAD_CAM = 'CA', 'CAD\CAM'
+        CERAMICS = 'CE', 'Керамика'
+        DENTURES = 'DE', 'Протезы'
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
     exec_time = models.TimeField(auto_now=False, auto_now_add=False)
+    group = models.CharField(
+        max_length=2,
+        choices=OperationGroup.choices,
+        default=OperationGroup.MODELS,
+    )
 
     class Meta:
         verbose_name = "Тип операции"
         verbose_name_plural = "Типы операций"
 
+    def get_group(self):
+        return self.OperationGroup(self.group).label
+
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name}, группа: {self.get_group()}'
 
 
 # Справочник видов изделий

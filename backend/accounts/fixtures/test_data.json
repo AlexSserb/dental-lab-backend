@@ -3,32 +3,56 @@
         "model": "auth.group",
         "pk": 1,
         "fields": {
-            "name": "Director",
+            "name": "Директор",
             "permissions": []
-        }
+          }
     },
     {
         "model": "auth.group",
         "pk": 2,
         "fields": {
-            "name": "Lab admin",
+            "name": "Администратор лаборатории",
             "permissions": []
-        }
+          }
     },
     {
         "model": "auth.group",
         "pk": 3,
         "fields": {
-            "name": "Chief tech",
+            "name": "Главный техник",
             "permissions": []
-        }
+          }
     },
     {
         "model": "auth.group",
         "pk": 4,
         "fields": {
-            "name": "Tech",
+            "name": "Техник - Модели",
             "permissions": []
-        }
+          }
+    },
+    {
+        "model": "auth.group",
+        "pk": 5,
+        "fields": {
+            "name": "Техник - CAD/CAM",
+            "permissions": []
+          }
+    },
+    {
+        "model": "auth.group",
+        "pk": 6,
+        "fields": {
+            "name": "Техник - Керамика",
+            "permissions": []
+          }
+    },
+    {
+        "model": "auth.group",
+        "pk": 7,
+        "fields": {
+            "name": "Техник - Протезы",
+            "permissions": []
+          }
     }
 ]

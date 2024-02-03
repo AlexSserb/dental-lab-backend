@@ -28,7 +28,7 @@ class OrdersTest(TestCase):
         cls.user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
         cls.user.set_password(cls.password)
         cls.user.save()
-        cls.user.groups.add(Group.objects.filter(name="Director").first().id)
+        cls.user.groups.add(1)
 
     def setUp(self):
         response = self.client.post('/accounts/token/', data={'email': self.email, 'password': self.password})
