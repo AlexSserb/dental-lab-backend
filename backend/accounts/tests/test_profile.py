@@ -11,14 +11,14 @@ class ProfileTest(TestCase):
     """
         Integration tests for profile
     """
-    fixtures = ['./accounts/fixtures/test_data.json',]
+    fixtures: list[str] = ['./accounts/fixtures/test_data.json',]
 
-    email = 'alex@mail.com'
-    password = '12345678sa'
-    first_name = 'Alex'
-    last_name = 'Serb'
+    email: str = 'alex@mail.com'
+    password: str = '12345678sa'
+    first_name: str = 'Alex'
+    last_name: str = 'Serb'
 
-    URL = '/accounts'
+    URL: str = '/accounts'
 
     @classmethod
     def setUpTestData(cls):

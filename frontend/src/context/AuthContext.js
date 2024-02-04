@@ -102,17 +102,10 @@ export const AuthProvider = ({children}) => {
 	}
 
 	let userGroupToString = (group) => {
-		if (group) {
-			switch (group) {
-				case "Director":
-					return "директор";
-				case "Lab admin":
-					return "администратор лаборатории";
-				case "Chief tech":
-					return "главный техник";
-			}
+		if (group == "") {
+			return "Врач";
 		}
-		return "Врач";
+		return group;
 	}
 
 	let contextData = {

@@ -14,14 +14,14 @@ class OrdersTest(TestCase):
     """
         Integration tests for orders and products
     """
-    fixtures = ['./api/fixtures/groups_data.json', './api/fixtures/test_data_statuses.json',
+    fixtures: list[str] = ['./api/fixtures/groups_data.json', './api/fixtures/test_data_statuses.json',
         './api/fixtures/operation_and_product_types.json']
 
-    email = 'alex@mail.com'
-    password = '12345678sa'
-    first_name = 'Alex'
-    last_name = 'Serb'
-    URL = '/api'
+    email: str = 'alex@mail.com'
+    password: str = '12345678sa'
+    first_name: str = 'Alex'
+    last_name: str = 'Serb'
+    URL: str = '/api'
 
     @classmethod
     def setUpTestData(cls):

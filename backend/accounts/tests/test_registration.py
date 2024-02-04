@@ -9,7 +9,7 @@ class RegistrationTest(TestCase):
         Integration tests for registration
     """
 
-    URL = '/accounts'
+    URL: str = '/accounts'
 
     def test_registration_user_correct(self):
         registration_data = {

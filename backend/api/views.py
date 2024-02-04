@@ -99,3 +99,13 @@ def create_order(request):
         return Response(status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(responses=OperationSerializer)
+@api_view(['GET'])
+@permission_classes([IsTech | IsChiefTech])
+def get_operations_for_tech(request):
+    user = request.user
+    operations = Operation.objects.filter(tech=user)
+    serializer = OperationSerializer(operations, many=True)
+    return Response(serializer.data)

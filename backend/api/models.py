@@ -177,6 +177,7 @@ class Operation(models.Model):
     operation_type = models.ForeignKey(OperationType, related_name='operations', on_delete=models.CASCADE)
     operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
+    tech = models.ForeignKey(User, related_name='operations', null=True, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Операция"

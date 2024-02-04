@@ -12,6 +12,11 @@ class OperationTypeSerializer(serializers.ModelSerializer):
         model = OperationType
         fields = ['id', 'name', 'exec_time']
 
+class OperationStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperationStatus
+        fields = ['id', 'name']
+
 
 class ProductTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,3 +63,14 @@ class ProductFromUserSerializer(serializers.Serializer):
     
 class ManyProductsFromUserSerializer(serializers.Serializer):
     product_types = ProductFromUserSerializer(many=True)
+
+
+class OperationSerializer(serializers.ModelSerializer):
+    operation_type = OperationTypeSerializer(required=True)
+    operation_status = OperationStatusSerializer(required=True)
+    product = ProductSerializer()
+
+    class Meta:
+        model = Operation
+        fields = ['id', 'operation_type', 'operation_status', 'product']
+        
