@@ -13,7 +13,11 @@ The system is designed for a dental laboratory. The laboratory receives orders f
 
 There are 5 roles in the system:
 1. *Doctor*. The doctor can register in the system, place orders and view the progress of his orders.
-2. *Dental technician*. A dental technician can receive operations to perform and mark their statuses.
+2. *Dental technician*. A dental technician can receive operations to perform and mark their statuses. There are 4 departments according to which they perform different operations:
+   - *Modeling Department.*
+   - *CAD/CAM Department.*
+   - *Ceramics Department.*
+   - *Prosthetics Department.*
 3. *Chief dental technician*. The Chief technician can assign operations to technicians and view the progress of all work. Also, the chief technician can perform operations just like a regular technician.
 4. *Laboratory administrator*. The administrator can view the progress of work, place and adjust orders, and distribute operations to technicians.
 5. *Director*. The director has the same capabilities as the administrator, but he also has access to statistics on order fulfillment.
@@ -22,13 +26,13 @@ There are 5 roles in the system:
 ## Technologies
 * Backend:
   - Python 3.10
-  - Django 4
+  - Django 5
   - Django REST Framework
   - DRF-simplejwt
   - DRF-spectacular
 * Frontend:
   - JavaScript
-  - React
+  - React 18
   - Axios
   - Material UI and Bootstrap
   - JWT-decode
