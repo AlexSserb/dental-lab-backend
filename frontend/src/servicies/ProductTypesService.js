@@ -5,7 +5,7 @@ const API_URL = "api/product_types/";
 class ProductTypesService {
   getAll(accessToken) {
     return axios.get(API_URL, {
-      headers: { 'Authorization': 'Bearer ' + String(accessToken) }
+      headers: { "Authorization": "Bearer " + String(accessToken) }
     });
   }
 }

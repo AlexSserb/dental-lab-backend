@@ -37,16 +37,17 @@ class OperationsTest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
     def test_get_operations_for_tech_correct(self):
-        order = Order.objects.create(user=self.user, discount=0.05,
-            status=OrderStatus.objects.filter(name="At work").first())
-        product = Product.objects.create(product_status=ProductStatus.objects.filter(name='A defect was found').first(),
-            product_type=ProductType.objects.filter(name='Product type 2').first(), order=order, amount=2)
+        # region set test data
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(name="At work"))
+        product = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
 
-        operation_status = OperationStatus.objects.filter(name='At work').first()
+        operation_status = OperationStatus.objects.get(name='At work')
         operation1 = Operation.objects.create(product=product, tech=self.user, operation_status=operation_status,
-            operation_type=OperationType.objects.filter(name='Operation type 3').first())
+            operation_type=OperationType.objects.get(name='Operation type 3'))
         operation2 = Operation.objects.create(product=product, tech=self.user, operation_status=operation_status,
-            operation_type=OperationType.objects.filter(name='Operation type 2').first())
+            operation_type=OperationType.objects.get(name='Operation type 2'))
+        # endregion 
         
         response = self.client.get(self.URL + '/operations_for_tech/')
         resp: list = response.data
@@ -67,3 +68,53 @@ class OperationsTest(TestCase):
         response = client.get(self.URL + '/operations_for_tech/')
 
         self.assertEqual(response.status_code, 401)
+
+    def test_set_operation_status_correct(self):
+        # region set test data
+        order = Order.objects.create(user=self.user, discount=0, status=OrderStatus.objects.get(name="At work"))
+        product = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=1)
+
+        operation = Operation.objects.create(product=product, tech=self.user, 
+            operation_status=OperationStatus.objects.get(name='At work'),
+            operation_type=OperationType.objects.get(name='Operation type 3'))
+        # endregion
+        
+        response = self.client.patch(self.URL + f'/operation/{operation.id}/', 
+            data={'status_id': 'efee01cc-e81b-4936-8580-33e778ae0f67'}, follow=True)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['operation_type']['name'], 'Operation type 3')
+        self.assertEqual(response.data['operation_status']['name'], 'Ready')
+        
+    def test_set_operation_status_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.patch(self.URL + f'/operation/1/', data={"status_id": 123}, follow=True)
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_set_operation_status_incorrect_operation_id(self):
+        incorrect_id = 'efee01cc-e81b-4936-8580-33e778ae0f67'
+
+        response = self.client.patch(self.URL + f'/operation/{incorrect_id}/', 
+            data={'status_id': 'efee01cc-e81b-4936-8580-33e778ae0f67'}, follow=True)
+        
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_all_operation_statuses_correct(self):
+        response = self.client.get(self.URL + '/operation_statuses/')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(set(st['name'] for st in response.data), set((
+            'The work has not started', 'At work', 'Ready'
+        )))
+        
+    def test_get_all_operation_statuses_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.get(self.URL + '/operation_statuses/')
+
+        self.assertEqual(response.status_code, 401)
+        

@@ -3,7 +3,7 @@ from .permissions import *
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from django.views.generic.list import ListView
+from rest_framework.generics import ListAPIView
 from django.utils import timezone
 
 from rest_framework import status
@@ -29,7 +29,7 @@ class OperationTypeList(APIView):
 
 class OperationTypeDetail(APIView):
     """
-    Retrieve, update or delete an operation type instance.
+        Retrieve, update or delete an operation type instance.
     """
     permission_classes = [IsDirector | IsLabAdmin | IsChiefTech]
     serializer_class = OperationTypeSerializer
@@ -106,6 +106,52 @@ def create_order(request):
 @permission_classes([IsTech | IsChiefTech])
 def get_operations_for_tech(request):
     user = request.user
-    operations = Operation.objects.filter(tech=user)
+    operations = Operation.objects.filter(tech=user).order_by('id')
     serializer = OperationSerializer(operations, many=True)
     return Response(serializer.data)
+
+
+class OperationDetail(APIView):
+    """
+        Retrieve, update or delete an operation instance.
+    """
+    permission_classes = [IsTech | IsChiefTech]
+    serializer_class = OperationSerializer
+
+    def get_object(self, pk):
+        try:
+            return Operation.objects.get(pk=pk)
+        except Operation.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        operation = self.get_object(pk)
+        serializer = self.serializer_class(operation)
+        return Response(serializer.data)
+
+    @extend_schema(request=UpdateOperationStatusSerializer)
+    def patch(self, request, pk, format=None):
+        """
+            Allows only the status of an operation to be changed via the status_id field
+        """
+        serializer = UpdateOperationStatusSerializer(data=request.data)
+        if serializer.is_valid():
+            operation = Operation.objects.filter(id=pk).first()
+            operation_status = OperationStatus.objects.filter(id=serializer.validated_data['status_id']).first()
+            if not operation or not operation_status:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            operation.operation_status = operation_status
+            operation.save()
+            return Response(self.serializer_class(operation).data)
+        return Response(serializer.errors)
+
+    def delete(self, request, pk, format=None):
+        operation = self.get_object(pk)
+        operation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class OperationStatusesList(ListAPIView):
+    queryset = OperationStatus.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = OperationStatusSerializer

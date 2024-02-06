@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import {
-	Typography,
-	Box, Stack, Grid, Paper,
+	Typography, Button,
+	Box, Stack, Grid,
 	Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -10,13 +10,21 @@ import { useNavigate } from "react-router-dom";
 import ToothMarks from "./ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
+import ModalSetOperStatus from './ModalSetOperStatus';
 
 
 const AssignedOperations = () => {
-	let { authTokens } = useContext(AuthContext);
+	let {authTokens} = useContext(AuthContext);
 	let [operations, setOperations] = useState([]);
+	let [operationStatuses, setOperationStatuses] = useState([]);
 
 	const navigate = useNavigate();
+
+	const loadOperations = () => {
+		operationService.getForTech(authTokens?.access)
+			.then(res => setOperations(res.data))
+			.catch(err => console.log(err));
+	}
 
 	useEffect(() => {
 		if (!authTokens || !authTokens.access) {
@@ -24,8 +32,13 @@ const AssignedOperations = () => {
 			return;
 		}
 
-		operationService.getForTech(authTokens?.access)
-			.then(res => { setOperations(res.data); console.log(res.data); })
+		loadOperations();
+
+		operationService.getOperationStatuses(authTokens.access)
+			.then(res => {
+				let operations = res.data.map(oper => { return { key: oper.id, value: oper.name } });
+				setOperationStatuses(operations);
+			})
 			.catch(err => console.log(err));
 	}, [])
 
@@ -55,6 +68,7 @@ const AssignedOperations = () => {
 							<Typography>Количество: {oper.product.amount}</Typography>
 						</Grid>
 						<Grid item>
+							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} loadOperations={loadOperations}/>
 							<Typography>Формула для изделия</Typography>
 							<ToothMarks teethList={oper.product.teeth.map(tooth => tooth.tooth_number)} />
 						</Grid>

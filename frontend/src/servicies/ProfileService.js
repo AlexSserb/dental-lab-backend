@@ -7,7 +7,7 @@ class ProfileService {
   getProfileData(accessToken) {
     return axios.get(API_URL + 'profile/', {
       headers: {
-        'Authorization': 'Bearer ' + String(accessToken)
+        "Authorization": "Bearer " + String(accessToken)
       }
     });
   }

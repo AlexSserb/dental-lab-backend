@@ -22,7 +22,7 @@ class RegistrationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        user = User.objects.filter(email=registration_data['email']).first()
+        user = User.objects.get(email=registration_data['email'])
 
         # Checking that the user has been found
         self.assertTrue(user)

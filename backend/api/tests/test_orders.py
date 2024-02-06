@@ -38,7 +38,7 @@ class OrdersTest(TestCase):
 
     def test_get_orders_correct(self):
         order = Order.objects.create(user=self.user, discount=0.05,
-            status=OrderStatus.objects.filter(name="At work").first())
+            status=OrderStatus.objects.get(name="At work"))
         
         response = self.client.get(self.URL + '/orders/')
 
@@ -58,12 +58,12 @@ class OrdersTest(TestCase):
 
     def test_get_products_for_order_correct(self):
         order = Order.objects.create(user=self.user, discount=0.05,
-            status=OrderStatus.objects.filter(name='At work').first())
+            status=OrderStatus.objects.get(name='At work'))
 
-        product1 = Product.objects.create(product_status=ProductStatus.objects.filter(name='A defect was found').first(),
-            product_type=ProductType.objects.filter(name='Product type 2').first(), order=order, amount=2)
-        product2 = Product.objects.create(product_status=ProductStatus.objects.filter(name='Ready').first(),
-            product_type=ProductType.objects.filter(name='Product type 1').first(), order=order, amount=1)
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(name='Ready'),
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=1)
 
         tooth1 = Tooth.objects.create(product=product1, tooth_number=13)
         tooth2 = Tooth.objects.create(product=product1, tooth_number=12)

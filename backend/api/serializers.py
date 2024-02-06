@@ -73,4 +73,6 @@ class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
         fields = ['id', 'operation_type', 'operation_status', 'product']
-        
+
+class UpdateOperationStatusSerializer(serializers.Serializer):
+    status_id = serializers.UUIDField(required=True)
