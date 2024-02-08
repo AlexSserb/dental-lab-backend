@@ -54,29 +54,38 @@ There are 5 roles in the system:
 ```commandline
 git clone https://github.com/AlexSserb/dental-lab.git
 ```
-2. Create PostgreSQL database using PgAdmin or DBeaver with name "DentalLabDB" and port 5432.
+2. Create and configure the database.
+
+    2.1. Ensure your PostgreSQL server is running.
+
+    2.2. Create a database with your user as the owner.
+
+    2.3. In the `backend` folder copy `.env.example` file as `.env` and update with the following fields with your database credentials:
+    ```
+    DATABASE_NAME=DatabaseName
+    DATABASE_USER=DatabaseUser
+    DATABASE_PASSWORD=DatabasePassword
+    SECRET_KEY=your_secret_key
+    ```
 
 3. Run backend part.
 
-3.1. Create and activate virtual environment:
-```commandline
-cd dental-lab\backend
-python -m venv venv 
-venv\\Scripts\\activate
-```
-3.2. Install requirements:
-```commandline
-pip install -r requirements.txt 
-```
-3.3. Create and run migrations:
-```commandline
-python manage.py makemigrations
-python manage.py migrate
-```
-3.4. Load all fixtures:
-```commandline
-python manage.py loaddata groups_data.json
-```
+    3.1. Create and activate virtual environment:
+    ```commandline
+    cd dental-lab\backend
+    python -m venv venv 
+    venv\\Scripts\\activate
+    ```
+    3.2. Install requirements:
+    ```commandline
+    pip install -r requirements.txt 
+    ```
+    3.3. Create migrations and load fixtures:
+    ```commandline
+    python manage.py makemigrations accounts api
+    python manage.py migrate
+    python manage.py loaddata groups_data.json
+    ```
 
 4. Run frontend part.
 ```commandline
