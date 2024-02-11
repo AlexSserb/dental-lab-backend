@@ -30,7 +30,8 @@
         "pk": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
         "fields": {
             "name": "Product type 1",
-            "operation_types": ["842cb14e-a654-4081-8334-b87917a62040", "61e5d3e3-f999-4fd6-be1a-778cc1ce3332"]
+            "operation_types": ["842cb14e-a654-4081-8334-b87917a62040", "61e5d3e3-f999-4fd6-be1a-778cc1ce3332"],
+            "cost": "20400.70"
         }
     },
     {
@@ -38,7 +39,8 @@
         "pk": "6622d6e9-b655-4894-acab-885bf17fa6a7",
         "fields": {
             "name": "Product type 2",
-            "operation_types": ["61e5d3e3-f999-4fd6-be1a-778cc1ce3332", "b44d904a-9e53-417a-ba1c-9047e302d6a8"]
+            "operation_types": ["61e5d3e3-f999-4fd6-be1a-778cc1ce3332", "b44d904a-9e53-417a-ba1c-9047e302d6a8"],
+            "cost": "26400.40"
         }
     }
 ]

@@ -55,7 +55,7 @@ const LoginPage = () => {
                   {message}
                 </div>
               </div>
-            )}<br/>
+            )}
             <p><Link to="/registration">Зарегистрироваться</Link></p>
             <Button variant="contained" type="submit" sx={{ padding: 2 }}>
               Войти

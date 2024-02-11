@@ -21,7 +21,7 @@ class OperationStatusSerializer(serializers.ModelSerializer):
 class ProductTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductType
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'cost']
 
 class ProductStatusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -37,10 +37,14 @@ class ProductSerializer(serializers.ModelSerializer):
     product_type = ProductTypeSerializer(read_only=True)
     product_status = ProductStatusSerializer(read_only=True)
     teeth = ToothSerializer(many=True)
+    cost = serializers.SerializerMethodField('get_cost')
 
     class Meta:
         model = Product
-        fields = ['id', 'product_type', 'product_status', 'amount', 'teeth']
+        fields = ['id', 'product_type', 'product_status', 'discount', 'amount', 'cost', 'teeth']
+
+    def get_cost(self, obj):
+        return obj.get_cost()
 
 
 class OrderStatusSerializer(serializers.ModelSerializer):
@@ -50,10 +54,14 @@ class OrderStatusSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     status = OrderStatusSerializer(read_only=True)
+    cost = serializers.SerializerMethodField('get_cost')
 
     class Meta:
         model = Order
-        fields = ['id', 'status', 'order_date', 'discount']
+        fields = ['id', 'status', 'order_date', 'discount', 'cost']
+
+    def get_cost(self, obj):
+        return obj.get_cost()
 
 
 class ProductFromUserSerializer(serializers.Serializer):

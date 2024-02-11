@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext } from 'react';
 import InfoIcon from '@mui/icons-material/Info';
-import { 
-  Box, 
-  Typography, 
-  Grid, 
-  TextField, 
-  Stack, 
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import {
+  Typography,
+  Grid, Stack, Box,
+  TextField,
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   Button,
-  Paper
+  Paper,
+  Popper, Fade
 } from '@mui/material';
+import PopupState, { bindToggle, bindPopper } from 'material-ui-popup-state';
+
 import AuthContext from '../context/AuthContext';
 import orderService from '../servicies/OrderService';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +21,10 @@ import ToothMarks from './ToothMarks';
 
 const PhysicianOrderList = () => {
   const { authTokens, userGroupToString } = useContext(AuthContext);
-  const [ userGroup, setUserGroup ] = useState(userGroupToString());
-  const [ orders, setOrders ] = useState([]);
-  const [ products, setProducts ] = useState([]);
-  const [ currOrder, setCurrOrder ] = useState({});
+  const [userGroup, setUserGroup] = useState(userGroupToString());
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [currOrder, setCurrOrder] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +36,10 @@ const PhysicianOrderList = () => {
       orderService.getOrdersForUser(authTokens.access)
         .then(res => {
           setOrders(res.data);
+          if (res.data.length > 0) {
+            setCurrOrder(res.data[0]);
+            getOrderInfo(res.data[0]);
+          }
         })
         .catch(err => {
           console.log(err);
@@ -60,9 +66,9 @@ const PhysicianOrderList = () => {
     return orders.map((order) => (
       <TableRow key={order.id}>
         <TableCell>{i++}</TableCell>
-        <TableCell sx={{textWrap: "nowrap"}}>{order.order_date}</TableCell>
+        <TableCell sx={{ textWrap: "nowrap" }}>{order.order_date}</TableCell>
         <TableCell>{order.status.name}</TableCell>
-        <TableCell sx={{textAlign: "center"}}>
+        <TableCell sx={{ textAlign: "center" }}>
           <Button onClick={() => getOrderInfo(order)}>
             <InfoIcon />
           </Button>
@@ -73,13 +79,40 @@ const PhysicianOrderList = () => {
 
   const renderProducts = () => {
     let i = 1;
+    console.log(products);
     return products.map(product => (
       <TableRow key={product.id}>
         <TableCell>{i++}</TableCell>
         <TableCell>{product.product_type.name}</TableCell>
         <TableCell>{product.product_status.name}</TableCell>
         <TableCell>{product.amount}</TableCell>
-        <TableCell><ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)} /></TableCell>
+        <TableCell>{product.product_type.cost.toFixed(2)}</TableCell>
+        <TableCell>{product.discount * 100}%</TableCell>
+        <TableCell>{product.cost.toFixed(2)}</TableCell>
+        <TableCell>
+          <PopupState variant="popper" popupId="demo-popup-popper">
+            {(popupState) => (
+              <div>
+                <Button variant="contained" {...bindToggle(popupState)}>
+                  <VisibilityIcon />
+                </Button>
+                <Popper {...bindPopper(popupState)} transition
+                  placement={'bottom-end'}
+                >
+                  {({ TransitionProps }) => (
+                    <Fade {...TransitionProps} timeout={350}>
+                      <Paper>
+                        <Typography sx={{ p: 1 }}>
+                          <ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)} />
+                        </Typography>
+                      </Paper>
+                    </Fade>
+                  )}
+                </Popper>
+              </div>
+            )}
+          </PopupState>
+        </TableCell>
       </TableRow>
     ));
   }
@@ -96,22 +129,28 @@ const PhysicianOrderList = () => {
         </Button>
         {
           orders.length > 0 ?
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>№</TableCell>
-                  <TableCell>Дата</TableCell>
-                  <TableCell>Статус</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {renderOrders()}
-              </TableBody>
-            </Table>
+            <TableContainer component={Paper} sx={{ margin: 2, padding: 2 }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>№</TableCell>
+                    <TableCell>Дата</TableCell>
+                    <TableCell>Статус</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {renderOrders()}
+                </TableBody>
+              </Table>
             </TableContainer>
-            : <div className="mt-3">Нет заказов</div>
+            : <Typography component={Paper} sx={{
+              margin: 2,
+              padding: 2,
+              textAlign: 'center'
+            }}>
+              Нет заказов
+            </Typography>
         }
       </Grid>
       <Grid item xs={8}>
@@ -122,7 +161,7 @@ const PhysicianOrderList = () => {
           padding: 3,
           marginTop: 5,
         }}>
-          <Typography textAlign={"center"} variant="h4" component="h4">
+          <Typography textAlign={"center"} variant="h4" component="h4" sx={{ marginBottom: 2 }}>
             Информация о заказе
           </Typography>
           <Box>
@@ -136,7 +175,10 @@ const PhysicianOrderList = () => {
                           <TableCell>№</TableCell>
                           <TableCell>Тип изделия</TableCell>
                           <TableCell>Статус</TableCell>
-                          <TableCell style={{ width: "8%" }}>Кол-во</TableCell>
+                          <TableCell sx={{ width: "10%" }}>Кол-во</TableCell>
+                          <TableCell>Цена</TableCell>
+                          <TableCell>Скидка</TableCell>
+                          <TableCell>Сумма</TableCell>
                           <TableCell>Отметки</TableCell>
                         </TableRow>
                       </TableHead>
@@ -148,28 +190,50 @@ const PhysicianOrderList = () => {
                   : <p for="products">Изделия для заказа</p>
               }
               <TextField
-                InputProps={{
-                  readOnly: true,
-                }}
-                InputLabelProps={{ shrink: currOrder?.status?.name }}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
                 label="Статус"
                 variant="outlined"
                 value={currOrder?.status?.name}
               />
+              <Grid sx={{
+                display: "flex",
+                direction: "row",
+              }}>
+                {
+                  currOrder?.discount !== 0 ?
+                    <>
+                      <TextField item
+                        sx={{ width: "100%"}}
+                        InputProps={{ readOnly: true }}
+                        InputLabelProps={{ shrink: true }}
+                        label="Сумма заказа (руб)"
+                        variant="outlined"
+                        value={currOrder?.cost?.toFixed(2)}
+                      />
+                      <TextField item
+                        sx={{ width: "100%", marginX: 2 }}
+                        InputProps={{ readOnly: true }}
+                        InputLabelProps={{ shrink: true }}
+                        label="Скидка"
+                        variant="outlined"
+                        value={currOrder?.discount * 100 + "%"}
+                      />
+                    </>
+                    : <></>
+                }
+                <TextField item
+                  sx={{ width: "100%"}}
+                  InputProps={{ readOnly: true }}
+                  InputLabelProps={{ shrink: true }}
+                  label="Итоговая сумма заказа (руб)"
+                  variant="outlined"
+                  value={currOrder?.cost?.toFixed(2)}
+                />
+              </Grid>
               <TextField
-                InputProps={{
-                  readOnly: true,
-                }}
-                InputLabelProps={{ shrink: "TODO" }}
-                label="Стоимость заказа"
-                variant="outlined"
-                value="TODO"
-              />
-              <TextField
-                InputProps={{
-                  readOnly: true,
-                }}
-                InputLabelProps={{ shrink: currOrder?.order_date }}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
                 label="Дата"
                 variant="outlined"
                 value={currOrder?.order_date}

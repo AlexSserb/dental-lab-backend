@@ -3,9 +3,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 
 import uuid 
+from decimal import Decimal, getcontext
 
 
 User = get_user_model()
+
+DECIMAL_PRECISION = 9
+getcontext().prec = DECIMAL_PRECISION
 
 
 # Справочник видов операций
@@ -41,6 +45,7 @@ class ProductType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
     operation_types = models.ManyToManyField(OperationType, related_name='product_types')
+    cost = models.DecimalField(max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0)
 
     class Meta:
         verbose_name = "Тип изделия"
@@ -110,7 +115,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
     status = models.ForeignKey(OrderStatus, related_name='orders', on_delete=models.CASCADE)
     order_date = models.DateField(auto_now=True)
-    discount = models.DecimalField(max_digits=3, decimal_places=2)
+    discount = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
 
     class Meta:
         verbose_name = "Заказ"
@@ -118,6 +123,11 @@ class Order(models.Model):
 
     def __str__(self):
         return f'Заказ для {self.user.last_name} {self.user.first_name}, дата создания: {self.order_date}'
+
+    def get_cost(self) -> float:
+        products = Product.objects.filter(order=self).all()
+        cost = sum((product.get_cost() for product in products))
+        return round(cost * Decimal((1 - self.discount)), 2)
 
 
 # Изделия
@@ -127,6 +137,7 @@ class Product(models.Model):
     product_status = models.ForeignKey(ProductStatus, related_name='products', on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE)
     amount = models.IntegerField(default=1)
+    discount = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
 
     class Meta:
         verbose_name = "Изделие"
@@ -156,6 +167,9 @@ class Product(models.Model):
                     Tooth.objects.create(product=product, tooth_number=tooth)
             else:
                 print('Переданы некорректные данные об изделиях.')
+
+    def get_cost(self):
+        return round(self.product_type.cost * self.amount * (1 - self.discount), 2)
 
 
 class Tooth(models.Model):

@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.core.serializers import serialize
 from datetime import datetime
 from uuid import uuid4
+from decimal import Decimal
 
 from accounts.models import User
 from api.models import *
@@ -47,7 +48,7 @@ class OrdersTest(TestCase):
         response_order = response.data[0]
         self.assertEqual(response_order['status']['name'], 'At work')
         self.assertEqual(response_order['order_date'], datetime.now().strftime('%Y-%m-%d'))
-        self.assertEqual(response_order['discount'], '0.05')
+        self.assertEqual(response_order['discount'], Decimal('0.05'))
         
     def test_get_orders_incorrect_token(self):
         client = APIClient()
@@ -138,3 +139,22 @@ class OrdersTest(TestCase):
         response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
 
         self.assertEqual(response.status_code, 400)
+
+    def test_order_get_cost(self):
+        order = Order.objects.create(user=self.user, status=OrderStatus.objects.get(name='At work'))
+
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(name='Ready'),
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
+        
+        self.assertEqual(order.get_cost(), Decimal('154804.30'))
+
+        order.discount = 0.09
+        self.assertEqual(order.get_cost(), Decimal('140871.91'))
+
+        product1.discount = 0.01
+        product1.save()
+        product2.discount = 0.03
+        product2.save()
+        self.assertEqual(order.get_cost(), Decimal('137606.73'))

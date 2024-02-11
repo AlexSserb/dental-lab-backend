@@ -84,7 +84,7 @@ git clone https://github.com/AlexSserb/dental-lab.git
     ```commandline
     python manage.py makemigrations accounts api
     python manage.py migrate
-    python manage.py loaddata groups_data.json
+    python manage.py loaddata groups_data.json statuses.json
     ```
 
 4. Run frontend part.

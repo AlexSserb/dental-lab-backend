@@ -18,7 +18,7 @@ class ProductTypeAdmin(admin.ModelAdmin):
         OperationTypeProductTypeInline,
     )
     fieldsets = (
-        (None, { 'fields': ('name',), }),
+        (None, { 'fields': ('name', 'cost'), }),
     )
 
 
