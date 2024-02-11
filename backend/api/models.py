@@ -127,6 +127,10 @@ class Order(models.Model):
     def get_cost(self) -> float:
         products = Product.objects.filter(order=self).all()
         cost = sum((product.get_cost() for product in products))
+        return round(cost, 2)
+
+    def get_cost_with_discount(self) -> float:
+        cost = self.get_cost()
         return round(cost * Decimal((1 - self.discount)), 2)
 
 

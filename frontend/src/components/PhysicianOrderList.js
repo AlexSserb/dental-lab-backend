@@ -228,7 +228,7 @@ const PhysicianOrderList = () => {
                   InputLabelProps={{ shrink: true }}
                   label="Итоговая сумма заказа (руб)"
                   variant="outlined"
-                  value={currOrder?.cost?.toFixed(2)}
+                  value={(currOrder?.cost * (1 - currOrder?.discount)).toFixed(2)}
                 />
               </Grid>
               <TextField

@@ -147,14 +147,13 @@ class OrdersTest(TestCase):
             product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
         product2 = Product.objects.create(product_status=ProductStatus.objects.get(name='Ready'),
             product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
-        
-        self.assertEqual(order.get_cost(), Decimal('154804.30'))
 
         order.discount = 0.09
-        self.assertEqual(order.get_cost(), Decimal('140871.91'))
+        self.assertEqual(order.get_cost(), Decimal('154804.30'))
+        self.assertEqual(order.get_cost_with_discount(), Decimal('140871.91'))
 
         product1.discount = 0.01
         product1.save()
         product2.discount = 0.03
         product2.save()
-        self.assertEqual(order.get_cost(), Decimal('137606.73'))
+        self.assertEqual(order.get_cost_with_discount(), Decimal('137606.73'))
