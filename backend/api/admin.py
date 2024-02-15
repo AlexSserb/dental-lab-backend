@@ -7,6 +7,7 @@ from .models import *
 
 admin.site.register(OperationType)
 
+
 class OperationTypeProductTypeInline(admin.TabularInline):
     verbose_name = 'операция для выполнения изделия'
     verbose_name_plural = 'операции для выполнения изделия'
@@ -21,13 +22,28 @@ class ProductTypeAdmin(admin.ModelAdmin):
         (None, { 'fields': ('name', 'cost'), }),
     )
 
-
 admin.site.register(ProductType, ProductTypeAdmin)
 
 admin.site.register(OperationStatus)
 admin.site.register(ProductStatus)
 admin.site.register(OrderStatus)
-admin.site.register(Order)
-admin.site.register(Product)
+
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['user', 'status', 'order_date', 'discount']
+
+admin.site.register(Order, OrderAdmin)
+
+
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['product_type', 'product_status', 'order', 'amount']
+
+admin.site.register(Product, ProductAdmin)
+
 admin.site.register(Tooth)
-admin.site.register(Operation)
+
+
+class OperationAdmin(admin.ModelAdmin):
+    list_display = ['operation_type', 'operation_status', 'product', 'tech']
+
+admin.site.register(Operation, OperationAdmin)

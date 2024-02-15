@@ -1,11 +1,4 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
-from django.urls import reverse
-from django.contrib.auth.models import Group
-from django.core.serializers import serialize
-from datetime import datetime
-from uuid import uuid4
-from decimal import Decimal
 
 from accounts.models import User
 from api.models import *
@@ -39,7 +32,7 @@ class TriggersTest(TestCase):
         order_history = OrderEvent.objects.filter(pgh_obj_id=self.order.id).all()
 
         self.assertEqual(len(order_history), 1)
-        self.assertEqual(order_history[0].get_order_status().name, 'Sent for registration')
+        self.assertEqual(order_history[0].status.name, 'Sent for registration')
 
         # Change status
         self.order.status = OrderStatus.objects.get(number=3)
@@ -48,13 +41,13 @@ class TriggersTest(TestCase):
         # The order history changes due to a change in the order status
         order_history = OrderEvent.objects.filter(pgh_obj_id=self.order.id).order_by('pgh_created_at').all()
         self.assertEqual(len(order_history), 2)
-        self.assertEqual(order_history[1].get_order_status().name, 'At work')
+        self.assertEqual(order_history[1].status.name, 'At work')
 
     def test_product_history_trigger(self):
         product_history = ProductEvent.objects.filter(pgh_obj_id=self.product.id).all()
 
         self.assertEqual(len(product_history), 1)
-        self.assertEqual(product_history[0].get_product_status().name, 'Under consideration')
+        self.assertEqual(product_history[0].product_status.name, 'Under consideration')
 
         # Change status
         self.product.product_status = ProductStatus.objects.get(number=3)
@@ -63,13 +56,13 @@ class TriggersTest(TestCase):
         # The order history changes due to a change in the order status
         product_history = ProductEvent.objects.filter(pgh_obj_id=self.product.id).order_by('pgh_created_at').all()
         self.assertEqual(len(product_history), 2)
-        self.assertEqual(product_history[1].get_product_status().name, 'A defect was found')
+        self.assertEqual(product_history[1].product_status.name, 'A defect was found')
 
     def test_operation_history_trigger(self):
         operation_history = OperationEvent.objects.filter(pgh_obj_id=self.operation.id).all()
 
         self.assertEqual(len(operation_history), 1)
-        self.assertEqual(operation_history[0].get_operation_status().name, 'The work has not started')
+        self.assertEqual(operation_history[0].operation_status.name, 'The work has not started')
 
         # Change status
         self.operation.operation_status = OperationStatus.objects.get(number=2)
@@ -78,5 +71,5 @@ class TriggersTest(TestCase):
         # The order history changes due to a change in the order status
         operation_history = OperationEvent.objects.filter(pgh_obj_id=self.operation.id).order_by('pgh_created_at').all()
         self.assertEqual(len(operation_history), 2)
-        self.assertEqual(operation_history[1].get_operation_status().name, 'At work')
+        self.assertEqual(operation_history[1].operation_status.name, 'At work')
         

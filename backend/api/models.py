@@ -146,8 +146,8 @@ class Order(models.Model):
 # История изменения статусов заказов
 BaseOrderEvent = pghistory.create_event_model(Order, fields=['status'])
 class OrderEvent(BaseOrderEvent):
-    def get_order_status(self) -> OrderStatus:
-        return OrderStatus.objects.get(id=self.status_id)
+    status = models.ForeignKey(OrderStatus, related_name='history', on_delete=models.CASCADE)
+    pgh_obj = models.ForeignKey(Order, related_name='history', on_delete=models.CASCADE)
 
 
 # Изделия
@@ -195,8 +195,8 @@ class Product(models.Model):
 # История изменения статусов изделий
 BaseProductEvent = pghistory.create_event_model(Product, fields=['product_status'])
 class ProductEvent(BaseProductEvent):
-    def get_product_status(self) -> ProductStatus:
-        return ProductStatus.objects.get(id=self.product_status_id)
+    product_status = models.ForeignKey(ProductStatus, related_name='history', on_delete=models.CASCADE)
+    pgh_obj = models.ForeignKey(Product, related_name='history', on_delete=models.CASCADE)
 
 
 # Отметка для зуба
@@ -232,5 +232,5 @@ class Operation(models.Model):
 # История изменения статусов операций
 BaseOperationEvent = pghistory.create_event_model(Operation, fields=['operation_status'])
 class OperationEvent(BaseOperationEvent):
-    def get_operation_status(self) -> OperationStatus:
-        return OperationStatus.objects.get(id=self.operation_status_id)
+    operation_status = models.ForeignKey(OperationStatus, related_name='history', on_delete=models.CASCADE)
+    pgh_obj = models.ForeignKey(Operation, related_name='history', on_delete=models.CASCADE)
