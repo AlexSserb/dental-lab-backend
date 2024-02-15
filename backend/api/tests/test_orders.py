@@ -39,7 +39,7 @@ class OrdersTest(TestCase):
 
     def test_get_orders_correct(self):
         order = Order.objects.create(user=self.user, discount=0.05,
-            status=OrderStatus.objects.get(name="At work"))
+            status=OrderStatus.objects.get(number=3))
         
         response = self.client.get(self.URL + '/orders/')
 
@@ -59,11 +59,11 @@ class OrdersTest(TestCase):
 
     def test_get_products_for_order_correct(self):
         order = Order.objects.create(user=self.user, discount=0.05,
-            status=OrderStatus.objects.get(name='At work'))
+            status=OrderStatus.objects.get(number=3))
 
-        product1 = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
             product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
-        product2 = Product.objects.create(product_status=ProductStatus.objects.get(name='Ready'),
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=4),
             product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=1)
 
         tooth1 = Tooth.objects.create(product=product1, tooth_number=13)
@@ -107,8 +107,16 @@ class OrdersTest(TestCase):
         self.assertEqual(orders[0].discount, 0)
         self.assertEqual(orders[0].status.name, OrderStatus.get_default_status().name)
 
-		# Check that products created correctly
         products = orders[0].products.all()
+        product1, product2 = self.check_products_created_correctly(products)
+		
+        # Check teeth marks created correctly
+        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product1))
+        self.assertEqual(teeth_nums, set((11, 12, 22, 31)))
+        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product2))
+        self.assertEqual(teeth_nums, set((45, 46)))
+
+    def check_products_created_correctly(self, products: list[Product]) -> tuple:
         self.assertEqual(len(products), 2)
         product1, product2 = (products[0], products[1]) if \
             products[0].amount == 4 else (products[1], products[0])
@@ -117,11 +125,7 @@ class OrdersTest(TestCase):
         self.assertEqual(product2.amount, 2)
         self.assertEqual(product1.product_status.name, ProductStatus.get_default_status().name)
         self.assertEqual(product1.product_status.name, product2.product_status.name)
-		
-        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product1))
-        self.assertEqual(teeth_nums, set((11, 12, 22, 31)))
-        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product2))
-        self.assertEqual(teeth_nums, set((45, 46)))
+        return product1, product2
         
     def test_create_order_incorrect_token(self):
         client = APIClient()
@@ -141,11 +145,11 @@ class OrdersTest(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_order_get_cost(self):
-        order = Order.objects.create(user=self.user, status=OrderStatus.objects.get(name='At work'))
+        order = Order.objects.create(user=self.user, status=OrderStatus.objects.get(number=3))
 
-        product1 = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
             product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
-        product2 = Product.objects.create(product_status=ProductStatus.objects.get(name='Ready'),
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=4),
             product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
 
         order.discount = 0.09

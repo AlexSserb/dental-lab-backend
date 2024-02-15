@@ -14,8 +14,11 @@ class OperationsTest(TestCase):
     """
         Integration tests for operations and dental technicians
     """
-    fixtures: list[str] = ['./api/fixtures/groups_data.json', './api/fixtures/test_data_statuses.json',
-        './api/fixtures/operation_and_product_types.json']
+    fixtures: list[str] = [
+        './api/fixtures/groups_data.json', 
+        './api/fixtures/test_data_statuses.json',
+        './api/fixtures/operation_and_product_types.json'
+    ]
 
     email: str = 'alex@mail.com'
     password: str = '12345678sa'
@@ -38,11 +41,11 @@ class OperationsTest(TestCase):
 
     def test_get_operations_for_tech_correct(self):
         # region set test data
-        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(name="At work"))
-        product = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3))
+        product = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
             product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
 
-        operation_status = OperationStatus.objects.get(name='At work')
+        operation_status = OperationStatus.objects.get(number=2)
         operation1 = Operation.objects.create(product=product, tech=self.user, operation_status=operation_status,
             operation_type=OperationType.objects.get(name='Operation type 3'))
         operation2 = Operation.objects.create(product=product, tech=self.user, operation_status=operation_status,
@@ -71,12 +74,12 @@ class OperationsTest(TestCase):
 
     def test_set_operation_status_correct(self):
         # region set test data
-        order = Order.objects.create(user=self.user, discount=0, status=OrderStatus.objects.get(name="At work"))
-        product = Product.objects.create(product_status=ProductStatus.objects.get(name='A defect was found'),
+        order = Order.objects.create(user=self.user, discount=0, status=OrderStatus.objects.get(number=3))
+        product = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
             product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=1)
 
         operation = Operation.objects.create(product=product, tech=self.user, 
-            operation_status=OperationStatus.objects.get(name='At work'),
+            operation_status=OperationStatus.objects.get(number=2),
             operation_type=OperationType.objects.get(name='Operation type 3'))
         # endregion
         

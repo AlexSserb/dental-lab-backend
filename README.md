@@ -30,6 +30,7 @@ There are 5 roles in the system:
   - Django REST Framework
   - DRF-simplejwt
   - DRF-spectacular
+  - django-pgtrigger, django-pghistory
 * Frontend:
   - JavaScript
   - React 18

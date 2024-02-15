@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 import uuid 
 from decimal import Decimal, getcontext
+import pghistory
 
 
 User = get_user_model()
@@ -58,6 +59,7 @@ class ProductType(models.Model):
 # Статусы операций
 class OperationStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -67,10 +69,18 @@ class OperationStatus(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+    @staticmethod
+    def get_default_status():
+        status = OperationStatus.objects.filter(number=1).first()
+        if not status:
+            status = OperationStatus.objects.create(name='Default status', number=1)
+        return status
+
 
 # Статусы операций
 class ProductStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -82,15 +92,15 @@ class ProductStatus(models.Model):
 
     @staticmethod
     def get_default_status():
-        status_name = 'Отправлено для формирования заказа'
-        status = ProductStatus.objects.filter(name=status_name).first()
+        status = ProductStatus.objects.filter(number=1).first()
         if not status:
-            status = ProductStatus.objects.create(name=status_name)
+            status = ProductStatus.objects.create(name='Default status', number=1)
         return status
 
 
 class OrderStatus(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -102,10 +112,9 @@ class OrderStatus(models.Model):
 
     @staticmethod
     def get_default_status():
-        status_name = 'Отправлено для формирования заказа'
-        status = OrderStatus.objects.filter(name=status_name).first()
+        status = OrderStatus.objects.filter(number=1).first()
         if not status:
-            status = OrderStatus.objects.create(name=status_name)
+            status = OrderStatus.objects.create(name='Default status', number=1)
         return status
 
 
@@ -132,6 +141,13 @@ class Order(models.Model):
     def get_cost_with_discount(self) -> float:
         cost = self.get_cost()
         return round(cost * Decimal((1 - self.discount)), 2)
+
+    
+# История изменения статусов заказов
+BaseOrderEvent = pghistory.create_event_model(Order, fields=['status'])
+class OrderEvent(BaseOrderEvent):
+    def get_order_status(self) -> OrderStatus:
+        return OrderStatus.objects.get(id=self.status_id)
 
 
 # Изделия
@@ -176,6 +192,14 @@ class Product(models.Model):
         return round(self.product_type.cost * self.amount * (1 - self.discount), 2)
 
 
+# История изменения статусов изделий
+BaseProductEvent = pghistory.create_event_model(Product, fields=['product_status'])
+class ProductEvent(BaseProductEvent):
+    def get_product_status(self) -> ProductStatus:
+        return ProductStatus.objects.get(id=self.product_status_id)
+
+
+# Отметка для зуба
 class Tooth(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     product = models.ForeignKey(Product, related_name='teeth', on_delete=models.CASCADE)
@@ -193,7 +217,7 @@ class Tooth(models.Model):
 class Operation(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     operation_type = models.ForeignKey(OperationType, related_name='operations', on_delete=models.CASCADE)
-    operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE)
+    operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
     tech = models.ForeignKey(User, related_name='operations', null=True, on_delete=models.CASCADE)
 
@@ -203,3 +227,10 @@ class Operation(models.Model):
 
     def __str__(self):
         return f'Операция "{self.operation_type.name}" для изделия "{self.product.product_type}" от даты {self.product.order.order_date}'
+
+
+# История изменения статусов операций
+BaseOperationEvent = pghistory.create_event_model(Operation, fields=['operation_status'])
+class OperationEvent(BaseOperationEvent):
+    def get_operation_status(self) -> OperationStatus:
+        return OperationStatus.objects.get(id=self.operation_status_id)
