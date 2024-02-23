@@ -103,7 +103,7 @@ const PhysicianOrderList = () => {
                     <Fade {...TransitionProps} timeout={350}>
                       <Paper>
                         <Typography sx={{ p: 1 }}>
-                          <ToothMarks teethList={product.teeth.map(tooth => tooth.tooth_number)} />
+                          <ToothMarks teethList={product.teeth} />
                         </Typography>
                       </Paper>
                     </Fade>

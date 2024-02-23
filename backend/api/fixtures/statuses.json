@@ -1,7 +1,7 @@
 [
     {
         "model": "api.orderstatus",
-        "pk": "40182114-bf8a-4e78-a5d3-491c778611eb",
+        "pk": "65da8938-9777-46df-be9e-1bdf94015041",
         "fields": {
             "number": 1,
             "name": "Отправлено для формирования наряда"

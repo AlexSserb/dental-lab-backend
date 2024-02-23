@@ -28,15 +28,9 @@ class ProductStatusSerializer(serializers.ModelSerializer):
         model = ProductStatus
         fields = ['id', 'name']
 
-class ToothSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tooth
-        fields = ['id', 'product', 'tooth_number']
-
 class ProductSerializer(serializers.ModelSerializer):
     product_type = ProductTypeSerializer(read_only=True)
     product_status = ProductStatusSerializer(read_only=True)
-    teeth = ToothSerializer(many=True)
     cost = serializers.SerializerMethodField('get_cost')
 
     class Meta:

@@ -62,13 +62,9 @@ class OrdersTest(TestCase):
             status=OrderStatus.objects.get(number=3))
 
         product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
-            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2, teeth=[12, 13])
         product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=4),
-            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=1)
-
-        tooth1 = Tooth.objects.create(product=product1, tooth_number=13)
-        tooth2 = Tooth.objects.create(product=product1, tooth_number=12)
-        tooth3 = Tooth.objects.create(product=product2, tooth_number=25)
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=1, teeth=[25])
         
         response = self.client.get(self.URL + '/products/' + str(order.id), follow=True)
 
@@ -77,12 +73,12 @@ class OrdersTest(TestCase):
         # Check first product
         self.assertEqual(response.data[0]['product_status']['name'], 'A defect was found')
         self.assertEqual(response.data[0]['product_type']['name'], 'Product type 2')
-        self.assertEqual(len(response.data[0]['teeth']), 2)
+        self.assertEqual(set(response.data[0]['teeth']), set((12, 13)))
         # Check second product 
         self.assertEqual(response.data[1]['product_status']['name'], 'Ready')
         self.assertEqual(response.data[1]['product_type']['name'], 'Product type 1')
         self.assertEqual(len(response.data[1]['teeth']), 1)
-        self.assertEqual(response.data[1]['teeth'][0]['tooth_number'], 25)
+        self.assertEqual(response.data[1]['teeth'][0], 25)
         
     def test_get_products_for_order_incorrect_token(self):
         client = APIClient()
@@ -111,10 +107,8 @@ class OrdersTest(TestCase):
         product1, product2 = self.check_products_created_correctly(products)
 		
         # Check teeth marks created correctly
-        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product1))
-        self.assertEqual(teeth_nums, set((11, 12, 22, 31)))
-        teeth_nums = set(tooth.tooth_number for tooth in Tooth.objects.filter(product=product2))
-        self.assertEqual(teeth_nums, set((45, 46)))
+        self.assertEqual(set(product1.teeth), set((11, 12, 22, 31)))
+        self.assertEqual(set(product2.teeth), set((45, 46)))
 
     def check_products_created_correctly(self, products: list[Product]) -> tuple:
         self.assertEqual(len(products), 2)

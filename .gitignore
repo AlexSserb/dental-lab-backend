@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# React node modules
+*/node_modules/*
+
 # Django migrations
 migrations
 **migrations/

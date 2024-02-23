@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
 
 import uuid 
 from decimal import Decimal, getcontext
@@ -41,12 +42,16 @@ class OperationType(models.Model):
         return f'{self.name}, группа: {self.get_group()}'
 
 
-# Справочник видов изделий
+def get_default_product_info():
+    return dict.fromkeys(('title', 'description'), '')
+
+
 class ProductType(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128)
     operation_types = models.ManyToManyField(OperationType, related_name='product_types')
     cost = models.DecimalField(max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0)
+    product_info = models.JSONField(default=get_default_product_info)
 
     class Meta:
         verbose_name = "Тип изделия"
@@ -158,6 +163,10 @@ class Product(models.Model):
     order = models.ForeignKey(Order, related_name='products', on_delete=models.CASCADE)
     amount = models.IntegerField(default=1)
     discount = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
+    teeth = ArrayField(
+        models.IntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)]),
+        default=list
+    )
 
     class Meta:
         verbose_name = "Изделие"
@@ -181,10 +190,7 @@ class Product(models.Model):
                     continue
             
                 product = Product.objects.create(product_type=product_type_inst, amount=amount,
-                    order=order, product_status=ProductStatus.get_default_status())
-
-                for tooth in teeth:
-                    Tooth.objects.create(product=product, tooth_number=tooth)
+                    order=order, product_status=ProductStatus.get_default_status(), teeth=teeth)
             else:
                 print('Переданы некорректные данные об изделиях.')
 
@@ -197,20 +203,6 @@ BaseProductEvent = pghistory.create_event_model(Product, fields=['product_status
 class ProductEvent(BaseProductEvent):
     product_status = models.ForeignKey(ProductStatus, related_name='history', on_delete=models.CASCADE)
     pgh_obj = models.ForeignKey(Product, related_name='history', on_delete=models.CASCADE)
-
-
-# Отметка для зуба
-class Tooth(models.Model):
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    product = models.ForeignKey(Product, related_name='teeth', on_delete=models.CASCADE)
-    tooth_number = models.PositiveIntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)])
-    
-    class Meta:
-        verbose_name = "Отмеченный зуб"
-        verbose_name_plural = "Отмеченные зубы"
-
-    def __str__(self):
-        return f'Зуб под номером {self.tooth_number} для изделия "{self.product.product_type.name}"'
 
 
 # Операции

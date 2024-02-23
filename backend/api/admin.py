@@ -19,7 +19,7 @@ class ProductTypeAdmin(admin.ModelAdmin):
         OperationTypeProductTypeInline,
     )
     fieldsets = (
-        (None, { 'fields': ('name', 'cost'), }),
+        (None, { 'fields': ('name', 'cost', 'product_info'), }),
     )
 
 admin.site.register(ProductType, ProductTypeAdmin)
@@ -39,8 +39,6 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ['product_type', 'product_status', 'order', 'amount']
 
 admin.site.register(Product, ProductAdmin)
-
-admin.site.register(Tooth)
 
 
 class OperationAdmin(admin.ModelAdmin):
