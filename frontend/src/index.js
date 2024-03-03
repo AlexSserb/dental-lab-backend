@@ -8,7 +8,13 @@ import axios from 'axios';
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000';
+axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
+
+axios.interceptors.request.use((config) => {
+  config.headers['Authorization'] = 'Bearer ' + String(JSON.parse(localStorage.getItem('authTokens'))?.access);
+  return config;
+});
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

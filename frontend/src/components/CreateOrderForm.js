@@ -37,7 +37,7 @@ const CreateOrderForm = () => {
     fillUpperJaw();
     fillLowerJaw();
 
-    productTypesService.getAll(authTokens?.access)
+    productTypesService.getAll()
       .then(res => {
         console.log(res.data);
         let products = res.data.map(product => {
@@ -156,7 +156,7 @@ const CreateOrderForm = () => {
   }
 
   const sendOrder = () => {
-    orderService.post(authTokens?.access, listOfProducts)
+    orderService.post(listOfProducts)
       .then(_ => {
         navigate("/");
         alert("Заказ успешно оформлен!");

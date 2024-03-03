@@ -18,6 +18,7 @@ class ProductTypeAdmin(admin.ModelAdmin):
     inlines = (
         OperationTypeProductTypeInline,
     )
+    list_display = ('name', 'cost', 'product_info')
     fieldsets = (
         (None, { 'fields': ('name', 'cost', 'product_info'), }),
     )

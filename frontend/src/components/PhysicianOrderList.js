@@ -33,7 +33,7 @@ const PhysicianOrderList = () => {
       return;
     }
     if (userGroup === "Врач") {
-      orderService.getOrdersForUser(authTokens.access)
+      orderService.getOrdersForUser()
         .then(res => {
           setOrders(res.data);
           if (res.data.length > 0) {
@@ -48,7 +48,7 @@ const PhysicianOrderList = () => {
   }, []);
 
   const getOrderInfo = (order) => {
-    productService.getForOrder(authTokens.access, order.id)
+    productService.getForOrder(order.id)
       .then(res => {
         setProducts(res.data);
         setCurrOrder(order);
@@ -79,7 +79,6 @@ const PhysicianOrderList = () => {
 
   const renderProducts = () => {
     let i = 1;
-    console.log(products);
     return products.map(product => (
       <TableRow key={product.id}>
         <TableCell>{i++}</TableCell>

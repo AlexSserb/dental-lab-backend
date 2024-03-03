@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import {
-	Typography, Button,
+	Typography,
 	Box, Stack, Grid,
 	Accordion, AccordionSummary, AccordionDetails
 } from "@mui/material";
@@ -21,7 +21,7 @@ const AssignedOperations = () => {
 	const navigate = useNavigate();
 
 	const loadOperations = () => {
-		operationService.getForTech(authTokens?.access)
+		operationService.getForTech()
 			.then(res => setOperations(res.data))
 			.catch(err => console.log(err));
 	}
@@ -34,7 +34,7 @@ const AssignedOperations = () => {
 
 		loadOperations();
 
-		operationService.getOperationStatuses(authTokens.access)
+		operationService.getOperationStatuses()
 			.then(res => {
 				let operations = res.data.map(oper => { return { key: oper.id, value: oper.name } });
 				setOperationStatuses(operations);

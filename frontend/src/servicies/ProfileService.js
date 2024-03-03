@@ -4,12 +4,8 @@ const API_URL = "accounts/";
 
 
 class ProfileService {
-  getProfileData(accessToken) {
-    return axios.get(API_URL + 'profile/', {
-      headers: {
-        "Authorization": "Bearer " + String(accessToken)
-      }
-    });
+  getProfileData() {
+    return axios.get(API_URL + 'profile/');
   }
 }
 

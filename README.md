@@ -69,7 +69,7 @@ git clone https://github.com/AlexSserb/dental-lab.git
     SECRET_KEY=your_secret_key
     ```
 
-3. Run backend part.
+3. Run the backend part.
 
     3.1. Create and activate virtual environment:
     ```commandline
@@ -87,10 +87,21 @@ git clone https://github.com/AlexSserb/dental-lab.git
     python manage.py migrate
     python manage.py loaddata groups_data.json statuses.json
     ```
+    3.4. Start the backend server:
+    ```commandline
+    python manage.py runserver
+    ```
 
-4. Run frontend part.
-```commandline
-cd dental-lab\frontend
-npm i
-npm start
-```
+4. Run the frontend part.
+
+    4.1. In the `frontend` folder copy `.env.example` file as `.env` and update with the following fields with your backend server credentials:
+    ```
+    REACT_APP_BASE_URL=http://example.com/
+    ```
+
+    4.2. Start the frontend server.
+    ```commandline
+    cd dental-lab\frontend
+    npm i
+    npm start
+    ```

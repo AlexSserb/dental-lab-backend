@@ -14,7 +14,7 @@ const RegisterPage = () => {
       navigate('/login');
       return;
     }
-    profileService.getProfileData(authTokens.access)
+    profileService.getProfileData()
       .then(res => {
         setUserData({
             email: res.data.email,

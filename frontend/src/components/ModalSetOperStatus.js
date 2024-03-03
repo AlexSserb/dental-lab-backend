@@ -34,7 +34,7 @@ const ModalSetOperStatus = ({ oper, operStatuses, loadOperations }) => {
   const handleSubmit = () => {
     const status = operStatuses.find(operSt => operSt.value === selectedOperationStatus);
 
-    operationService.setOperationStatus(authTokens?.access, operation.id, status?.key)
+    operationService.setOperationStatus(operation.id, status?.key)
       .then(res => { 
         loadOperations();
       })

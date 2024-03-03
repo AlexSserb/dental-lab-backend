@@ -3,10 +3,8 @@ import axios from "axios";
 const API_URL = "api/product_types/";
 
 class ProductTypesService {
-  getAll(accessToken) {
-    return axios.get(API_URL, {
-      headers: { "Authorization": "Bearer " + String(accessToken) }
-    });
+  getAll() {
+    return axios.get(API_URL);
   }
 }
 

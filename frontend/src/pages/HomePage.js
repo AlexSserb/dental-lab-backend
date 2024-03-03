@@ -5,9 +5,8 @@ import PhysicianOrderList from '../components/PhysicianOrderList';
 import AssignedOperations from '../components/AssignedOperations';
 
 const HomePage = () => {
-  let { user, authTokens, userGroupToString } = useContext(AuthContext);
-  const [ userGroup, setUserGroup ] = useState(userGroupToString());
-
+  let { userGroupToString, user } = useContext(AuthContext);
+  const [ userGroup, setUserGroup ] = useState(userGroupToString(user.group));
 
   return (
     <div>
