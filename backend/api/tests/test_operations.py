@@ -53,7 +53,7 @@ class OperationsTest(TestCase):
         # endregion 
         
         response = self.client.get(self.URL + '/operations_for_tech/')
-        resp: list = response.data
+        resp: list = response.data['results']
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(resp), 2)

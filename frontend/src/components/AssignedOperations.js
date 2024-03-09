@@ -2,7 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import {
 	Typography,
 	Box, Stack, Grid,
-	Accordion, AccordionSummary, AccordionDetails
+	Accordion, AccordionSummary, AccordionDetails,
+	Pagination
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate } from "react-router-dom";
@@ -14,15 +15,20 @@ import ModalSetOperStatus from './ModalSetOperStatus';
 
 
 const AssignedOperations = () => {
-	let {authTokens} = useContext(AuthContext);
-	let [operations, setOperations] = useState([]);
-	let [operationStatuses, setOperationStatuses] = useState([]);
+	const { authTokens } = useContext(AuthContext);
+	const [operations, setOperations] = useState([]);
+	const [operationStatuses, setOperationStatuses] = useState([]);
+	const [page, setPage] = useState(1);
+	const [totalPages, setTotalPages] = useState(1);
 
 	const navigate = useNavigate();
 
-	const loadOperations = () => {
-		operationService.getForTech()
-			.then(res => setOperations(res.data))
+	const getOperations = (page) => {
+		operationService.getForTech(page)
+			.then(res => {
+				setOperations(res.data.results);
+				setTotalPages(res.data.total_pages);
+			})
 			.catch(err => console.log(err));
 	}
 
@@ -32,7 +38,7 @@ const AssignedOperations = () => {
 			return;
 		}
 
-		loadOperations();
+		getOperations(page);
 
 		operationService.getOperationStatuses()
 			.then(res => {
@@ -42,7 +48,13 @@ const AssignedOperations = () => {
 			.catch(err => console.log(err));
 	}, [])
 
+	const handleChangePage = (_, newPage) => {
+		setPage(newPage);
+		getOperations(newPage);
+	}
+
 	const renderOperations = () => {
+		console.log(operations);
 		return operations.map((oper) => (
 			<Accordion>
 				<AccordionSummary
@@ -68,9 +80,9 @@ const AssignedOperations = () => {
 							<Typography>Количество: {oper.product.amount}</Typography>
 						</Grid>
 						<Grid item>
-							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} loadOperations={loadOperations}/>
+							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} loadOperations={getOperations} />
 							<Typography>Формула для изделия</Typography>
-							<ToothMarks teethList={oper.product.teeth.map(tooth => tooth.tooth_number)} />
+							<ToothMarks teethList={oper.product.teeth} />
 						</Grid>
 					</Grid>
 				</AccordionDetails>
@@ -105,7 +117,11 @@ const AssignedOperations = () => {
 					{
 						operations.length > 0 ?
 							<>
+								<Pagination count={totalPages} page={page} onChange={handleChangePage}
+									variant="outlined" shape="rounded" sx={{ marginBottom: 3 }} />
 								{renderOperations()}
+								<Pagination count={totalPages} page={page} onChange={handleChangePage}
+									variant="outlined" shape="rounded" sx={{ marginTop: 3 }} />
 							</>
 							:
 							<Typography textAlign={"center"}>

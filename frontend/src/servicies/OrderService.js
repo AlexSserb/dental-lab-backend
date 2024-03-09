@@ -3,8 +3,8 @@ import axios from "axios";
 const API_URL = "api/";
 
 class OrderService {
-  getOrdersForUser() {
-    return axios.get(API_URL + "orders/");
+  getOrdersForUser(page) {
+    return axios.get(API_URL + `orders/?page=${page}`);
   }
 
   post(order) {

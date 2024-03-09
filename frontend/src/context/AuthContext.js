@@ -102,7 +102,6 @@ export const AuthProvider = ({children}) => {
 	}
 
 	let userGroupToString = (group) => {
-		console.log(group);
 		if (!group) {
 			return "Врач";
 		}

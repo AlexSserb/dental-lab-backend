@@ -3,8 +3,8 @@ import axios from "axios";
 const API_URL = "api/";
 
 class OperationService {
-  getForTech() {
-    return axios.get(API_URL + "operations_for_tech/");
+  getForTech(page) {
+    return axios.get(API_URL + `operations_for_tech/?page=${page}`);
   }
 
   getOperationStatuses() {

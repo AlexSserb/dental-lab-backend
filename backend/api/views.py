@@ -1,5 +1,6 @@
 from .serializers import *
 from .permissions import *
+from .paginations import *
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
@@ -64,7 +65,7 @@ class ProductTypeList(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        product_types = ProductType.objects.all()
+        product_types = ProductType.objects.all().order_by('name')
         serializer = self.serializer_class(product_types, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -72,11 +73,13 @@ class ProductTypeList(APIView):
 @extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_orders_for_user(request):
+def get_orders_for_physician(request):
     user = request.user
-    orders = Order.objects.filter(user=user)
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+    paginator = StandardResultsSetPagination()
+    orders = Order.objects.filter(user=user).order_by('-order_date')
+    page = paginator.paginate_queryset(orders, request)
+    serializer = OrderSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @extend_schema(responses=ProductSerializer)
@@ -106,9 +109,11 @@ def create_order(request):
 @permission_classes([IsTech | IsChiefTech])
 def get_operations_for_tech(request):
     user = request.user
+    paginator = StandardResultsSetPagination()
     operations = Operation.objects.filter(tech=user).order_by('id')
-    serializer = OperationSerializer(operations, many=True)
-    return Response(serializer.data)
+    page = paginator.paginate_queryset(operations, request)
+    serializer = OperationSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 class OperationDetail(APIView):

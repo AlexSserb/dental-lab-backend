@@ -6,7 +6,7 @@ import AssignedOperations from '../components/AssignedOperations';
 
 const HomePage = () => {
   let { userGroupToString, user } = useContext(AuthContext);
-  const [ userGroup, setUserGroup ] = useState(userGroupToString(user.group));
+  const [ userGroup, setUserGroup ] = useState(userGroupToString(user?.group));
 
   return (
     <div>

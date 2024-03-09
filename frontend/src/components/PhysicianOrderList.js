@@ -8,7 +8,8 @@ import {
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   Button,
   Paper,
-  Popper, Fade
+  Popper, Fade,
+  Pagination
 } from '@mui/material';
 import PopupState, { bindToggle, bindPopper } from 'material-ui-popup-state';
 
@@ -23,6 +24,8 @@ const PhysicianOrderList = () => {
   const { authTokens, userGroupToString } = useContext(AuthContext);
   const [userGroup, setUserGroup] = useState(userGroupToString());
   const [orders, setOrders] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
   const [currOrder, setCurrOrder] = useState({});
   const navigate = useNavigate();
@@ -33,19 +36,29 @@ const PhysicianOrderList = () => {
       return;
     }
     if (userGroup === "Врач") {
-      orderService.getOrdersForUser()
-        .then(res => {
-          setOrders(res.data);
-          if (res.data.length > 0) {
-            setCurrOrder(res.data[0]);
-            getOrderInfo(res.data[0]);
-          }
-        })
-        .catch(err => {
-          console.log(err);
-        });
+      getOrders(page);
     }
   }, []);
+
+  const handleChangePage = (_, newPage) => {
+    setPage(newPage);
+    getOrders(newPage);
+  }
+
+  const getOrders = (orderPage) => {
+    orderService.getOrdersForUser(orderPage)
+    .then(res => {
+      setOrders(res.data.results);
+      setTotalPages(res.data.total_pages);
+      if (res.data.results.length > 0) {
+        setCurrOrder(res.data.results[0]);
+        getOrderInfo(res.data.results[0]);
+      }
+    })
+    .catch(err => {
+      console.log(err);
+    });
+  }
 
   const getOrderInfo = (order) => {
     productService.getForOrder(order.id)
@@ -128,21 +141,25 @@ const PhysicianOrderList = () => {
         </Button>
         {
           orders.length > 0 ?
-            <TableContainer component={Paper} sx={{ margin: 2, padding: 2 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>№</TableCell>
-                    <TableCell>Дата</TableCell>
-                    <TableCell>Статус</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {renderOrders()}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Stack sx={{ alignItems: "center", margin: 2 }}>
+              <TableContainer component={Paper} >
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>№</TableCell>
+                      <TableCell>Дата</TableCell>
+                      <TableCell>Статус</TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {renderOrders()}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <Pagination count={totalPages} page={page} onChange={handleChangePage}
+                variant="outlined" shape="rounded" sx={{ marginTop: 3 }}/>
+            </Stack>
             : <Typography component={Paper} sx={{
               margin: 2,
               padding: 2,
@@ -203,7 +220,7 @@ const PhysicianOrderList = () => {
                   currOrder?.discount !== 0 ?
                     <>
                       <TextField item
-                        sx={{ width: "100%"}}
+                        sx={{ width: "100%" }}
                         InputProps={{ readOnly: true }}
                         InputLabelProps={{ shrink: true }}
                         label="Сумма заказа (руб)"
@@ -222,7 +239,7 @@ const PhysicianOrderList = () => {
                     : <></>
                 }
                 <TextField item
-                  sx={{ width: "100%"}}
+                  sx={{ width: "100%" }}
                   InputProps={{ readOnly: true }}
                   InputLabelProps={{ shrink: true }}
                   label="Итоговая сумма заказа (руб)"
