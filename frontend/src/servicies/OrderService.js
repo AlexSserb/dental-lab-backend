@@ -11,6 +11,14 @@ class OrderService {
     return axios.get(API_URL + `orders/?page=${page}`);
   }
 
+  getProcessedOrders(page) {
+    return axios.get(API_URL + `processed_orders/?page=${page}`);
+  }
+
+  getNotProcessedOrders(page) {
+    return axios.get(API_URL + `not_processed_orders/?page=${page}`);
+  }
+
   post(order) {
     return axios.post(API_URL + "create_order/", { "product_types": order });
   }

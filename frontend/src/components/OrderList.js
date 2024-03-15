@@ -7,11 +7,12 @@ import {
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   Button,
   Paper,
-  Pagination
+  Pagination,
+  Radio, RadioGroup, FormControlLabel
 } from '@mui/material';
 
 import AuthContext from '../context/AuthContext';
-import orderService from '../servicies/OrderService';
+import getFilteredOrders from '../utils/GetFilteredOrders';
 import { useNavigate } from 'react-router-dom';
 import productService from '../servicies/ProductService';
 
@@ -19,10 +20,11 @@ import productService from '../servicies/ProductService';
 const OrderList = () => {
   const { authTokens } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
   const [products, setProducts] = useState([]);
   const [currOrder, setCurrOrder] = useState({});
+  const [filterTypeOrders, setFilterTypeOrders] = useState("all");
 
   const navigate = useNavigate();
 
@@ -32,16 +34,22 @@ const OrderList = () => {
       return;
     }
 
-    getOrders(page);
+    getOrders(page, filterTypeOrders);
   }, []);
+
+  const handleFilterTypeChange = (event) => {
+    setFilterTypeOrders(event.target.value);
+    setPage(1);
+    getOrders(1, event.target.value);
+  }
 
   const handleChangePage = (_, newPage) => {
     setPage(newPage);
-    getOrders(newPage);
+    getOrders(newPage, filterTypeOrders);
   }
 
-  const getOrders = (orderPage) => {
-    orderService.getAllOrders(orderPage)
+  const getOrders = (orderPage, filterTypeOrders) => {
+    getFilteredOrders(orderPage, filterTypeOrders)
       .then(res => {
         setOrders(res.data.results);
         setTotalPages(res.data.total_pages);
@@ -109,9 +117,20 @@ const OrderList = () => {
     <Grid container spacing={3} wrap="wrap-reverse">
       <Grid item xs={4}>
         <h3 className='m-4 mt-5'>Заказы</h3>
+        <RadioGroup
+          className='m-4'
+          aria-labelledby="demo-error-radios"
+          name="quiz"
+          value={filterTypeOrders}
+          onChange={handleFilterTypeChange}
+        >
+          <FormControlLabel value="all" control={<Radio />} label="Все заказы" />
+          <FormControlLabel value="processed" control={<Radio />} label="Только оформленные наряды" />
+          <FormControlLabel value="notProcessed" control={<Radio />} label="Только новые заказы" />
+        </RadioGroup>
         {
           orders.length > 0 ?
-            <Stack sx={{ alignItems: "center", margin: 2 }}>
+          <Stack sx={{ alignItems: "center", margin: 2 }}>
               <TableContainer component={Paper} >
                 <Table>
                   <TableHead>
@@ -189,7 +208,7 @@ const OrderList = () => {
                 {
                   currOrder?.discount !== 0 ?
                     <>
-                      <TextField item
+                      <TextField 
                         sx={{ width: "100%" }}
                         InputProps={{ readOnly: true }}
                         InputLabelProps={{ shrink: true }}
@@ -197,7 +216,7 @@ const OrderList = () => {
                         variant="outlined"
                         value={currOrder?.cost?.toFixed(2)}
                       />
-                      <TextField item
+                      <TextField 
                         sx={{ width: "100%", marginX: 2 }}
                         InputProps={{ readOnly: true }}
                         InputLabelProps={{ shrink: true }}
@@ -208,7 +227,7 @@ const OrderList = () => {
                     </>
                     : <></>
                 }
-                <TextField item
+                <TextField
                   sx={{ width: "100%" }}
                   InputProps={{ readOnly: true }}
                   InputLabelProps={{ shrink: true }}

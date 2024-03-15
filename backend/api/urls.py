@@ -11,6 +11,9 @@ urlpatterns = [
 
     path('orders_for_physician/', views.get_orders_for_physician, name='orders-for-physician'),
     path('orders/', views.get_orders, name='orders'),
+    path('processed_orders/', views.get_processed_orders, name='processed-orders'),
+    path('not_processed_orders/', views.get_not_processed_orders, name='not-processed-orders'),
+    
     path('create_order/', views.create_order, name='create-order'),
     path('products/<str:order_id>/', views.get_products_for_order, name='products-for-order'),
 
