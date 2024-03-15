@@ -173,7 +173,7 @@ class Product(models.Model):
         verbose_name_plural = "Изделия"
 
     def __str__(self):
-        return f'Изделие "{self.product_type.name}" для заказа от даты {self.order.order_date}'
+        return f'Изделие "{self.product_type.name}" в кол-ве {self.amount} шт. для заказа от даты {self.order.order_date}'
 
     @staticmethod
     def products_from_product_types(product_types: list[dict], order: Order):

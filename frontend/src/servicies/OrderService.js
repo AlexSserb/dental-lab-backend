@@ -4,6 +4,10 @@ const API_URL = "api/";
 
 class OrderService {
   getOrdersForUser(page) {
+    return axios.get(API_URL + `orders_for_physician/?page=${page}`);
+  }
+
+  getAllOrders(page) {
     return axios.get(API_URL + `orders/?page=${page}`);
   }
 

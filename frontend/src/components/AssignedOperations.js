@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import ToothMarks from "./ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
-import ModalSetOperStatus from './ModalSetOperStatus';
+import ModalSetOperStatus from "../modals/ModalSetOperStatus";
 
 
 const AssignedOperations = () => {
@@ -54,7 +54,6 @@ const AssignedOperations = () => {
 	}
 
 	const renderOperations = () => {
-		console.log(operations);
 		return operations.map((oper) => (
 			<Accordion>
 				<AccordionSummary

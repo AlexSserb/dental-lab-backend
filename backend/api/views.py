@@ -82,11 +82,22 @@ def get_orders_for_physician(request):
     return paginator.get_paginated_response(serializer.data)
 
 
+@extend_schema(responses=OrderSerializer)
+@api_view(['GET'])
+@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
+def get_orders(request):
+    paginator = StandardResultsSetPagination()
+    orders = Order.objects.all().order_by('-order_date')
+    page = paginator.paginate_queryset(orders, request)
+    serializer = OrderSerializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
+
+
 @extend_schema(responses=ProductSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_products_for_order(request, pk):
-    products = Product.objects.filter(order=pk)
+def get_products_for_order(request, order_id):
+    products = Product.objects.filter(order=order_id)
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -114,6 +125,22 @@ def get_operations_for_tech(request):
     page = paginator.paginate_queryset(operations, request)
     serializer = OperationSerializer(page, many=True)
     return paginator.get_paginated_response(serializer.data)
+
+
+@extend_schema(responses=OperationForProductSerializer)
+@api_view(['GET'])
+@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
+def get_operations_for_product(request, product_id):
+    operations = Operation.objects.filter(product=product_id).order_by('operation_status__number')
+    serializer = OperationForProductSerializer(operations, many=True)
+
+    # get history of operations for a product
+    all_operations_history = OperationEvent.objects.select_related('operation_status')
+    for operation in serializer.data:
+        curr_history = all_operations_history.filter(pgh_obj=operation['id']).order_by('-pgh_created_at')
+        operation['history'] = OperationEventSerializer(curr_history, many=True).data
+        
+    return Response(serializer.data)
 
 
 class OperationDetail(APIView):

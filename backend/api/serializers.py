@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 from .models import *
+from accounts.serializers import UserProfileSerializer
 
 
 User = get_user_model()
@@ -10,12 +11,12 @@ User = get_user_model()
 class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType
-        fields = ['id', 'name', 'exec_time']
+        fields = ['id', 'name', 'exec_time', 'group']
 
 class OperationStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationStatus
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'number']
 
 
 class ProductTypeSerializer(serializers.ModelSerializer):
@@ -75,6 +76,25 @@ class OperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Operation
         fields = ['id', 'operation_type', 'operation_status', 'product']
+
+
+class OperationEventSerializer(serializers.ModelSerializer):
+    operation_status = OperationStatusSerializer(read_only=True)
+
+    class Meta:
+        model = OperationEvent
+        fields = ['operation_status', 'pgh_created_at']
+
+
+class OperationForProductSerializer(serializers.ModelSerializer):
+    operation_type = OperationTypeSerializer(required=True)
+    operation_status = OperationStatusSerializer(required=True)
+    tech = UserProfileSerializer()
+
+    class Meta:
+        model = Operation
+        fields = ['id', 'operation_type', 'operation_status', 'tech']
+
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
     status_id = serializers.UUIDField(required=True)

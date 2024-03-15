@@ -33,9 +33,11 @@ class OperationsTest(TestCase):
         cls.user.save()
         cls.user.groups.add(3)
 
+        client = APIClient()
+        response = client.post('/accounts/token/', data={'email': cls.email, 'password': cls.password})
+        cls.token = response.data['access']
+
     def setUp(self):
-        response = self.client.post('/accounts/token/', data={'email': self.email, 'password': self.password})
-        self.token = response.data['access']
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
@@ -69,6 +71,38 @@ class OperationsTest(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
         response = client.get(self.URL + '/operations_for_tech/')
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_get_operations_for_product_correct(self):
+        # region set test data
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3))
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=2),
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
+
+        operation_status = OperationStatus.objects.get(number=2)
+        operation1 = Operation.objects.create(product=product1, tech=self.user, operation_status=operation_status,
+            operation_type=OperationType.objects.get(name='Operation type 3'))
+        operation2 = Operation.objects.create(product=product2, tech=self.user, operation_status=operation_status,
+            operation_type=OperationType.objects.get(name='Operation type 2'))
+        # endregion 
+        
+        response = self.client.get(self.URL + f'/operations_for_product/{product2.id}')
+        resp: list = response.data
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(resp), 1)
+        self.assertEqual(resp[0]['operation_status']['number'], 2)
+        self.assertEqual(resp[0]['operation_type']['name'], 'Operation type 2')
+        self.assertEqual(len(resp[0]['history']), 1)
+        self.assertEqual(resp[0]['history'][0]['operation_status']['number'], 2)
+        
+    def test_get_operations_for_product_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.get(self.URL + '/operations_for_product/1')
 
         self.assertEqual(response.status_code, 401)
 

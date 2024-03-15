@@ -8,7 +8,7 @@ import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateOrderForm from './components/CreateOrderForm';
-
+import OperationsForProduct from './components/OperationsForProduct';
 
 function App() {
   return (
@@ -21,6 +21,7 @@ function App() {
           <Route path='/registration' element={<RegisterPage/>} />
           <Route path='/profile' element={<ProfilePage/>} />
           <Route path='/create_order' element={<CreateOrderForm/>} />
+          <Route path='/operations_for_product' element={<OperationsForProduct/>} />
         </Routes>
       </AuthProvider>
     </div>

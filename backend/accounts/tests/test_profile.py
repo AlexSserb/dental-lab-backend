@@ -27,9 +27,13 @@ class ProfileTest(TestCase):
         user.save()
         user.groups.add(1)
 
+        client = APIClient()
+        response = client.post('/accounts/token/', data={'email': cls.email, 'password': cls.password})
+        cls.token = response.data['access']
+
     def setUp(self):
-        response = self.client.post(self.URL + '/token/', data={'email': self.email, 'password': self.password})
-        self.token = response.data['access']
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
     def test_get_profile_correct(self):
         # the profile data is obtained by token

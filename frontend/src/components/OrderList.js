@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import InfoIcon from '@mui/icons-material/Info';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
   Typography,
   Grid, Stack, Box,
@@ -8,26 +7,23 @@ import {
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   Button,
   Paper,
-  Popper, Fade,
   Pagination
 } from '@mui/material';
-import PopupState, { bindToggle, bindPopper } from 'material-ui-popup-state';
 
 import AuthContext from '../context/AuthContext';
 import orderService from '../servicies/OrderService';
 import { useNavigate } from 'react-router-dom';
 import productService from '../servicies/ProductService';
-import ToothMarks from './ToothMarks';
 
 
-const PhysicianOrderList = () => {
-  const { authTokens, userGroupToString, user } = useContext(AuthContext);
-  const [userGroup, setUserGroup] = useState(userGroupToString(user?.group));
+const OrderList = () => {
+  const { authTokens } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [products, setProducts] = useState([]);
   const [currOrder, setCurrOrder] = useState({});
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,10 +31,8 @@ const PhysicianOrderList = () => {
       navigate('/login');
       return;
     }
-    
-    if (userGroup === "Врач") {
-      getOrders(page);
-    }
+
+    getOrders(page);
   }, []);
 
   const handleChangePage = (_, newPage) => {
@@ -47,18 +41,18 @@ const PhysicianOrderList = () => {
   }
 
   const getOrders = (orderPage) => {
-    orderService.getOrdersForUser(orderPage)
-    .then(res => {
-      setOrders(res.data.results);
-      setTotalPages(res.data.total_pages);
-      if (res.data.results.length > 0) {
-        setCurrOrder(res.data.results[0]);
-        getOrderInfo(res.data.results[0]);
-      }
-    })
-    .catch(err => {
-      console.log(err);
-    });
+    orderService.getAllOrders(orderPage)
+      .then(res => {
+        setOrders(res.data.results);
+        setTotalPages(res.data.total_pages);
+        if (res.data.results.length > 0) {
+          setCurrOrder(res.data.results[0]);
+          getOrderInfo(res.data.results[0]);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }
 
   const getOrderInfo = (order) => {
@@ -103,28 +97,9 @@ const PhysicianOrderList = () => {
         <TableCell>{product.discount * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
-          <PopupState variant="popper" popupId="demo-popup-popper">
-            {(popupState) => (
-              <div>
-                <Button variant="contained" {...bindToggle(popupState)}>
-                  <VisibilityIcon />
-                </Button>
-                <Popper {...bindPopper(popupState)} transition
-                  placement={'bottom-end'}
-                >
-                  {({ TransitionProps }) => (
-                    <Fade {...TransitionProps} timeout={350}>
-                      <Paper>
-                        <Typography sx={{ p: 1 }}>
-                          <ToothMarks teethList={product.teeth} />
-                        </Typography>
-                      </Paper>
-                    </Fade>
-                  )}
-                </Popper>
-              </div>
-            )}
-          </PopupState>
+          <Button variant="contained" onClick={() => navigate('/operations_for_product', { state: { product: product } })}>
+            <InfoIcon />
+          </Button>
         </TableCell>
       </TableRow>
     ));
@@ -134,12 +109,6 @@ const PhysicianOrderList = () => {
     <Grid container spacing={3} wrap="wrap-reverse">
       <Grid item xs={4}>
         <h3 className='m-4 mt-5'>Заказы</h3>
-        <Button variant="contained" onClick={() => { navigate("/create_order") }}
-          sx={{
-            margin: "15px"
-          }}>
-          Оформить заказ
-        </Button>
         {
           orders.length > 0 ?
             <Stack sx={{ alignItems: "center", margin: 2 }}>
@@ -159,7 +128,7 @@ const PhysicianOrderList = () => {
                 </Table>
               </TableContainer>
               <Pagination count={totalPages} page={page} onChange={handleChangePage}
-                variant="outlined" shape="rounded" sx={{ marginTop: 3 }}/>
+                variant="outlined" shape="rounded" sx={{ marginTop: 3 }} />
             </Stack>
             : <Typography component={Paper} sx={{
               margin: 2,
@@ -263,4 +232,4 @@ const PhysicianOrderList = () => {
   )
 }
 
-export default PhysicianOrderList;
+export default OrderList;

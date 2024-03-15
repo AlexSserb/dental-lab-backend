@@ -31,9 +31,11 @@ class OrdersTest(TestCase):
         cls.user.save()
         cls.user.groups.add(1)
 
+        client = APIClient()
+        response = client.post('/accounts/token/', data={'email': cls.email, 'password': cls.password})
+        cls.token = response.data['access']
+
     def setUp(self):
-        response = self.client.post('/accounts/token/', data={'email': self.email, 'password': self.password})
-        self.token = response.data['access']
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
@@ -41,7 +43,7 @@ class OrdersTest(TestCase):
         order = Order.objects.create(user=self.user, discount=0.05,
             status=OrderStatus.objects.get(number=3))
         
-        response = self.client.get(self.URL + '/orders/')
+        response = self.client.get(self.URL + '/orders/?page=1')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
@@ -54,7 +56,32 @@ class OrdersTest(TestCase):
     def test_get_orders_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/orders/')
+        response = client.get(self.URL + '/orders/?page=1')
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_get_orders_for_physician_correct(self):
+        user = User(id=2, email='example@mail.com', first_name='First', last_name='Last')
+        user.set_password('psw')
+        user.save()
+
+        # Order for new user
+        order1 = Order.objects.create(user=user, discount=0.05,
+            status=OrderStatus.objects.get(number=3))
+        # Order for main user
+        order2 = Order.objects.create(user=self.user, discount=0.1,
+            status=OrderStatus.objects.get(number=1))
+        
+        response = self.client.get(self.URL + '/orders_for_physician/?page=1')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], str(order2.id))
+
+    def test_get_orders_for_physician_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.get(self.URL + '/orders/?page=1')
 
         self.assertEqual(response.status_code, 401)
 
@@ -67,7 +94,7 @@ class OrdersTest(TestCase):
         product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=4),
             product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=1, teeth=[25])
         
-        response = self.client.get(self.URL + '/products/' + str(order.id), follow=True)
+        response = self.client.get(self.URL + f'/products/{order.id}', follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)

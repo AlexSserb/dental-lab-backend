@@ -9,11 +9,13 @@ urlpatterns = [
 
     path('product_types/', views.ProductTypeList.as_view(), name='product-types'),
 
-    path('orders/', views.get_orders_for_physician, name='orders-for-physician'),
+    path('orders_for_physician/', views.get_orders_for_physician, name='orders-for-physician'),
+    path('orders/', views.get_orders, name='orders'),
     path('create_order/', views.create_order, name='create-order'),
-    path('products/<str:pk>/', views.get_products_for_order, name='products-for-order'),
+    path('products/<str:order_id>/', views.get_products_for_order, name='products-for-order'),
 
     path('operations_for_tech/', views.get_operations_for_tech, name='operations-for-tech'),
+    path('operations_for_product/<str:product_id>', views.get_operations_for_product, name='operations-for-product'),
     path('operation/<str:pk>/', views.OperationDetail.as_view(), name='operation'),
     path('operation_statuses/', views.OperationStatusesList.as_view(), name='operation-statuses'),
 ]

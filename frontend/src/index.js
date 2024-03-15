@@ -11,7 +11,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 axios.defaults.baseURL = process.env.REACT_APP_BASE_URL;
 
 axios.interceptors.request.use((config) => {
-  config.headers['Authorization'] = 'Bearer ' + String(JSON.parse(localStorage.getItem('authTokens'))?.access);
+  const authTokens = JSON.parse(localStorage.getItem('authTokens'));
+  
+  if (authTokens) {
+    config.headers['Authorization'] = 'Bearer ' + String(authTokens?.access);
+  }
+  
   return config;
 });
 

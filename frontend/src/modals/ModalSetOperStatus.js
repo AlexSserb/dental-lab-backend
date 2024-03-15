@@ -1,12 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   Button, Typography, Modal,
   Select, MenuItem,
   Stack, Box
 } from '@mui/material';
 
-import ToothMarks from './ToothMarks';
-import AuthContext from '../context/AuthContext';
+import ToothMarks from '../components/ToothMarks';
 import operationService from "../servicies/OperationService";
 
 const style = {
@@ -28,8 +27,6 @@ const ModalSetOperStatus = ({ oper, operStatuses, loadOperations }) => {
   let [selectedOperationStatus, setSelectedOperationStatus] = useState(oper?.operation_status?.name);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  let {authTokens} = useContext(AuthContext);
 
   const handleSubmit = () => {
     const status = operStatuses.find(operSt => operSt.value === selectedOperationStatus);

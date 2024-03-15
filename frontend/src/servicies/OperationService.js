@@ -7,6 +7,10 @@ class OperationService {
     return axios.get(API_URL + `operations_for_tech/?page=${page}`);
   }
 
+  getForProduct(productId) {
+    return axios.get(API_URL + `operations_for_product/${productId}`);
+  }
+
   getOperationStatuses() {
     return axios.get(API_URL + "operation_statuses/");
   }
