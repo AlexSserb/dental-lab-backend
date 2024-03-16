@@ -15,7 +15,7 @@ import AuthContext from '../context/AuthContext';
 import getDepartmentName from "../utils/GetDepartmentName";
 
 
-const OperationsForProduct = () => {
+const OperationsForProductPage = () => {
 	const { authTokens } = useContext(AuthContext);
 	const [operations, setOperations] = useState([]);
 	const [operationStatuses, setOperationStatuses] = useState([]);
@@ -28,7 +28,6 @@ const OperationsForProduct = () => {
 		operationService.getForProduct(product.id)
 			.then(res => {
 				setOperations(res.data);
-				console.log(res.data);
 			})
 			.catch(err => console.log(err));
 	}
@@ -158,4 +157,4 @@ const OperationsForProduct = () => {
 		</Grid>
 	);
 }
-export default OperationsForProduct;
+export default OperationsForProductPage;

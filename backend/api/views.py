@@ -83,40 +83,13 @@ def get_orders_for_physician(request):
     return paginator.get_paginated_response(serializer.data)
 
 
-def paginate_and_serialize_orders(orders, request):
-    """
-        Paginating and serializing orders for the next three views 
-    """
-    paginator = StandardResultsSetPagination()
-    page = paginator.paginate_queryset(orders, request)
-    serializer = OrderSerializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
-
-
 @extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
 def get_orders(request):
     orders = Order.objects.all().order_by('-order_date')
-    return paginate_and_serialize_orders(orders, request)
-
-
-@extend_schema(responses=OrderSerializer)
-@api_view(['GET'])
-@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
-def get_processed_orders(request):
-    default_order_st = OrderStatus.get_default_status()
-    orders = Order.objects.all().filter(~Q(status=default_order_st.id)).order_by('-order_date')
-    return paginate_and_serialize_orders(orders, request)
-
-
-@extend_schema(responses=OrderSerializer)
-@api_view(['GET'])
-@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
-def get_not_processed_orders(request):
-    default_order_st = OrderStatus.get_default_status()
-    orders = Order.objects.all().filter(status=default_order_st.id).order_by('-order_date')
-    return paginate_and_serialize_orders(orders, request)
+    serializer = OrderWithPhysicianSerializer(orders, many=True)
+    return Response(serializer.data)
 
 
 @extend_schema(responses=ProductSerializer)

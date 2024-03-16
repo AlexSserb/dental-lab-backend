@@ -43,12 +43,11 @@ class OrdersTest(TestCase):
         order = Order.objects.create(user=self.user, discount=0.05,
             status=OrderStatus.objects.get(number=3))
         
-        response = self.client.get(self.URL + '/orders/?page=1')
+        response = self.client.get(self.URL + '/orders', follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['count'], 1)
-        response_order = response.data['results'][0]
+        self.assertEqual(len(response.data), 1)
+        response_order = response.data[0]
         self.assertEqual(response_order['status']['name'], 'At work')
         self.assertEqual(response_order['order_date'], datetime.now().strftime('%Y-%m-%d'))
         self.assertEqual(response_order['discount'], Decimal('0.05'))

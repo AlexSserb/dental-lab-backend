@@ -58,6 +58,18 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_cost(self, obj):
         return obj.get_cost()
 
+class OrderWithPhysicianSerializer(serializers.ModelSerializer):
+    status = OrderStatusSerializer(read_only=True)
+    cost = serializers.SerializerMethodField('get_cost')
+    user = UserProfileSerializer()
+
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'order_date', 'discount', 'cost', 'user']
+
+    def get_cost(self, obj):
+        return obj.get_cost()
+
 
 class ProductFromUserSerializer(serializers.Serializer):
     product_type_id = serializers.CharField(required=True)

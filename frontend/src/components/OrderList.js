@@ -1,153 +1,136 @@
-import React, { useState, useEffect, useContext } from 'react';
-import InfoIcon from '@mui/icons-material/Info';
+import React, { useState, useEffect, useContext } from "react";
+import InfoIcon from "@mui/icons-material/Info";
 import {
   Typography,
-  Grid, Stack, Box,
-  TextField,
-  Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
+  Grid, Stack,
   Button,
-  Paper,
-  Pagination,
-  Radio, RadioGroup, FormControlLabel
-} from '@mui/material';
+  Paper
+} from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { DataGrid, GridToolbar, ruRU } from "@mui/x-data-grid";
+import { ruRU as coreruRU } from "@mui/material/locale";
+import { useNavigate } from "react-router-dom";
 
-import AuthContext from '../context/AuthContext';
-import getFilteredOrders from '../utils/GetFilteredOrders';
-import { useNavigate } from 'react-router-dom';
-import productService from '../servicies/ProductService';
+import AuthContext from "../context/AuthContext";
+import orderService from "../servicies/OrderService";
 
 
 const OrderList = () => {
   const { authTokens } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
-  const [products, setProducts] = useState([]);
-  const [currOrder, setCurrOrder] = useState({});
-  const [filterTypeOrders, setFilterTypeOrders] = useState("all");
 
   const navigate = useNavigate();
+  const columns = [
+    { field: "user", headerName: "ФИО стоматолога", width: 150 },
+    { field: "date", headerName: "Дата оформления", width: 150 },
+    { field: "status", headerName: "Статус", width: 300 },
+    { field: "discount", headerName: "Скидка", width: 80 },
+    { field: "cost", headerName: "Сумма", width: 100 },
+    {
+      field: "info", headerName: "Подробнее", sortable: false,
+      disableExport: true,
+      renderCell: (params) => {
+        return (
+          <Button variant="contained"
+            onClick={() => navigate("/order", { state: { order: params.row.orderInfo } })}>
+            <InfoIcon />
+          </Button>
+        )
+      }
+    }
+  ];
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
-    getOrders(page, filterTypeOrders);
+    getOrders();
   }, []);
 
-  const handleFilterTypeChange = (event) => {
-    setFilterTypeOrders(event.target.value);
-    setPage(1);
-    getOrders(1, event.target.value);
-  }
+  const theme = createTheme(
+    {
+      palette: {
+        primary: { main: "#1976d2" },
+      },
+    },
+    ruRU, // x-data-grid translations
+    coreruRU // core translations
+  );
 
-  const handleChangePage = (_, newPage) => {
-    setPage(newPage);
-    getOrders(newPage, filterTypeOrders);
-  }
-
-  const getOrders = (orderPage, filterTypeOrders) => {
-    getFilteredOrders(orderPage, filterTypeOrders)
+  const getOrders = () => {
+    orderService.getOrders()
       .then(res => {
-        setOrders(res.data.results);
-        setTotalPages(res.data.total_pages);
-        if (res.data.results.length > 0) {
-          setCurrOrder(res.data.results[0]);
-          getOrderInfo(res.data.results[0]);
-        }
+        const result = res.data.map(function (order) {
+          return {
+            id: order.id,
+            user: order.user.last_name + " " + order.user.first_name,
+            status: order.status.name,
+            discount: order.discount * 100 + "%",
+            cost: order.cost.toFixed(2),
+            date: order.order_date,
+            orderInfo: order
+          }
+        });
+        setOrders(result);
       })
       .catch(err => {
         console.log(err);
       });
-  }
-
-  const getOrderInfo = (order) => {
-    productService.getForOrder(order.id)
-      .then(res => {
-        setProducts(res.data);
-        setCurrOrder(order);
-      })
-      .catch(err => {
-        setProducts([]);
-        setCurrOrder({});
-        console.log(err);
-      });
-  }
-
-  // Main variable to render orders on the screen
-  const renderOrders = () => {
-    let i = 1;
-    return orders.map((order) => (
-      <TableRow key={order.id}>
-        <TableCell>{i++}</TableCell>
-        <TableCell sx={{ textWrap: "nowrap" }}>{order.order_date}</TableCell>
-        <TableCell>{order.status.name}</TableCell>
-        <TableCell sx={{ textAlign: "center" }}>
-          <Button onClick={() => getOrderInfo(order)}>
-            <InfoIcon />
-          </Button>
-        </TableCell>
-      </TableRow>
-    ));
-  };
-
-  const renderProducts = () => {
-    let i = 1;
-    return products.map(product => (
-      <TableRow key={product.id}>
-        <TableCell>{i++}</TableCell>
-        <TableCell>{product.product_type.name}</TableCell>
-        <TableCell>{product.product_status.name}</TableCell>
-        <TableCell>{product.amount}</TableCell>
-        <TableCell>{product.product_type.cost.toFixed(2)}</TableCell>
-        <TableCell>{product.discount * 100}%</TableCell>
-        <TableCell>{product.cost.toFixed(2)}</TableCell>
-        <TableCell>
-          <Button variant="contained" onClick={() => navigate('/operations_for_product', { state: { product: product } })}>
-            <InfoIcon />
-          </Button>
-        </TableCell>
-      </TableRow>
-    ));
   }
 
   return (
-    <Grid container spacing={3} wrap="wrap-reverse">
-      <Grid item xs={4}>
-        <h3 className='m-4 mt-5'>Заказы</h3>
-        <RadioGroup
-          className='m-4'
-          aria-labelledby="demo-error-radios"
-          name="quiz"
-          value={filterTypeOrders}
-          onChange={handleFilterTypeChange}
-        >
-          <FormControlLabel value="all" control={<Radio />} label="Все заказы" />
-          <FormControlLabel value="processed" control={<Radio />} label="Только оформленные наряды" />
-          <FormControlLabel value="notProcessed" control={<Radio />} label="Только новые заказы" />
-        </RadioGroup>
+    <Grid container sx={{
+      spacing: 0,
+      direction: "column",
+      alignItems: "center",
+      justifyContent: "center"
+    }}>
+      <Stack container sx={{
+        display: "flex",
+        minWidth: "500px",
+        spacing: 3
+      }}>
+        <Typography variant="h4" component="h5" sx={{
+          textAlign: "center",
+          paddingY: 2
+        }}>
+          Заказы
+        </Typography>
         {
           orders.length > 0 ?
-          <Stack sx={{ alignItems: "center", margin: 2 }}>
-              <TableContainer component={Paper} >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>№</TableCell>
-                      <TableCell>Дата</TableCell>
-                      <TableCell>Статус</TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {renderOrders()}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Pagination count={totalPages} page={page} onChange={handleChangePage}
-                variant="outlined" shape="rounded" sx={{ marginTop: 3 }} />
+            <Stack>
+              <ThemeProvider theme={theme}>
+                <DataGrid
+                  sx={{
+                    padding: 2,
+                    width: "100%",
+                  }}
+                  rows={orders}
+                  columns={columns}
+                  initialState={{
+                    pagination: {
+                      paginationModel: { page: 0, pageSize: 10 },
+                    },
+                  }}
+                  pageSizeOptions={[10, 20, 30, 40, 50, 100]}
+                  slots={{ toolbar: GridToolbar }}
+                  ruRU
+                  disableRowSelectionOnClick
+                  slotProps={{
+                    toolbar: {
+                      csvOptions: {
+                        fileName: 'Заказы',
+                        delimiter: ';',
+                        utf8WithBom: true
+                      }
+                    }
+                  }}
+                >
+                  <GridToolbar />
+                </DataGrid>
+              </ThemeProvider>
             </Stack>
             : <Typography component={Paper} sx={{
               margin: 2,
@@ -157,96 +140,7 @@ const OrderList = () => {
               Нет заказов
             </Typography>
         }
-      </Grid>
-      <Grid item xs={8}>
-        <Box sx={{
-          border: 1,
-          borderRadius: 2,
-          borderColor: '#4d4c4c',
-          padding: 3,
-          marginTop: 5,
-        }}>
-          <Typography textAlign={"center"} variant="h4" component="h4" sx={{ marginBottom: 2 }}>
-            Информация о заказе
-          </Typography>
-          <Box>
-            <Stack spacing={2}>
-              {
-                products.length > 0 ?
-                  <TableContainer component={Paper}>
-                    <Table label='Изделия'>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>№</TableCell>
-                          <TableCell>Тип изделия</TableCell>
-                          <TableCell>Статус</TableCell>
-                          <TableCell sx={{ width: "10%" }}>Кол-во</TableCell>
-                          <TableCell>Цена</TableCell>
-                          <TableCell>Скидка</TableCell>
-                          <TableCell>Сумма</TableCell>
-                          <TableCell>Отметки</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {renderProducts()}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  : <p for="products">Изделия для заказа</p>
-              }
-              <TextField
-                InputProps={{ readOnly: true }}
-                InputLabelProps={{ shrink: true }}
-                label="Статус"
-                variant="outlined"
-                value={currOrder?.status?.name}
-              />
-              <Grid sx={{
-                display: "flex",
-                direction: "row",
-              }}>
-                {
-                  currOrder?.discount !== 0 ?
-                    <>
-                      <TextField 
-                        sx={{ width: "100%" }}
-                        InputProps={{ readOnly: true }}
-                        InputLabelProps={{ shrink: true }}
-                        label="Сумма заказа (руб)"
-                        variant="outlined"
-                        value={currOrder?.cost?.toFixed(2)}
-                      />
-                      <TextField 
-                        sx={{ width: "100%", marginX: 2 }}
-                        InputProps={{ readOnly: true }}
-                        InputLabelProps={{ shrink: true }}
-                        label="Скидка"
-                        variant="outlined"
-                        value={currOrder?.discount * 100 + "%"}
-                      />
-                    </>
-                    : <></>
-                }
-                <TextField
-                  sx={{ width: "100%" }}
-                  InputProps={{ readOnly: true }}
-                  InputLabelProps={{ shrink: true }}
-                  label="Итоговая сумма заказа (руб)"
-                  variant="outlined"
-                  value={(currOrder?.cost * (1 - currOrder?.discount)).toFixed(2)}
-                />
-              </Grid>
-              <TextField
-                InputProps={{ readOnly: true }}
-                InputLabelProps={{ shrink: true }}
-                label="Дата"
-                variant="outlined"
-                value={currOrder?.order_date}
-              />
-            </Stack>
-          </Box>
-        </Box>
-      </Grid>
+      </Stack>
     </Grid>
   )
 }

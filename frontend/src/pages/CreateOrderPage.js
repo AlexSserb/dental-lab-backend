@@ -8,13 +8,13 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import ToothMarks from "./ToothMarks";
+import ToothMarks from "../components/ToothMarks";
 import productTypesService from "../servicies/ProductTypesService";
 import orderService from "../servicies/OrderService";
 import AuthContext from '../context/AuthContext';
 
 
-const CreateOrderForm = () => {
+const CreateOrderPage = () => {
   let { authTokens } = useContext(AuthContext);
   let [listOfProducts, setListOfProducts] = useState([]);
   let [allProductTypes, setAllProductTypes] = useState([]);
@@ -298,4 +298,4 @@ const CreateOrderForm = () => {
     </Grid>
   );
 }
-export default CreateOrderForm;
+export default CreateOrderPage;
