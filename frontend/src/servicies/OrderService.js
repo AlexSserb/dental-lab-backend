@@ -7,8 +7,8 @@ class OrderService {
     return axios.get(API_URL + `orders_for_physician/?page=${page}`);
   }
 
-  getOrders() {
-    return axios.get(API_URL + `orders`);
+  getOrders(month, year) {
+    return axios.get(API_URL + `orders/${year}/${month}`);
   }
 
   post(order) {

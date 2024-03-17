@@ -26,6 +26,10 @@ class OrdersTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        curr_date = datetime.now()
+        cls.year = curr_date.year
+        cls.month = curr_date.month
+
         cls.user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
         cls.user.set_password(cls.password)
         cls.user.save()
@@ -43,7 +47,7 @@ class OrdersTest(TestCase):
         order = Order.objects.create(user=self.user, discount=0.05,
             status=OrderStatus.objects.get(number=3))
         
-        response = self.client.get(self.URL + '/orders', follow=True)
+        response = self.client.get(self.URL + f'/orders/{self.year}/{self.month}', follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
@@ -55,7 +59,7 @@ class OrdersTest(TestCase):
     def test_get_orders_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/orders/?page=1')
+        response = client.get(self.URL + f'/orders/{self.year}/{self.month}', follow=True)
 
         self.assertEqual(response.status_code, 401)
 
@@ -71,7 +75,7 @@ class OrdersTest(TestCase):
         order2 = Order.objects.create(user=self.user, discount=0.1,
             status=OrderStatus.objects.get(number=1))
         
-        response = self.client.get(self.URL + '/orders_for_physician/?page=1')
+        response = self.client.get(self.URL + '/orders_for_physician', follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
@@ -80,7 +84,7 @@ class OrdersTest(TestCase):
     def test_get_orders_for_physician_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/orders/?page=1')
+        response = client.get(self.URL + f'/orders/{self.year}/{self.month}', follow=True)
 
         self.assertEqual(response.status_code, 401)
 

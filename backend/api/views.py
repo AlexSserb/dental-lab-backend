@@ -15,6 +15,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
+from datetime import datetime
+import calendar
+
 
 User = get_user_model()
 
@@ -86,8 +89,10 @@ def get_orders_for_physician(request):
 @extend_schema(responses=OrderSerializer)
 @api_view(['GET'])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
-def get_orders(request):
-    orders = Order.objects.all().order_by('-order_date')
+def get_orders(request, year: int, month: int):
+    date_from = datetime(year=year, month=month, day=1)
+    date_to = datetime(year=year, month=month, day=calendar.monthrange(year, month)[1])
+    orders = Order.objects.filter(order_date__range=(date_from, date_to)).order_by('-order_date')
     serializer = OrderWithPhysicianSerializer(orders, many=True)
     return Response(serializer.data)
 

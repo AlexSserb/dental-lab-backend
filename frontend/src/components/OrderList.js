@@ -6,9 +6,16 @@ import {
   Button,
   Paper
 } from "@mui/material";
+
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import "dayjs/locale/ru";
+import dayjs from "dayjs";
+
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid, GridToolbar, ruRU } from "@mui/x-data-grid";
 import { ruRU as coreruRU } from "@mui/material/locale";
+import { ruRU as datePickerruRU } from '@mui/x-date-pickers/locales';
 import { useNavigate } from "react-router-dom";
 
 import AuthContext from "../context/AuthContext";
@@ -18,6 +25,7 @@ import orderService from "../servicies/OrderService";
 const OrderList = () => {
   const { authTokens } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(dayjs(new Date()));
 
   const navigate = useNavigate();
   const columns = [
@@ -55,12 +63,13 @@ const OrderList = () => {
         primary: { main: "#1976d2" },
       },
     },
+    datePickerruRU, // date-picker translations
     ruRU, // x-data-grid translations
-    coreruRU // core translations
+    coreruRU, // core translations
   );
 
   const getOrders = () => {
-    orderService.getOrders()
+    orderService.getOrders(selectedDate.month() + 1, selectedDate.year())
       .then(res => {
         const result = res.data.map(function (order) {
           return {
@@ -98,10 +107,21 @@ const OrderList = () => {
         }}>
           Заказы
         </Typography>
-        {
-          orders.length > 0 ?
-            <Stack>
-              <ThemeProvider theme={theme}>
+        <ThemeProvider theme={theme}>
+          <Stack spacing={2}>
+            <Stack direction={"row"} spacing={2}>
+              <Button onClick={getOrders} variant="contained">
+                Показать заказы
+              </Button>
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"ru"}>
+                <DatePicker value={selectedDate} label="Месяц для вывода заказов"
+                  onChange={(newValue) => setSelectedDate(newValue)}
+                  views={["month", "year"]} minDate={dayjs(new Date("01-01-2010"))}
+                  maxDate={dayjs(new Date("01-01-2100"))} />
+              </LocalizationProvider>
+            </Stack>
+            {
+              orders.length > 0 ?
                 <DataGrid
                   sx={{
                     padding: 2,
@@ -130,16 +150,16 @@ const OrderList = () => {
                 >
                   <GridToolbar />
                 </DataGrid>
-              </ThemeProvider>
-            </Stack>
-            : <Typography component={Paper} sx={{
-              margin: 2,
-              padding: 2,
-              textAlign: 'center'
-            }}>
-              Нет заказов
-            </Typography>
-        }
+                : <Typography component={Paper} sx={{
+                  margin: 2,
+                  padding: 2,
+                  textAlign: 'center'
+                }}>
+                  Нет заказов
+                </Typography>
+            }
+          </Stack>
+        </ThemeProvider>
       </Stack>
     </Grid>
   )
