@@ -20,7 +20,7 @@ const style = {
   p: 4,
 };
 
-const ModalSetOperStatus = ({ oper, operStatuses, loadOperations }) => {
+const ModalSetOperStatus = ({ oper, page, operStatuses, loadOperations }) => {
   const [open, setOpen] = useState(false);
   const [operation, setOperation] = useState(oper);
   const [operationStatuses, setOperationStatuses] = useState(operStatuses);
@@ -32,8 +32,8 @@ const ModalSetOperStatus = ({ oper, operStatuses, loadOperations }) => {
     const status = operStatuses.find(operSt => operSt.value === selectedOperationStatus);
 
     operationService.setOperationStatus(operation.id, status?.key)
-      .then(res => { 
-        loadOperations();
+      .then(_ => { 
+        loadOperations(page);
       })
       .catch(err => console.log(err));
 
@@ -88,7 +88,7 @@ const ModalSetOperStatus = ({ oper, operStatuses, loadOperations }) => {
             <Typography>Статус: {oper.product.product_status.name}</Typography>
             <Typography>Количество: {oper.product.amount}</Typography>
             <Typography>Формула для изделия</Typography>
-            <ToothMarks teethList={oper.product.teeth.map(tooth => tooth.tooth_number)} />
+            <ToothMarks teethList={oper.product.teeth} />
           </Stack>
         </Box>
       </Modal>

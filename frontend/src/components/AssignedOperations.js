@@ -79,7 +79,8 @@ const AssignedOperations = () => {
 							<Typography>Количество: {oper.product.amount}</Typography>
 						</Grid>
 						<Grid item>
-							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} loadOperations={getOperations} />
+							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} 
+								page={page} loadOperations={getOperations} />
 							<Typography>Формула для изделия</Typography>
 							<ToothMarks teethList={oper.product.teeth} />
 						</Grid>

@@ -89,7 +89,7 @@ class OperationsTest(TestCase):
             operation_type=OperationType.objects.get(name='Operation type 2'))
         # endregion 
         
-        response = self.client.get(self.URL + f'/operations_for_product/{product2.id}')
+        response = self.client.get(self.URL + f'/operations_for_product/{product2.id}/')
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)
@@ -102,7 +102,7 @@ class OperationsTest(TestCase):
     def test_get_operations_for_product_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/operations_for_product/1')
+        response = client.get(self.URL + '/operations_for_product/1/')
 
         self.assertEqual(response.status_code, 401)
 
@@ -117,7 +117,7 @@ class OperationsTest(TestCase):
             operation_type=OperationType.objects.get(name='Operation type 3'))
         # endregion
         
-        response = self.client.patch(self.URL + f'/operation/{operation.id}', 
+        response = self.client.patch(self.URL + f'/operation/{operation.id}/', 
             data={'status_id': 'efee01cc-e81b-4936-8580-33e778ae0f67'}, follow=True)
         
         self.assertEqual(response.status_code, 200)
@@ -134,7 +134,7 @@ class OperationsTest(TestCase):
     def test_set_operation_status_incorrect_operation_id(self):
         incorrect_id = 'efee01cc-e81b-4936-8580-33e778ae0f67'
 
-        response = self.client.patch(self.URL + f'/operation/{incorrect_id}', 
+        response = self.client.patch(self.URL + f'/operation/{incorrect_id}/', 
             data={'status_id': 'efee01cc-e81b-4936-8580-33e778ae0f67'}, follow=True)
         
         self.assertEqual(response.status_code, 404)

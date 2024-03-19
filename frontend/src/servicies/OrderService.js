@@ -12,7 +12,7 @@ class OrderService {
   }
 
   post(order) {
-    return axios.post(API_URL + "create_order", { "product_types": order });
+    return axios.post(API_URL + "create_order/", { "product_types": order });
   }
 }
 

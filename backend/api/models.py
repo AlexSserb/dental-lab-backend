@@ -185,14 +185,9 @@ class Product(models.Model):
             if  product_type_id and amount and teeth and type(teeth) is list:
                 product_type_inst = ProductType.objects.filter(id=product_type_id).first()
                 
-                if not product_type_inst:
-                    print('Указан несуществующий тип изделия.')
-                    continue
-            
-                product = Product.objects.create(product_type=product_type_inst, amount=amount,
-                    order=order, product_status=ProductStatus.get_default_status(), teeth=teeth)
-            else:
-                print('Переданы некорректные данные об изделиях.')
+                if product_type_inst:
+                    product = Product.objects.create(product_type=product_type_inst, amount=amount,
+                        order=order, product_status=ProductStatus.get_default_status(), teeth=teeth)
 
     def get_cost(self):
         return round(self.product_type.cost * self.amount * (1 - self.discount), 2)
