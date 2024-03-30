@@ -25,7 +25,6 @@ const OrderPage = () => {
     productService.getForOrder(orderId)
       .then(res => {
         setProducts(res.data);
-        console.log(state.order);
         setOrder(state.order);
       })
       .catch(err => {

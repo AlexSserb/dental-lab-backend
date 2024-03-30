@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext } from 'react';
 
 import AuthContext from '../context/AuthContext';
 import PhysicianOrderList from '../components/PhysicianOrderList';
@@ -7,7 +7,7 @@ import OrderList from '../components/OrderList';
 
 const HomePage = () => {
   let {userGroupToString, user} = useContext(AuthContext);
-  const [userGroup, setUserGroup] = useState(userGroupToString(user?.group));
+  const userGroup = userGroupToString(user?.group);
   
   if (userGroup === 'Врач') {
     return (

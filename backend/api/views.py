@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import calendar
 
 
@@ -144,6 +144,37 @@ def get_operations_for_product(request, product_id):
         curr_history = all_operations_history.filter(pgh_obj=operation['id']).order_by('-pgh_created_at')
         operation['history'] = OperationEventSerializer(curr_history, many=True).data
         
+    return Response(serializer.data)
+
+
+def preprocess_operation_for_schedule(operation):
+    processed = {}
+    exec_time = operation.operation_type.exec_time
+    delta = timedelta(hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second)
+
+    processed['start'] = operation.exec_start
+    processed['end'] = operation.exec_start + delta
+    processed['operation_type'] = operation.operation_type
+    processed['operation_status'] = operation.operation_status
+    processed['product'] = operation.product
+
+    return processed
+
+
+@extend_schema(responses=OperationForScheduleSerializer)
+@api_view(['GET'])
+@permission_classes([IsTech | IsChiefTech | IsLabAdmin | IsDirector])
+def get_operations_for_schedule(request, user_email, date):
+    date_start = datetime.strptime(date, "%Y-%m-%d").date()
+    date_end = date_start + timedelta(days=5)
+    user = User.objects.filter(email=user_email).first()
+    operations = Operation.objects.filter(
+        tech=user,
+        exec_start__gte=str(date_start),
+        exec_start__lte=str(date_end)
+    )
+    operations = [preprocess_operation_for_schedule(operation) for operation in operations]
+    serializer = OperationForScheduleSerializer(operations, many=True)
     return Response(serializer.data)
 
 

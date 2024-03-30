@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate, useLocation } from "react-router-dom";
 import moment from "moment";
 
-import ToothMarks from "./ToothMarks";
+import ToothMarks from "../components/ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
 import getDepartmentName from "../utils/GetDepartmentName";

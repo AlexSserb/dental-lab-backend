@@ -3,6 +3,8 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.serializers import serialize
+
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from uuid import uuid4
 
@@ -25,6 +27,7 @@ class OperationsTest(TestCase):
     first_name: str = 'Alex'
     last_name: str = 'Serb'
     URL: str = '/api'
+    tzinfo: ZoneInfo = ZoneInfo('Europe/Samara')
 
     @classmethod
     def setUpTestData(cls):
@@ -155,3 +158,36 @@ class OperationsTest(TestCase):
 
         self.assertEqual(response.status_code, 401)
         
+    def test_get_operations_for_schedule_correct(self):
+        # region set test data
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3))
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=2),
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
+
+        operation_status = OperationStatus.objects.get(number=2)
+        operation1 = Operation.objects.create(product=product1, tech=self.user, operation_status=operation_status,
+            operation_type=OperationType.objects.get(name='Operation type 3'), 
+            exec_start=datetime(2024, 3, 25, 16, 25))
+        operation2 = Operation.objects.create(product=product2, tech=self.user, operation_status=operation_status,
+            operation_type=OperationType.objects.get(name='Operation type 2'), 
+            exec_start=datetime(2024, 3, 29, 11, 10))
+        # endregion 
+        
+        response = self.client.get(self.URL + f'/operations_for_schedule/{self.user.email}/2024-03-25')
+        resp: list = response.data
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(resp), 2)
+        self.assertEqual(resp[0]['operation_status']['number'], 2)
+        datetime_pattern = '%Y-%m-%dT%H:%M:%SZ'
+        self.assertEqual(datetime.strptime(resp[0]['start'], datetime_pattern), datetime(2024, 3, 25, 16, 25, 0))
+        self.assertEqual(datetime.strptime(resp[0]['end'], datetime_pattern), datetime(2024, 3, 25, 17, 0, 0))
+        self.assertEqual(datetime.strptime(resp[1]['start'], datetime_pattern), datetime(2024, 3, 29, 11, 10, 0))
+        self.assertEqual(datetime.strptime(resp[1]['end'], datetime_pattern), datetime(2024, 3, 29, 12, 10, 0))
+        
+    def test_get_operations_for_schedule_incorrect_token(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
+        response = client.get(self.URL + f'/operations_for_schedule/{self.user.email}/2024-03-25')

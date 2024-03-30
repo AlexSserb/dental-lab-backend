@@ -87,8 +87,16 @@ class OperationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Operation
-        fields = ['id', 'operation_type', 'operation_status', 'product']
+        fields = ['id', 'operation_type', 'operation_status', 'product', 'exec_start']
 
+
+class OperationForScheduleSerializer(serializers.Serializer):
+    start = serializers.DateTimeField(required=True)
+    end = serializers.DateTimeField(required=True)
+    operation_type = OperationTypeSerializer(required=True)
+    operation_status = OperationStatusSerializer(required=True)
+    product = ProductSerializer(required=True)
+    
 
 class OperationEventSerializer(serializers.ModelSerializer):
     operation_status = OperationStatusSerializer(read_only=True)

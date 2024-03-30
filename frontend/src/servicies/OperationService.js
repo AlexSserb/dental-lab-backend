@@ -11,6 +11,10 @@ class OperationService {
     return axios.get(API_URL + `operations_for_product/${productId}`);
   }
 
+  getForSchedule(userEmail, date) {
+    return axios.get(API_URL + `operations_for_schedule/${userEmail}/${date}`);
+  }
+
   getOperationStatuses() {
     return axios.get(API_URL + "operation_statuses/");
   }

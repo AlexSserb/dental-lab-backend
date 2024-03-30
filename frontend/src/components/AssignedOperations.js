@@ -38,19 +38,36 @@ const AssignedOperations = () => {
 			return;
 		}
 
-		getOperations(page);
-
 		operationService.getOperationStatuses()
 			.then(res => {
 				let operations = res.data.map(oper => { return { key: oper.id, value: oper.name } });
 				setOperationStatuses(operations);
 			})
 			.catch(err => console.log(err));
+
+		getOperations(page);
 	}, [])
 
 	const handleChangePage = (_, newPage) => {
 		setPage(newPage);
 		getOperations(newPage);
+	}
+
+	const formatExecTime = (execTime) => {
+		const hours = Number(execTime.substring(0, 2));
+		const minutes = Number(execTime.substring(3, 5));
+		if (hours === 0) {
+			return <>{minutes} мин.</>;
+		}
+		return <>
+			{hours} ч. {minutes} мин.
+		</>
+	}
+
+	const formatExecStartDateTime = (execStart) => {
+		return <>
+			{execStart.substring(0, 10)} {execStart.substring(11, 16)}
+		</>
 	}
 
 	const renderOperations = () => {
@@ -64,9 +81,12 @@ const AssignedOperations = () => {
 					<Stack>
 						<Typography item>Вид операции: {oper.operation_type.name}</Typography>
 						<Typography item>Статус операции: {oper.operation_status.name}</Typography>
+						{
+							oper.exec_start ? <Typography item>Назначено на: {formatExecStartDateTime(oper.exec_start)}</Typography>
+								: <Typography item>Дата и время начала выполнения не указаны</Typography>
+						}
 						<Typography item>
-							Время выполнения: {oper.operation_type.exec_time.substring(0, 2)}:
-							{oper.operation_type.exec_time.substring(3, 5)}
+							На выполнение: {formatExecTime(oper.operation_type.exec_time)}
 						</Typography>
 					</Stack>
 				</AccordionSummary>
@@ -79,7 +99,7 @@ const AssignedOperations = () => {
 							<Typography>Количество: {oper.product.amount}</Typography>
 						</Grid>
 						<Grid item>
-							<ModalSetOperStatus oper={oper} operStatuses={operationStatuses} 
+							<ModalSetOperStatus operation={oper} operationStatuses={operationStatuses}
 								page={page} loadOperations={getOperations} />
 							<Typography>Формула для изделия</Typography>
 							<ToothMarks teethList={oper.product.teeth} />

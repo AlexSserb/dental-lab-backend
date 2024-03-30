@@ -8,8 +8,9 @@ import ResponsiveAppBar from './components/ResponsiveAppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateOrderPage from './pages/CreateOrderPage';
-import OperationsForProductPage from './components/OperationsForProductPage';
+import OperationsForProductPage from './pages/OperationsForProductPage';
 import OrderPage from './pages/OrderPage';
+import TechSchedule from './components/TechSchedule';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path='/create_order' element={<CreateOrderPage/>} />
           <Route path='/operations_for_product' element={<OperationsForProductPage/>} />
           <Route path='/order' element={<OrderPage/>} />
+          <Route path='/schedule' element={<TechSchedule/>} />
         </Routes>
       </AuthProvider>
     </div>

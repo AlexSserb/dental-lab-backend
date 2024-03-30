@@ -18,4 +18,5 @@ urlpatterns = [
     path('operations_for_product/<str:product_id>/', views.get_operations_for_product, name='operations-for-product'),
     path('operation/<str:pk>/', views.OperationDetail.as_view(), name='operation'),
     path('operation_statuses/', views.OperationStatusesList.as_view(), name='operation-statuses'),
+    path('operations_for_schedule/<str:user_email>/<str:date>', views.get_operations_for_schedule, name='operations-for-schedule'),
 ]

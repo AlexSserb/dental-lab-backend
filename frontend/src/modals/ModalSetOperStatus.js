@@ -20,16 +20,14 @@ const style = {
   p: 4,
 };
 
-const ModalSetOperStatus = ({ oper, page, operStatuses, loadOperations }) => {
+const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations }) => {
   const [open, setOpen] = useState(false);
-  const [operation, setOperation] = useState(oper);
-  const [operationStatuses, setOperationStatuses] = useState(operStatuses);
-  let [selectedOperationStatus, setSelectedOperationStatus] = useState(oper?.operation_status?.name);
+  let [selectedOperationStatus, setSelectedOperationStatus] = useState(operation?.operation_status?.name);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const handleSubmit = () => {
-    const status = operStatuses.find(operSt => operSt.value === selectedOperationStatus);
+    const status = operationStatuses.find(operSt => operSt.value === selectedOperationStatus);
 
     operationService.setOperationStatus(operation.id, status?.key)
       .then(_ => { 
@@ -62,8 +60,8 @@ const ModalSetOperStatus = ({ oper, page, operStatuses, loadOperations }) => {
               onChange={e => setSelectedOperationStatus(e.target.value)}
               value={selectedOperationStatus}
             >
-              {operationStatuses.map(oper => (
-                <MenuItem value={oper.value}>{oper.value}</MenuItem>
+              {operationStatuses.map(operation => (
+                <MenuItem value={operation.value}>{operation.value}</MenuItem>
               ))}
             </Select>
             <Button variant="contained" onClick={handleSubmit}>
@@ -84,11 +82,11 @@ const ModalSetOperStatus = ({ oper, page, operStatuses, loadOperations }) => {
             </Typography>
 
             <Typography>Информация об изделии</Typography>
-            <Typography>Вид: {oper.product.product_type.name}</Typography>
-            <Typography>Статус: {oper.product.product_status.name}</Typography>
-            <Typography>Количество: {oper.product.amount}</Typography>
+            <Typography>Вид: {operation.product.product_type.name}</Typography>
+            <Typography>Статус: {operation.product.product_status.name}</Typography>
+            <Typography>Количество: {operation.product.amount}</Typography>
             <Typography>Формула для изделия</Typography>
-            <ToothMarks teethList={oper.product.teeth} />
+            <ToothMarks teethList={operation.product.teeth} />
           </Stack>
         </Box>
       </Modal>

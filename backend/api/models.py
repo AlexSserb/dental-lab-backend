@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 
 import uuid 
+from datetime import datetime
 from decimal import Decimal, getcontext
 import pghistory
 
@@ -207,6 +208,8 @@ class Operation(models.Model):
     operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
     tech = models.ForeignKey(User, related_name='operations', null=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    exec_start = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Операция"

@@ -22,7 +22,7 @@ import ToothMarks from './ToothMarks';
 
 const PhysicianOrderList = () => {
   const { authTokens, userGroupToString, user } = useContext(AuthContext);
-  const [userGroup, setUserGroup] = useState(userGroupToString(user?.group));
+  const userGroup = userGroupToString(user?.group);
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

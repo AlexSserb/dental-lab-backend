@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -11,19 +11,28 @@ import {
   Avatar,
   Button,
   Tooltip,
-  MenuItem 
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+  MenuItem
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 
-import AuthContext from '../context/AuthContext';
+import AuthContext from "../context/AuthContext";
 
-const pages = [['TODO', '/todo'], ];
 
 function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  let { user, logoutUser } = useContext(AuthContext);
+  const [anchorElNav, setAnchorElNav] = useState(null);
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const { user, userGroupToString, logoutUser } = useContext(AuthContext);
+  const userGroup = userGroupToString(user?.group);
   const mainTitle = "InColor";
+
+  let [pages, setPages] = useState([]);
+
+  useEffect(() => {
+    setPages([]);
+    if (userGroup.search(/^Техник/) !== -1) {
+      setPages([["Расписание", "/schedule"]]);
+    }
+  }, [user]);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -41,7 +50,7 @@ function ResponsiveAppBar() {
   };
 
   const logoutUserAndCloseUserMenu = () => {
-    logoutUser(); 
+    logoutUser();
     handleCloseUserMenu();
   }
 
@@ -53,7 +62,7 @@ function ResponsiveAppBar() {
         sx={{
           mr: 2,
           display: { xs: xsValue, md: mdValue },
-          flexGrow : flexGrowValue,
+          flexGrow: flexGrowValue,
           fontFamily: 'monospace',
           fontWeight: 700,
           letterSpacing: '.3rem',
@@ -94,13 +103,13 @@ function ResponsiveAppBar() {
             <Link style={{ textDecoration: "none", color: "black" }}
               onClick={handleCloseUserMenu} to="/profile">ПРОФИЛЬ</Link>
           </MenuItem>
-          <MenuItem>  
+          <MenuItem>
             <Link style={{ textDecoration: "none", color: "black" }}
               onClick={logoutUserAndCloseUserMenu} to="/login">ВЫЙТИ</Link>
           </MenuItem>
         </Menu>
       </Box>
-    ) 
+    )
     else return (
       <Box sx={{ flexGrow: 0 }}>
         <Link to="/login" style={{ textDecoration: "none", color: "white" }}>ВОЙТИ</Link>
@@ -112,7 +121,7 @@ function ResponsiveAppBar() {
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          { titleElement('none', 'flex') }
+          {titleElement('none', 'flex')}
 
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
@@ -151,10 +160,10 @@ function ResponsiveAppBar() {
             </Menu>
           </Box>
 
-          { titleElement('flex', 'none', 1) }
-          
+          {titleElement('flex', 'none', 1)}
+
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-            { pages.map(([page, linkTo]) => (
+            {pages.map(([page, linkTo]) => (
               <Button
                 key={page}
                 onClick={handleCloseNavMenu}
@@ -166,8 +175,8 @@ function ResponsiveAppBar() {
             ))}
           </Box>
 
-          { avatarAndSettingsMenu() }
-          
+          {avatarAndSettingsMenu()}
+
         </Toolbar>
       </Container>
     </AppBar>
