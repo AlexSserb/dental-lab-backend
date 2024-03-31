@@ -2,11 +2,11 @@ import React, { useEffect, useState, useContext } from "react";
 import {
 	Typography,
 	Box, Stack, Grid,
-	Accordion, AccordionSummary, AccordionDetails, Paper, 
+	Accordion, AccordionSummary, AccordionDetails, Paper,
 	Table, TableBody, TableRow, TableHead, TableCell
 } from "@mui/material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import moment from "moment";
 
 import ToothMarks from "../components/ToothMarks";
@@ -77,7 +77,12 @@ const OperationsForProductPage = () => {
 							Время выполнения: {oper.operation_type.exec_time.substring(0, 2)}:
 							{oper.operation_type.exec_time.substring(3, 5)}
 						</Typography>
-						<Typography>Назначена технику: {oper.tech.last_name} {oper.tech.first_name}</Typography>
+						<Typography>
+							<>Назначена технику: </> 
+							<Link to="/profile" state={{ email: oper.tech.email }}>
+								{oper.tech.last_name} {oper.tech.first_name}
+							</Link>
+						</Typography>
 					</Stack>
 				</AccordionSummary>
 				<AccordionDetails>
@@ -95,10 +100,6 @@ const OperationsForProductPage = () => {
 									{operationHistory(oper.history)}
 								</TableBody>
 							</Table>
-						</Grid>
-						<Grid item>
-							{/* <ModalSetOperStatus oper={oper} operStatuses={operationStatuses} loadOperations={getOperations} /> */}
-							{/* <ToothMarks teethList={oper.product.teeth} /> */}
 						</Grid>
 					</Grid>
 				</AccordionDetails>

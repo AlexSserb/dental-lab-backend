@@ -181,7 +181,7 @@ class OperationsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(resp), 2)
         self.assertEqual(resp[0]['operation_status']['number'], 2)
-        datetime_pattern = '%Y-%m-%dT%H:%M:%SZ'
+        datetime_pattern = '%Y-%m-%dT%H:%M:%S'
         self.assertEqual(datetime.strptime(resp[0]['start'], datetime_pattern), datetime(2024, 3, 25, 16, 25, 0))
         self.assertEqual(datetime.strptime(resp[0]['end'], datetime_pattern), datetime(2024, 3, 25, 17, 0, 0))
         self.assertEqual(datetime.strptime(resp[1]['start'], datetime_pattern), datetime(2024, 3, 29, 11, 10, 0))

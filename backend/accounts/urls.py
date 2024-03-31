@@ -9,5 +9,5 @@ urlpatterns = [
     
     path('register/', views.register, name='user-registration'),
 
-    path('profile/', views.getUserProfileData, name='user-profile'),
+    path('profile/<str:email>', views.getUserProfileData, name='user-profile'),
 ]

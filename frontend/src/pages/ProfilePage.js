@@ -1,20 +1,21 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import AuthContext from "../context/AuthContext";
 import profileService from "../servicies/ProfileService";
 
-const RegisterPage = () => {
-  let [ userData, setUserData ] = useState({});
-  let { authTokens, userGroupToString } = useContext(AuthContext);
-  let navigate = useNavigate();
+const ProfilePage = () => {
+  const [ userData, setUserData ] = useState({});
+  const { authTokens, userGroupToString } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { state } = useLocation();
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
       navigate('/login');
       return;
     }
-    profileService.getProfileData()
+    profileService.getProfileData(state?.email)
       .then(res => {
         setUserData({
             email: res.data.email,
@@ -46,5 +47,5 @@ const RegisterPage = () => {
   )
 }
 
-export default RegisterPage;
+export default ProfilePage;
 

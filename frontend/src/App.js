@@ -4,7 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
-import ResponsiveAppBar from './components/ResponsiveAppBar';
+import ApplicationBar from './components/AppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import CreateOrderPage from './pages/CreateOrderPage';
@@ -16,7 +16,7 @@ function App() {
   return (
     <div>
       <AuthProvider>
-        <ResponsiveAppBar/>
+        <ApplicationBar/>
         <Routes>
           <Route exact path='/' element={<HomePage/>} />
           <Route path='/login' element={<LoginPage/>} />

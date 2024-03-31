@@ -39,18 +39,26 @@ class ProfileTest(TestCase):
         # the profile data is obtained by token
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = client.get(self.URL + '/profile/')
+        response = client.get(self.URL + f'/profile/{self.email}')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['email'], self.email)
         self.assertEqual(response.data['first_name'], self.first_name)
         self.assertEqual(response.data['last_name'], self.last_name)
         self.assertTrue('password' not in response.data)
-        
+
+    def test_get_profile_user_not_exist(self):
+        # the profile data is obtained by token
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = client.get(self.URL + '/profile/some_user@mail.com')
+
+        self.assertEqual(response.status_code, 404)
+
     def test_get_profile_incorrect_token(self):
         # the profile data is obtained by token
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/profile/')
+        response = client.get(self.URL + f'/profile/{self.email}')
 
         self.assertEqual(response.status_code, 401)

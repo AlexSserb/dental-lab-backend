@@ -22,7 +22,7 @@ const LoginPage = () => {
       alignItems: "center",
       justifyContent: "center"
     }}>
-      <Stack container sx={{
+      <Stack sx={{
         display: "flex",
         width: "40%",
         minWidth: "500px",

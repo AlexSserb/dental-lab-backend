@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from django.utils import timezone
+from django.http import Http404
 
 from .serializers import *
 
@@ -38,7 +39,11 @@ def register(request):
 @extend_schema(responses=UserProfileSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getUserProfileData(request):
-    user = request.user
-    serializer = UserProfileSerializer(user)
-    return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
+def getUserProfileData(request, email):
+    try:
+        user =  User.objects.get(email=email)
+        serializer = UserProfileSerializer(user)
+        return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
+    except User.DoesNotExist:
+        raise Http404
+    

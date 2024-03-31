@@ -4,8 +4,8 @@ const API_URL = "accounts/";
 
 
 class ProfileService {
-  getProfileData() {
-    return axios.get(API_URL + 'profile/');
+  getProfileData(email) {
+    return axios.get(API_URL + `profile/${email}`);
   }
 }
 

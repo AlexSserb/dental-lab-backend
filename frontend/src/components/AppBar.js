@@ -18,7 +18,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AuthContext from "../context/AuthContext";
 
 
-function ResponsiveAppBar() {
+function ApplicationBar() {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
   const { user, userGroupToString, logoutUser } = useContext(AuthContext);
@@ -101,7 +101,7 @@ function ResponsiveAppBar() {
         >
           <MenuItem>
             <Link style={{ textDecoration: "none", color: "black" }}
-              onClick={handleCloseUserMenu} to="/profile">ПРОФИЛЬ</Link>
+              onClick={handleCloseUserMenu} to="/profile" state={{ email: user.email }}>ПРОФИЛЬ</Link>
           </MenuItem>
           <MenuItem>
             <Link style={{ textDecoration: "none", color: "black" }}
@@ -182,4 +182,4 @@ function ResponsiveAppBar() {
     </AppBar>
   );
 }
-export default ResponsiveAppBar;
+export default ApplicationBar;
