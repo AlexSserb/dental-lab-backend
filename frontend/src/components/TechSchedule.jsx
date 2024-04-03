@@ -35,7 +35,7 @@ const TechSchedule = () => {
         return (
             <div style={{ margin: 3 }}>
                 <b>{eventInfo.timeText}</b><br />
-                <span>{operInfo.operation_type?.name}</span>
+                <span>{operInfo.operationType?.name}</span>
             </div>
         )
     }
@@ -51,7 +51,6 @@ const TechSchedule = () => {
 
         await operationService.getForSchedule(user.email, formattedDate)
             .then(res => {
-                console.log(res.data);
                 operations = res.data;
                 successCallback(res.data);
             })

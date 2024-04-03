@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 
 
 const ToothMarks = ({ teethList }) => {
-	const [ markedTeeth, setMarkedTeeth ] = useState(new Set(teethList));
-	const [ upperJaw, setUpperJaw ] = useState([]);
-	const [ lowerJaw, setLowerJaw ] = useState([]);
+	const [markedTeeth, setMarkedTeeth] = useState(new Set(teethList));
+	const [upperJaw, setUpperJaw] = useState([]);
+	const [lowerJaw, setLowerJaw] = useState([]);
 
 	const fillUpperJaw = () => {
 		let arrUpperJaw = [];
@@ -28,10 +28,10 @@ const ToothMarks = ({ teethList }) => {
 		setLowerJaw(arrLowerJaw);
 	}
 
-  useEffect(() => {
+	useEffect(() => {
 		fillUpperJaw();
 		fillLowerJaw();
-  }, []);
+	}, []);
 
 
 	const getToothMark = (number) => {
@@ -49,31 +49,31 @@ const ToothMarks = ({ teethList }) => {
 				borderRadius: "50%",
 				textAlign: 'center'
 			}}>
-				<p style={{paddingLeft : '2px'}}>
+				<p style={{ paddingLeft: '2px' }}>
 					{number}
 				</p>
 			</div>
 		)
 	}
 
-  return (
-    <div>
-			<table className="text-center"> 
-        <tbody> 
-          <tr>
-						{ upperJaw.map(tooth => {
+	return (
+		<div>
+			<table className="text-center">
+				<tbody>
+					<tr>
+						{upperJaw.map(tooth => {
 							return <td>{getToothMark(tooth)}</td>
 						})}
 					</tr>
 					<tr>
-						{ lowerJaw.map(tooth => {
+						{lowerJaw.map(tooth => {
 							return <td>{getToothMark(tooth)}</td>
 						})}
 					</tr>
-        </tbody> 
-      </table> 
-    </div>
-  )
+				</tbody>
+			</table>
+		</div>
+	)
 }
 
 export default ToothMarks;

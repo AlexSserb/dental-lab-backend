@@ -48,10 +48,10 @@ const OrderPage = () => {
     return products.map(product => (
       <TableRow key={product.id}>
         <TableCell>{i++}</TableCell>
-        <TableCell>{product.product_type.name}</TableCell>
-        <TableCell>{product.product_status.name}</TableCell>
+        <TableCell>{product.productType.name}</TableCell>
+        <TableCell>{product.productStatus.name}</TableCell>
         <TableCell>{product.amount}</TableCell>
-        <TableCell>{product.product_type.cost.toFixed(2)}</TableCell>
+        <TableCell>{product.productType.cost.toFixed(2)}</TableCell>
         <TableCell>{product.discount * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
@@ -110,7 +110,7 @@ const OrderPage = () => {
               InputLabelProps={{ shrink: true }}
               label="Заказчик"
               variant="outlined"
-              value={order?.user?.last_name + ' ' + order?.user?.first_name}
+              value={order?.user?.lastName + ' ' + order?.user?.firstName}
             />
             <TextField
               InputProps={{ readOnly: true }}
@@ -124,7 +124,7 @@ const OrderPage = () => {
               InputLabelProps={{ shrink: true }}
               label="Дата"
               variant="outlined"
-              value={order?.order_date}
+              value={order?.orderDate}
             />
             <Grid sx={{
               display: "flex",

@@ -48,8 +48,8 @@ export const AuthProvider = ({children}) => {
 		e.preventDefault();
 		axios.post('/accounts/register/',
 			{
-				'first_name': e.target.firstName.value,
-				'last_name': e.target.lastName.value,
+				'firstName': e.target.firstName.value,
+				'lastName': e.target.lastName.value,
 				'email': e.target.email.value,
 				'password': e.target.password.value 
 			})

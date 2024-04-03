@@ -19,8 +19,8 @@ class OperationService {
     return axios.get(API_URL + "operation-statuses/");
   }
 
-  setOperationStatus(operation_id, status_id) {
-    return axios.patch(API_URL + `operation/${operation_id}/`, { "status_id": status_id });
+  setOperationStatus(operationId, statusId) {
+    return axios.patch(API_URL + `operation/${operationId}/`, { "statusId": statusId });
   }
 }
 

@@ -2,8 +2,11 @@ asgiref==3.7.2
 attrs==23.2.0
 Django==5.0.1
 django-cors-headers==4.3.1
+django-pghistory==3.1.0
+django-pgtrigger==4.11.0
 django-rest-auth==0.9.5
 djangorestframework==3.14.0
+djangorestframework-camel-case==1.4.2
 djangorestframework-simplejwt==5.3.1
 drf-spectacular==0.27.0
 drfpasswordless==1.5.9

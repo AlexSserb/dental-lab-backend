@@ -30,10 +30,10 @@ const ProfilePage = () => {
   const formatAndSetUserData = (data) => {
     setUserData({
       email: data.email,
-      firstName: data.first_name,
-      lastName: data.last_name,
+      firstName: data.firstName,
+      lastName: data.lastName,
       group: userGroupToString(data.group),
-      createdAt: data.created_at
+      createdAt: data.createdAt
     });
   }
 

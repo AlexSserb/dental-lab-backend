@@ -22,7 +22,7 @@ const style = {
 
 const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations }) => {
   const [open, setOpen] = useState(false);
-  let [selectedOperationStatus, setSelectedOperationStatus] = useState(operation?.operation_status?.name);
+  let [selectedOperationStatus, setSelectedOperationStatus] = useState(operation?.operationStatus?.name);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -75,15 +75,15 @@ const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations
               Информация
             </Typography>
             <hr />
-            <Typography>Вид операции: {operation.operation_type.name}</Typography>
+            <Typography>Вид операции: {operation.operationType.name}</Typography>
             <Typography>
-              Время выполнения: {operation.operation_type.exec_time.substring(0, 2)}:
-              {operation.operation_type.exec_time.substring(3, 5)}
+              Время выполнения: {operation.operationType.execTime.substring(0, 2)}:
+              {operation.operationType.execTime.substring(3, 5)}
             </Typography>
 
             <Typography>Информация об изделии</Typography>
-            <Typography>Вид: {operation.product.product_type.name}</Typography>
-            <Typography>Статус: {operation.product.product_status.name}</Typography>
+            <Typography>Вид: {operation.product.productType.name}</Typography>
+            <Typography>Статус: {operation.product.productStatus.name}</Typography>
             <Typography>Количество: {operation.product.amount}</Typography>
             <Typography>Формула для изделия</Typography>
             <ToothMarks teethList={operation.product.teeth} />

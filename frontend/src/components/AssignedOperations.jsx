@@ -27,7 +27,7 @@ const AssignedOperations = () => {
 		operationService.getForTech(page)
 			.then(res => {
 				setOperations(res.data.results);
-				setTotalPages(res.data.total_pages);
+				setTotalPages(res.data.totalPages);
 			})
 			.catch(err => console.log(err));
 	}
@@ -79,14 +79,14 @@ const AssignedOperations = () => {
 					id="panel1-header"
 				>
 					<Stack>
-						<Typography item>Вид операции: {oper.operation_type.name}</Typography>
-						<Typography item>Статус операции: {oper.operation_status.name}</Typography>
+						<Typography item>Вид операции: {oper.operationType.name}</Typography>
+						<Typography item>Статус операции: {oper.operationStatus.name}</Typography>
 						{
-							oper.exec_start ? <Typography item>Назначено на: {formatExecStartDateTime(oper.exec_start)}</Typography>
+							oper.execStart ? <Typography item>Назначено на: {formatExecStartDateTime(oper.execStart)}</Typography>
 								: <Typography item>Дата и время начала выполнения не указаны</Typography>
 						}
 						<Typography item>
-							На выполнение: {formatExecTime(oper.operation_type.exec_time)}
+							На выполнение: {formatExecTime(oper.operationType.execTime)}
 						</Typography>
 					</Stack>
 				</AccordionSummary>
@@ -94,8 +94,8 @@ const AssignedOperations = () => {
 					<Grid container spacing={2} justifyContent={"space-between"}>
 						<Grid item>
 							<Typography>Информация об изделии</Typography>
-							<Typography>Вид: {oper.product.product_type.name}</Typography>
-							<Typography>Статус: {oper.product.product_status.name}</Typography>
+							<Typography>Вид: {oper.product.productType.name}</Typography>
+							<Typography>Статус: {oper.product.productStatus.name}</Typography>
 							<Typography>Количество: {oper.product.amount}</Typography>
 						</Grid>
 						<Grid item>

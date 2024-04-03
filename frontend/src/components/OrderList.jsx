@@ -29,7 +29,7 @@ const OrderList = () => {
 
   const navigate = useNavigate();
   const columns = [
-    { field: "user", headerName: "ФИО стоматолога", width: 150 },
+    { field: "user", headerName: "Стоматолог", width: 150 },
     { field: "date", headerName: "Дата оформления", width: 150 },
     { field: "status", headerName: "Статус", width: 300 },
     { field: "discount", headerName: "Скидка", width: 80 },
@@ -74,11 +74,11 @@ const OrderList = () => {
         const result = res.data.map(function (order) {
           return {
             id: order.id,
-            user: order.user.last_name + " " + order.user.first_name,
+            user: order.user.lastName + " " + order.user.firstName,
             status: order.status.name,
             discount: order.discount * 100 + "%",
             cost: order.cost.toFixed(2),
-            date: order.order_date,
+            date: order.orderDate,
             orderInfo: order
           }
         });

@@ -50,7 +50,7 @@ const PhysicianOrderList = () => {
     orderService.getOrdersForUser(orderPage)
     .then(res => {
       setOrders(res.data.results);
-      setTotalPages(res.data.total_pages);
+      setTotalPages(res.data.totalPages);
       if (res.data.results.length > 0) {
         setCurrOrder(res.data.results[0]);
         getOrderInfo(res.data.results[0]);
@@ -80,7 +80,7 @@ const PhysicianOrderList = () => {
     return orders.map((order) => (
       <TableRow key={order.id}>
         <TableCell>{i++}</TableCell>
-        <TableCell sx={{ textWrap: "nowrap" }}>{order.order_date}</TableCell>
+        <TableCell sx={{ textWrap: "nowrap" }}>{order.orderDate}</TableCell>
         <TableCell>{order.status.name}</TableCell>
         <TableCell sx={{ textAlign: "center" }}>
           <Button onClick={() => getOrderInfo(order)}>
@@ -96,10 +96,10 @@ const PhysicianOrderList = () => {
     return products.map(product => (
       <TableRow key={product.id}>
         <TableCell>{i++}</TableCell>
-        <TableCell>{product.product_type.name}</TableCell>
-        <TableCell>{product.product_status.name}</TableCell>
+        <TableCell>{product.productType.name}</TableCell>
+        <TableCell>{product.productStatus.name}</TableCell>
         <TableCell>{product.amount}</TableCell>
-        <TableCell>{product.product_type.cost.toFixed(2)}</TableCell>
+        <TableCell>{product.productType.cost.toFixed(2)}</TableCell>
         <TableCell>{product.discount * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
@@ -253,7 +253,7 @@ const PhysicianOrderList = () => {
                 InputLabelProps={{ shrink: true }}
                 label="Дата"
                 variant="outlined"
-                value={currOrder?.order_date}
+                value={currOrder?.orderDate}
               />
             </Stack>
           </Box>

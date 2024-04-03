@@ -18,8 +18,8 @@ class ProfileService {
 
   postPasswordChange(oldPassword, newPassword) {
     return axios.post(API_URL + `password-change/`, { 
-      "old_password": oldPassword, 
-      "new_password": newPassword
+      "oldPassword": oldPassword, 
+      "newPassword": newPassword
     });
   }
 }

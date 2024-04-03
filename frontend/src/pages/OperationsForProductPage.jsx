@@ -52,10 +52,10 @@ const OperationsForProductPage = () => {
 		return history.map((entity) => (
 			<TableRow>
 				<TableCell>
-					{moment(entity.pgh_created_at).format("YYYY.MM.DD HH:mm:ss")}
+					{moment(entity.pghCreatedAt).format("YYYY.MM.DD HH:mm:ss")}
 				</TableCell>
 				<TableCell>
-					{entity.operation_status.name}
+					{entity.operationStatus.name}
 				</TableCell>
 			</TableRow>
 		));
@@ -70,17 +70,17 @@ const OperationsForProductPage = () => {
 					id="panel1-header"
 				>
 					<Stack>
-						<Typography item>Вид операции: {oper.operation_type.name}</Typography>
-						<Typography item>{getDepartmentName(oper.operation_type.group)}</Typography>
-						<Typography item>Статус операции: {oper.operation_status.name}</Typography>
+						<Typography item>Вид операции: {oper.operationType.name}</Typography>
+						<Typography item>{getDepartmentName(oper.operationType.group)}</Typography>
+						<Typography item>Статус операции: {oper.operationStatus.name}</Typography>
 						<Typography item>
-							Время выполнения: {oper.operation_type.exec_time.substring(0, 2)}:
-							{oper.operation_type.exec_time.substring(3, 5)}
+							Время выполнения: {oper.operationType.execTime.substring(0, 2)}:
+							{oper.operationType.execTime.substring(3, 5)}
 						</Typography>
 						<Typography>
 							<>Назначена технику: </> 
 							<Link to="/profile" state={{ email: oper.tech.email }}>
-								{oper.tech.last_name} {oper.tech.first_name}
+								{oper.tech.lastName} {oper.tech.firstName}
 							</Link>
 						</Typography>
 					</Stack>
@@ -132,9 +132,9 @@ const OperationsForProductPage = () => {
 						Информация об изделии
 					</Typography>
 					<Paper sx={{ marginBottom: 2, padding: 2 }}>
-						<Typography>Тип изделия: {product.product_type.name}</Typography>
+						<Typography>Тип изделия: {product.productType.name}</Typography>
 						<Typography>Количество: {product.amount}</Typography>
-						<Typography>Статус: {product.product_status.name}</Typography>
+						<Typography>Статус: {product.productStatus.name}</Typography>
 						<Typography>Формула:</Typography>
 						<Paper sx={{ marginY: 1, padding: 2 }}>
 							<ToothMarks teethList={product.teeth} />
