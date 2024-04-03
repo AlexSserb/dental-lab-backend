@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react'
 import { Link } from 'react-router-dom';
 import {
   Button, TextField, Typography, FormControl,
-  Grid, Stack, Paper
+  Grid, Stack, Paper, Alert
 } from "@mui/material";
 
 import AuthContext from '../context/AuthContext';
@@ -22,6 +22,9 @@ const RegisterPage = () => {
 
     if (e.target.password.value !== e.target.passwordRepeat.value) {
       setMessage("Пароли не совпадают.");
+    }
+    else if (e.target.password.value.length < 8) {
+      setMessage("Пароль должен состоять не менее чем из 8-ми символов.");
     }
     else {
       registerUser(e);
@@ -53,6 +56,7 @@ const RegisterPage = () => {
                   type="email"
                   name="email"
                   required
+                  inputProps={{ maxLength: 64 }}
                 />
               </FormControl><br />
               <FormControl sx={{ paddingBlockEnd: 3, paddingRight: 3 }}>
@@ -61,6 +65,7 @@ const RegisterPage = () => {
                   type="text"
                   name="firstName"
                   required
+                  inputProps={{ maxLength: 64 }}
                 />
               </FormControl>
               <FormControl sx={{ paddingBlockEnd: 3 }}>
@@ -69,6 +74,7 @@ const RegisterPage = () => {
                   type="text"
                   name="lastName"
                   required
+                  inputProps={{ maxLength: 64 }}
                 />
               </FormControl><br />
               <FormControl sx={{ paddingBlockEnd: 3, paddingRight: 3 }}>
@@ -77,6 +83,7 @@ const RegisterPage = () => {
                   type="password"
                   name="password"
                   required
+                  inputProps={{ maxLength: 20 }}
                 />
               </FormControl>
               <FormControl sx={{ paddingBlockEnd: 3 }}>
@@ -85,14 +92,13 @@ const RegisterPage = () => {
                   type="password"
                   name="passwordRepeat"
                   required
+                  inputProps={{ maxLength: 20 }}
                 />
               </FormControl><br />
               {message && (
-                <div className="form-group">
-                  <div className="alert alert-danger" role="alert">
-                    {message}
-                  </div>
-                </div>
+                <Alert severity="error">
+                  {message}
+                </Alert>
               )}
               <p><Link to="/login">Уже есть аккаунт</Link></p>
               <Button variant="contained" type="submit" sx={{ padding: 2 }}>

@@ -75,7 +75,7 @@ class OrdersTest(TestCase):
         order2 = Order.objects.create(user=self.user, discount=0.1,
             status=OrderStatus.objects.get(number=1))
         
-        response = self.client.get(self.URL + '/orders_for_physician', follow=True)
+        response = self.client.get(self.URL + '/orders-for-physician', follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
@@ -124,7 +124,7 @@ class OrdersTest(TestCase):
             { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2, 'teeth': [45, 46] },
         ]}
         
-        response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
+        response = self.client.post(self.URL + '/create-order/', data=product_types_data, format='json')
         
         self.assertEqual(response.status_code, 200)
 
@@ -155,7 +155,7 @@ class OrdersTest(TestCase):
     def test_create_order_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.post(self.URL + '/create_order/')
+        response = client.post(self.URL + '/create-order/')
 
         self.assertEqual(response.status_code, 401)
 
@@ -165,7 +165,7 @@ class OrdersTest(TestCase):
             { 'product_type_id': '6622d6e9-b655-4894-acab-885bf17fa6a7', 'amount': 2, 'teeth': [90, 46] },
         ]}
 
-        response = self.client.post(self.URL + '/create_order/', data=product_types_data, format='json')
+        response = self.client.post(self.URL + '/create-order/', data=product_types_data, format='json')
 
         self.assertEqual(response.status_code, 400)
 

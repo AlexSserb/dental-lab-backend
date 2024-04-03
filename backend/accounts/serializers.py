@@ -31,3 +31,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'first_name', 'last_name', 'created_at']
         
+
+class UserEditProfileSerializer(serializers.ModelSerializer):
+    """
+        Сериализатор для редактирования данных в профиле пользователя
+    """
+    group_id = serializers.IntegerField(min_value=1, max_value=7)
+
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'group_id']
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    """
+        Сериализатор для изменения пароля пользователя
+    """
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=8)

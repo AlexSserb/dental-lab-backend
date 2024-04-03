@@ -4,19 +4,19 @@ const API_URL = "api/";
 
 class OperationService {
   getForTech(page) {
-    return axios.get(API_URL + `operations_for_tech/?page=${page}`);
+    return axios.get(API_URL + `operations-for-tech/?page=${page}`);
   }
 
   getForProduct(productId) {
-    return axios.get(API_URL + `operations_for_product/${productId}`);
+    return axios.get(API_URL + `operations-for-product/${productId}`);
   }
 
   getForSchedule(userEmail, date) {
-    return axios.get(API_URL + `operations_for_schedule/${userEmail}/${date}`);
+    return axios.get(API_URL + `operations-for-schedule/${userEmail}/${date}`);
   }
 
   getOperationStatuses() {
-    return axios.get(API_URL + "operation_statuses/");
+    return axios.get(API_URL + "operation-statuses/");
   }
 
   setOperationStatus(operation_id, status_id) {

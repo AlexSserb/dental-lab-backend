@@ -22,13 +22,13 @@ class ProfileTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
-        user.set_password(cls.password)
-        user.save()
-        user.groups.add(1)
+        cls.user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
+        cls.user.set_password(cls.password)
+        cls.user.save()
+        cls.user.groups.add(1)
 
         client = APIClient()
-        response = client.post('/accounts/token/', data={'email': cls.email, 'password': cls.password})
+        response = client.post(cls.URL + '/token/', data={'email': cls.email, 'password': cls.password})
         cls.token = response.data['access']
 
     def setUp(self):
@@ -36,10 +36,7 @@ class ProfileTest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
     def test_get_profile_correct(self):
-        # the profile data is obtained by token
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = client.get(self.URL + f'/profile/{self.email}')
+        response = self.client.get(self.URL + f'/profile/{self.email}')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['email'], self.email)
@@ -48,17 +45,72 @@ class ProfileTest(TestCase):
         self.assertTrue('password' not in response.data)
 
     def test_get_profile_user_not_exist(self):
-        # the profile data is obtained by token
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = client.get(self.URL + '/profile/some_user@mail.com')
+        response = self.client.get(self.URL + '/profile/some_user@mail.com')
 
         self.assertEqual(response.status_code, 404)
 
-    def test_get_profile_incorrect_token(self):
-        # the profile data is obtained by token
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + f'/profile/{self.email}')
+    def test_edit_first_name_correct(self):
+        self.first_name = 'John'
+        response = self.client.patch(self.URL + f'/profile/edit-first-name/{self.email}/{self.first_name}', follow=True)
 
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['email'], self.email)
+        self.assertEqual(response.data['first_name'], self.first_name)
+        self.assertEqual(response.data['last_name'], self.last_name)
+        self.assertEqual(response.data['group'], 'Директор')
+        self.assertTrue('password' not in response.data)
+
+    def test_edit_first_name_user_not_exist(self):
+        response = self.client.patch(self.URL + f'/profile/edit-first-name/some_user@mail.com/Example', follow=True)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_last_name_correct(self):
+        self.last_name = 'Example'
+        response = self.client.patch(self.URL + f'/profile/edit-last-name/{self.email}/{self.last_name}', follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['email'], self.email)
+        self.assertEqual(response.data['first_name'], self.first_name)
+        self.assertEqual(response.data['last_name'], self.last_name)
+        self.assertEqual(response.data['group'], 'Директор')
+        self.assertTrue('password' not in response.data)
+
+    def test_edit_last_name_user_not_exist(self):
+        response = self.client.patch(self.URL + f'/profile/edit-last-name/some_user@mail.com/Example', follow=True)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_change_password_correct(self):
+        new_password = '87654321'
+        data = {
+            'old_password': self.password,
+            'new_password': new_password
+        }
+
+        response = self.client.post(self.URL + '/password-change/', data=data)
+        self.assertEqual(response.status_code, 200)
+        user = User.objects.get(email=self.email)
+        self.assertTrue(user.check_password(new_password))
+
+    def test_change_password_incorrect_old_password(self):
+        new_password = '87654321'
+        data = {
+            'old_password': 'incorrect password',
+            'new_password': new_password
+        }
+
+        response = self.client.post(self.URL + '/password-change/', data=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['old_password'][0], 'Wrong password')
+
+    def test_change_password_incorrect_length(self):
+        new_password = '123'
+        data = {
+            'old_password': self.password,
+            'new_password': new_password
+        }
+
+        response = self.client.post(self.URL + '/password-change/', data=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['new_password'][0].code, 'min_length')

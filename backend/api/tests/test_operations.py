@@ -57,7 +57,7 @@ class OperationsTest(TestCase):
             operation_type=OperationType.objects.get(name='Operation type 2'))
         # endregion 
         
-        response = self.client.get(self.URL + '/operations_for_tech/')
+        response = self.client.get(self.URL + '/operations-for-tech/')
         resp: list = response.data['results']
 
         self.assertEqual(response.status_code, 200)
@@ -73,7 +73,7 @@ class OperationsTest(TestCase):
     def test_get_operations_for_tech_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/operations_for_tech/')
+        response = client.get(self.URL + '/operations-for-tech/')
 
         self.assertEqual(response.status_code, 401)
 
@@ -92,7 +92,7 @@ class OperationsTest(TestCase):
             operation_type=OperationType.objects.get(name='Operation type 2'))
         # endregion 
         
-        response = self.client.get(self.URL + f'/operations_for_product/{product2.id}/')
+        response = self.client.get(self.URL + f'/operations-for-product/{product2.id}/')
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)
@@ -105,7 +105,7 @@ class OperationsTest(TestCase):
     def test_get_operations_for_product_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/operations_for_product/1/')
+        response = client.get(self.URL + '/operations-for-product/1/')
 
         self.assertEqual(response.status_code, 401)
 
@@ -143,7 +143,7 @@ class OperationsTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_get_all_operation_statuses_correct(self):
-        response = self.client.get(self.URL + '/operation_statuses/')
+        response = self.client.get(self.URL + '/operation-statuses/')
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 3)
@@ -154,7 +154,7 @@ class OperationsTest(TestCase):
     def test_get_all_operation_statuses_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + '/operation_statuses/')
+        response = client.get(self.URL + '/operation-statuses/')
 
         self.assertEqual(response.status_code, 401)
         
@@ -175,7 +175,7 @@ class OperationsTest(TestCase):
             exec_start=datetime(2024, 3, 29, 11, 10))
         # endregion 
         
-        response = self.client.get(self.URL + f'/operations_for_schedule/{self.user.email}/2024-03-25')
+        response = self.client.get(self.URL + f'/operations-for-schedule/{self.user.email}/2024-03-25')
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)
@@ -190,4 +190,4 @@ class OperationsTest(TestCase):
     def test_get_operations_for_schedule_incorrect_token(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
-        response = client.get(self.URL + f'/operations_for_schedule/{self.user.email}/2024-03-25')
+        response = client.get(self.URL + f'/operations-for-schedule/{self.user.email}/2024-03-25')

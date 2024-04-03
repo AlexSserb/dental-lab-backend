@@ -4,7 +4,7 @@ const API_URL = "api/";
 
 class OrderService {
   getOrdersForUser(page) {
-    return axios.get(API_URL + `orders_for_physician/?page=${page}`);
+    return axios.get(API_URL + `orders-for-physician/?page=${page}`);
   }
 
   getOrders(month, year) {
@@ -12,7 +12,7 @@ class OrderService {
   }
 
   post(order) {
-    return axios.post(API_URL + "create_order/", { "product_types": order });
+    return axios.post(API_URL + "create-order/", { "product_types": order });
   }
 }
 

@@ -55,7 +55,7 @@ const OrderPage = () => {
         <TableCell>{product.discount * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
-          <Button variant="contained" onClick={() => navigate('/operations_for_product', { state: { product: product } })}>
+          <Button variant="contained" onClick={() => navigate('/operations-for-product', { state: { product: product } })}>
             <InfoIcon />
           </Button>
         </TableCell>

@@ -9,5 +9,9 @@ urlpatterns = [
     
     path('register/', views.register, name='user-registration'),
 
+    path('password-change/', views.changePassword, name='user-password-change'),
+
     path('profile/<str:email>', views.getUserProfileData, name='user-profile'),
+    path('profile/edit-first-name/<str:email>/<str:name>', views.editUserFirstName, name='user-first-name-edit'),
+    path('profile/edit-last-name/<str:email>/<str:name>', views.editUserLastName, name='user-last-name-edit'),
 ]

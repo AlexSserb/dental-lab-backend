@@ -60,10 +60,11 @@ export const AuthProvider = ({children}) => {
 				navigate('/');
 			})
 			.catch(err => {
-				if (err.response?.data?.email[0] === "user with this email already exists.") {
+				console.log(err.response?.data);
+				if (err.response?.data?.email[0] === "Пользователь с таким email уже существует.") {
 					setMessage("Ошибка. Пользователь с данным почтовым адресом уже зарегистрирован.");
 				}
-				else if (err.response?.data?.email[0] === "Enter a valid email address.") {
+				else if (err.response?.data?.email[0] === "Введите правильный адрес электронной почты.") {
 					setMessage("Ошибка. Введите корректный почтовый адрес.");
 				}
 				else {

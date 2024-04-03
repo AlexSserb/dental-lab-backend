@@ -134,7 +134,7 @@ const PhysicianOrderList = () => {
     <Grid container spacing={3} wrap="wrap-reverse">
       <Grid item xs={4}>
         <h3 className='m-4 mt-5'>Заказы</h3>
-        <Button variant="contained" onClick={() => { navigate("/create_order") }}
+        <Button variant="contained" onClick={() => { navigate("/create-order") }}
           sx={{
             margin: "15px"
           }}>
