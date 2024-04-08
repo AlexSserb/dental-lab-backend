@@ -3,10 +3,11 @@ from rest_framework.test import APIClient
 from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.serializers import serialize
+from django.conf import settings
 
-from zoneinfo import ZoneInfo
 from datetime import datetime
 from uuid import uuid4
+import pytz
 
 from accounts.models import User
 from api.models import *
@@ -27,7 +28,6 @@ class OperationsTest(TestCase):
     first_name: str = 'Alex'
     last_name: str = 'Serb'
     URL: str = '/api'
-    tzinfo: ZoneInfo = ZoneInfo('Europe/Samara')
 
     @classmethod
     def setUpTestData(cls):
@@ -169,10 +169,10 @@ class OperationsTest(TestCase):
         operation_status = OperationStatus.objects.get(number=2)
         operation1 = Operation.objects.create(product=product1, tech=self.user, operation_status=operation_status,
             operation_type=OperationType.objects.get(name='Operation type 3'), 
-            exec_start=datetime(2024, 3, 25, 16, 25))
+            exec_start=datetime(2024, 3, 25, 16, 25, 0, tzinfo=pytz.timezone(settings.TIME_ZONE)))
         operation2 = Operation.objects.create(product=product2, tech=self.user, operation_status=operation_status,
             operation_type=OperationType.objects.get(name='Operation type 2'), 
-            exec_start=datetime(2024, 3, 29, 11, 10))
+            exec_start=datetime(2024, 3, 29, 11, 10, 0, tzinfo=pytz.timezone(settings.TIME_ZONE)))
         # endregion 
         
         response = self.client.get(self.URL + f'/operations-for-schedule/{self.user.email}/2024-03-25')
@@ -181,7 +181,7 @@ class OperationsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(resp), 2)
         self.assertEqual(resp[0]['operation_status']['number'], 2)
-        datetime_pattern = '%Y-%m-%dT%H:%M:%S'
+        datetime_pattern = '%Y-%m-%dT%H:%M:%SZ'
         self.assertEqual(datetime.strptime(resp[0]['start'], datetime_pattern), datetime(2024, 3, 25, 16, 25, 0))
         self.assertEqual(datetime.strptime(resp[0]['end'], datetime_pattern), datetime(2024, 3, 25, 17, 0, 0))
         self.assertEqual(datetime.strptime(resp[1]['start'], datetime_pattern), datetime(2024, 3, 29, 11, 10, 0))

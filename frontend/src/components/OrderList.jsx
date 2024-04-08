@@ -110,7 +110,7 @@ const OrderList = () => {
         <ThemeProvider theme={theme}>
           <Stack spacing={2}>
             <Stack direction={"row"} spacing={2}>
-              <Button onClick={getOrders} variant="contained">
+              <Button type="submit" onClick={getOrders} variant="contained">
                 Показать заказы
               </Button>
               <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"ru"}>

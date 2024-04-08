@@ -91,12 +91,13 @@ class OperationSerializer(serializers.ModelSerializer):
 
 
 class OperationForScheduleSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
     start = serializers.DateTimeField(required=True)
     end = serializers.DateTimeField(required=True)
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     product = ProductSerializer(required=True)
-    
+
 
 class OperationEventSerializer(serializers.ModelSerializer):
     operation_status = OperationStatusSerializer(read_only=True)

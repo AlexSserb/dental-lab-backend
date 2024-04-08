@@ -15,6 +15,10 @@ class OperationService {
     return axios.get(API_URL + `operations-for-schedule/${userEmail}/${date}`);
   }
 
+  setOperationExecStart(operationId, datetime) {
+    return axios.patch(API_URL + `operation-exec-start/${operationId}/${datetime}`);
+  }
+
   getOperationStatuses() {
     return axios.get(API_URL + "operation-statuses/");
   }

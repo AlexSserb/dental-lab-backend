@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-USE_TZ = False
+USE_TZ = True
 
 LANGUAGE_CODE = 'ru-ru'
 

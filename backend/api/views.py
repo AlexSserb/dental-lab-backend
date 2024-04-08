@@ -5,8 +5,8 @@ from .paginations import *
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework.generics import ListAPIView
-from django.utils import timezone
 from django.db.models import Q
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -17,6 +17,7 @@ from drf_spectacular.utils import extend_schema
 
 from datetime import datetime, timedelta
 import calendar
+import pytz
 
 
 User = get_user_model()
@@ -152,6 +153,7 @@ def preprocess_operation_for_schedule(operation):
     exec_time = operation.operation_type.exec_time
     delta = timedelta(hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second)
 
+    processed['id'] = operation.id
     processed['start'] = operation.exec_start
     processed['end'] = operation.exec_start + delta
     processed['operation_type'] = operation.operation_type
@@ -176,6 +178,18 @@ def get_operations_for_schedule(request, user_email, date):
     operations = [preprocess_operation_for_schedule(operation) for operation in operations]
     serializer = OperationForScheduleSerializer(operations, many=True)
     return Response(serializer.data)
+
+
+@extend_schema()
+@api_view(['PATCH'])
+@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+def set_operation_exec_start(request, id, exec_start):
+    operation = get_object_or_404(Operation, id=id)
+    operation.exec_start = datetime.strptime(exec_start, '%a, %d %b %Y %H:%M:%S %Z')
+    print(exec_start)
+    operation.save()
+
+    return Response(status=status.HTTP_200_OK)
 
 
 class OperationDetail(APIView):

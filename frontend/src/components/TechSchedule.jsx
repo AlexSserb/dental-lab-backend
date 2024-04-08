@@ -1,17 +1,19 @@
-import { useEffect, useRef, useContext } from "react";
+import { useEffect, useRef, useContext, useState } from "react";
 import { Stack, Typography, Box } from "@mui/material";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from '@fullcalendar/interaction';
 import ruLocale from "@fullcalendar/core/locales/ru";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import AuthContext from '../context/AuthContext';
 import operationService from "../servicies/OperationService";
 
 const TechSchedule = () => {
     const { authTokens, userGroupToString, user } = useContext(AuthContext);
+    const { state } = useLocation();
+    const techEmail = state?.techEmail || user.email;
     const userGroup = userGroupToString(user?.group);
     let isEditable = userGroup.match(/^(А|Д|Г)/);
     const calendarRef = useRef();
@@ -40,16 +42,19 @@ const TechSchedule = () => {
         )
     }
 
-    const handleEventDrop = (_) => {
-        const calendar = calendarRef?.current?.getApi();
-        operations = calendar.getEvents();
+    const formatDate = (date) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+
+    const handleEventDrop = (event) => {
+        operationService.setOperationExecStart(event.event.id, event.event.start.toUTCString())
+            .then(_ => {
+                const calendar = calendarRef?.current?.getApi();
+                operations = calendar.getEvents();
+            })
+            .catch(err => console.log(err));
     }
 
     async function getCalendarData(fetchInfo, successCallback) {
-        const dateStart = fetchInfo.start;
-        const formattedDate = `${dateStart.getFullYear()}-${dateStart.getMonth() + 1}-${dateStart.getDate()}`;
-
-        await operationService.getForSchedule(user.email, formattedDate)
+        await operationService.getForSchedule(techEmail, formatDate(fetchInfo.start))
             .then(res => {
                 operations = res.data;
                 successCallback(res.data);
@@ -60,7 +65,7 @@ const TechSchedule = () => {
     return (
         <Stack>
             <Typography textAlign={"center"} variant="h4" component="h5" sx={{ paddingTop: 2 }}>
-                Расписание
+                Расписание {techEmail}
             </Typography>
             <hr />
             <Box sx={{ padding: 2, height: "100vh" }}>
@@ -83,7 +88,7 @@ const TechSchedule = () => {
 
                     slotMinTime={'8:00'}
                     slotMaxTime={'19:00'}
-                    snapDuration={'00:05'}
+                    snapDuration={'00:01'}
                     slotDuration={'00:15'}
 
                     headerToolbar={{

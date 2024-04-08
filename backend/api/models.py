@@ -2,12 +2,13 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
+import pytz
+from django.utils import timezone
 
 import uuid 
 from datetime import datetime
 from decimal import Decimal, getcontext
 import pghistory
-
 
 User = get_user_model()
 
@@ -129,7 +130,7 @@ class Order(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
     status = models.ForeignKey(OrderStatus, related_name='orders', on_delete=models.CASCADE)
-    order_date = models.DateField(auto_now=True)
+    order_date = models.DateField(auto_now_add=True)
     discount = models.DecimalField(max_digits=3, decimal_places=2, default=0.0)
 
     class Meta:
@@ -208,7 +209,7 @@ class Operation(models.Model):
     operation_status = models.ForeignKey(OperationStatus, related_name='operations', on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, related_name='operations', on_delete=models.CASCADE)
     tech = models.ForeignKey(User, related_name='operations', null=True, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     exec_start = models.DateTimeField(null=True, blank=True)
 
     class Meta:

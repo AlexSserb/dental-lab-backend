@@ -152,8 +152,13 @@ const ProfilePage = () => {
         <p>Дата регистрации: {userData.createdAt}</p>
 
         {
-          user.email === userData.email && 
-          <ModalChangePassword setProfileMessage={setMessage} setProfileMessageSeverity={setMessageSeverity}/>
+          user.email === userData.email ?
+            <ModalChangePassword setProfileMessage={setMessage} setProfileMessageSeverity={setMessageSeverity} />
+            : (
+              <Button variant="contained" onClick={() => navigate("/schedule", { state: { techEmail: userData.email } })}>
+                Расписание
+              </Button>
+            )
         }
       </div>
     </div >
