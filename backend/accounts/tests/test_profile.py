@@ -114,3 +114,21 @@ class ProfileTest(TestCase):
         response = self.client.post(self.URL + '/password-change/', data=data)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data['new_password'][0].code, 'min_length')
+
+    def create_user(self, id: int, email: str, group: int, first_name: str = 'test', \
+        last_name: str = 'test', password: str = 'test'):
+        tech = User(id=id, email=email, first_name=first_name, last_name=last_name)
+        tech.set_password(password)
+        tech.save()
+        tech.groups.add(group)
+
+    def test_get_technicians(self):
+        self.create_user(2, 'example1@mail.com', 3)
+        self.create_user(3, 'example2@mail.com', 4)
+        self.create_user(4, 'example3@mail.com', 7) 
+
+        response = self.client.get('/accounts/technicians/4', follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(set(tech['email'] for tech in response.data), set(('example1@mail.com', 'example2@mail.com')))

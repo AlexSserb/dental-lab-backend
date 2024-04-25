@@ -9,7 +9,7 @@ import AuthContext from '../context/AuthContext';
 
 
 const LoginPage = () => {
-  let { loginUser, message, setMessage } = useContext(AuthContext);
+  const { loginUser, message, setMessage } = useContext(AuthContext);
 
   useEffect(() => {
     setMessage("");
@@ -24,11 +24,11 @@ const LoginPage = () => {
     }}>
       <Stack sx={{
         display: "flex",
-        width: "40%",
+        width: "33%",
         minWidth: "500px",
         spacing: 3
       }}>
-        <Paper elevation={5} sx={{ padding: 3, marginTop: 3 }}>
+        <Paper elevation={5} sx={{ padding: 5, marginTop: 3 }}>
           <Typography textAlign={"center"} variant="h5" component="h5" sx={{ paddingBlockEnd: 3 }}>
             Вход
           </Typography>

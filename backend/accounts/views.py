@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 
 from django.utils import timezone
 
+from .permissions import *
 from .serializers import *
 
 
@@ -41,7 +42,7 @@ def register(request):
 @extend_schema(responses=UserProfileSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getUserProfileData(request, email):
+def get_user_profile_data(request, email):
     user = get_object_or_404(get_user_model(), email=email)
     serializer = UserProfileSerializer(user)
     return Response({ **serializer.data, 'group': user.groups.values_list('name', flat=True).first() })
@@ -67,21 +68,21 @@ def edit_user_name(request, email, data, user_field):
 @extend_schema(responses=UserProfileSerializer)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def editUserFirstName(request, email, name):
+def edit_user_first_name(request, email, name):
     return edit_user_name(request, email, name, 'first_name')
 
 
 @extend_schema(responses=UserProfileSerializer)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def editUserLastName(request, email, name):
+def edit_user_last_name(request, email, name):
     return edit_user_name(request, email, name, 'last_name')
 
 
 @extend_schema(request=PasswordChangeSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def changePassword(request):
+def change_password(request):
     serializer = PasswordChangeSerializer(data=request.data)
     if serializer.is_valid():
         user = request.user
@@ -94,3 +95,12 @@ def changePassword(request):
         return Response({'old_password': ['Wrong password']}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(responses=UserProfileSerializer(many=True))
+@api_view(['GET'])
+@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+def get_technicians_by_group(request, group_id):
+    technicians = User.objects.filter(groups__id__in=[group_id, 3])
+    serializer = UserProfileSerializer(technicians, many=True)
+    return Response(serializer.data)

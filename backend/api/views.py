@@ -1,5 +1,5 @@
 from .serializers import *
-from .permissions import *
+from accounts.permissions import *
 from .paginations import *
 
 from django.shortcuts import get_object_or_404
@@ -87,7 +87,7 @@ def get_orders_for_physician(request):
     return paginator.get_paginated_response(serializer.data)
 
 
-@extend_schema(responses=OrderSerializer)
+@extend_schema(responses=OrderWithPhysicianSerializer)
 @api_view(['GET'])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
 def get_orders(request, year: int, month: int):
@@ -117,6 +117,37 @@ def create_order(request):
         Product.products_from_product_types(request.data['product_types'], order)
         return Response(status=status.HTTP_200_OK)
 
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@extend_schema(request=OrderDiscountSetterSerializer, responses=OrderSerializer)
+@api_view(['POST'])
+@permission_classes([IsLabAdmin | IsDirector])
+def confirm_order(request):
+    serializer = OrderDiscountSetterSerializer(data=request.data)
+    if serializer.is_valid():
+        try: 
+            order = Order.objects.get(pk=serializer.validated_data['order']['id'])
+            order.discount = serializer.validated_data['order']['discount']
+            order.status = OrderStatus.objects.get(number=2)
+            order.save()
+
+            product_status = ProductStatus.objects.get(number=2)
+            for product_validated in serializer.validated_data['products']:
+                product = Product.objects.get(pk=product_validated['id'])
+                product.discount = product_validated['discount']
+                product.product_status = product_status
+                product.save()
+
+            order_serializer = OrderSerializer(order)
+
+            return Response(order_serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as ex:
+            print(ex)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -236,3 +267,25 @@ class OperationStatusesList(ListAPIView):
     queryset = OperationStatus.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = OperationStatusSerializer
+
+
+@extend_schema(responses=ProductAndOperationsSerializer(many=True))
+@api_view(['GET'])
+@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+def get_products_with_operations(request, order_id):
+    """
+        View is called once during the formation of the order by the administrator.
+        An operation list is generated for each item if it has not been generated previously. 
+    """
+    try:
+        order = Order.objects.get(id=order_id)
+        for product in order.products.all():
+            if product.operations.count() == 0:
+                for operation_type in product.product_type.operation_types.all():
+                    Operation.objects.create(product=product, operation_type=operation_type,
+                        operation_status=OperationStatus.get_default_status())
+
+        serializer = ProductAndOperationsSerializer(order.products, many=True)
+        return Response(serializer.data)
+    except Order.DoesNotExist:
+        raise Http404

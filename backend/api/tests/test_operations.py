@@ -173,7 +173,7 @@ class OperationsTest(TestCase):
         operation2 = Operation.objects.create(product=product2, tech=self.user, operation_status=operation_status,
             operation_type=OperationType.objects.get(name='Operation type 2'), 
             exec_start=datetime(2024, 3, 29, 11, 10, 0, tzinfo=pytz.timezone(settings.TIME_ZONE)))
-        # endregion 
+        # endregion
         
         response = self.client.get(self.URL + f'/operations-for-schedule/{self.user.email}/2024-03-25')
         resp: list = response.data
@@ -191,3 +191,26 @@ class OperationsTest(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token + '1')
         response = client.get(self.URL + f'/operations-for-schedule/{self.user.email}/2024-03-25')
+
+    def test_get_products_with_operations_correct(self):
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3))
+        product1 = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=ProductStatus.objects.get(number=2),
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
+        
+        response = self.client.get(self.URL + f'/products/operations/{order.id}', follow=True)
+        resp: list = response.data
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(resp), 2)
+
+        self.assertEqual(resp[0]['product_type']['name'], 'Product type 2')
+        self.assertEqual(len(resp[0]['operations']), 2)
+        self.assertEqual(set(oper['operation_type']['name'] for oper in resp[0]['operations']), 
+            set(('Operation type 2', 'Operation type 3')))
+
+        self.assertEqual(resp[1]['product_type']['name'], 'Product type 1')
+        self.assertEqual(len(resp[1]['operations']), 2)
+        self.assertEqual(set(oper['operation_type']['name'] for oper in resp[1]['operations']), 
+            set(('Operation type 1', 'Operation type 2')))

@@ -12,7 +12,12 @@ class OrderService {
   }
 
   post(order) {
-    return axios.post(API_URL + "create-order/", { "product_types": order });
+    return axios.post(API_URL + "create-order/", { product_types: order });
+  }
+
+  // Administrator confirm the order and set the final discounts 
+  confirmOrder(order, products) {
+    return axios.post(API_URL + "confirm-order/", { order: order, products: products });
   }
 }
 

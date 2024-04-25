@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from accounts.models import User
 from api.models import *
+from api.serializers import OrderSerializer
 
 
 class OrdersTest(TestCase):
@@ -23,6 +24,7 @@ class OrdersTest(TestCase):
     first_name: str = 'Alex'
     last_name: str = 'Serb'
     URL: str = '/api'
+    EPS = Decimal(0.0000001)
 
     @classmethod
     def setUpTestData(cls):
@@ -186,3 +188,33 @@ class OrdersTest(TestCase):
         product2.discount = 0.03
         product2.save()
         self.assertEqual(order.get_cost_with_discount(), Decimal('137606.73'))
+
+    def test_confirm_order(self):
+        order = Order.objects.create(user=self.user, status=OrderStatus.get_default_status())
+
+        product_default_status = ProductStatus.get_default_status()
+        product1 = Product.objects.create(product_status=product_default_status,
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+        product2 = Product.objects.create(product_status=product_default_status,
+            product_type=ProductType.objects.get(name='Product type 1'), order=order, amount=5)
+
+        test_data = {
+            'products': [
+                { 'id': product1.id, 'discount': 0.12 },
+                { 'id': product2.id, 'discount': 0.06 }
+            ],
+            'order': { 'id': order.id, 'discount': 0.1 }
+        }
+
+        response = self.client.post(self.URL + f'/confirm-order/', data=test_data, format='json')
+
+        product1 = Product.objects.get(id=product1.id)
+        product2 = Product.objects.get(id=product2.id)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(abs(response.data['discount'] - Decimal(0.1)) < self.EPS)
+        self.assertEqual(response.data['status']['name'], OrderStatus.objects.get(number=2).name)
+        self.assertTrue(abs(product1.discount - Decimal(0.12)) < self.EPS)
+        self.assertTrue(abs(product2.discount - Decimal(0.06)) < self.EPS)
+        self.assertTrue(product1.product_status.name == product2.product_status.name)
+        self.assertTrue(product2.product_status.name == ProductStatus.objects.get(number=2).name)

@@ -192,7 +192,7 @@ class Product(models.Model):
                         order=order, product_status=ProductStatus.get_default_status(), teeth=teeth)
 
     def get_cost(self):
-        return round(self.product_type.cost * self.amount * (1 - self.discount), 2)
+        return round(self.product_type.cost * self.amount * (1 - max(self.discount, self.order.discount)), 2)
 
 
 # История изменения статусов изделий

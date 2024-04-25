@@ -1,9 +1,9 @@
 import './App.css';
-import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
 import ApplicationBar from './components/AppBar';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
@@ -11,6 +11,7 @@ import CreateOrderPage from './pages/CreateOrderPage';
 import OperationsForProductPage from './pages/OperationsForProductPage';
 import OrderPage from './pages/OrderPage';
 import TechSchedule from './components/TechSchedule';
+import OrderProcessingPage from './pages/OrderProcessingPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path='/registration' element={<RegisterPage/>} />
           <Route path='/profile' element={<ProfilePage/>} />
           <Route path='/create-order' element={<CreateOrderPage/>} />
+          <Route path='/process-order' element={<OrderProcessingPage/>} />
           <Route path='/operations-for-product' element={<OperationsForProductPage/>} />
           <Route path='/order' element={<OrderPage/>} />
           <Route path='/schedule' element={<TechSchedule/>} />

@@ -45,10 +45,10 @@ class ProductSerializer(serializers.ModelSerializer):
 class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatus
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'number']
 
 class OrderSerializer(serializers.ModelSerializer):
-    status = OrderStatusSerializer(read_only=True)
+    status = OrderStatusSerializer()
     cost = serializers.SerializerMethodField('get_cost')
 
     class Meta:
@@ -89,7 +89,6 @@ class OperationSerializer(serializers.ModelSerializer):
         model = Operation
         fields = ['id', 'operation_type', 'operation_status', 'product', 'exec_start']
 
-
 class OperationForScheduleSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True)
     start = serializers.DateTimeField(required=True)
@@ -119,3 +118,20 @@ class OperationForProductSerializer(serializers.ModelSerializer):
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
     status_id = serializers.UUIDField(required=True)
+
+
+class ProductAndOperationsSerializer(ProductSerializer):
+    operations = OperationForProductSerializer(many=True)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'product_type', 'product_status', 'discount', 'amount', 'cost', 'teeth', 'operations']
+
+
+class DiscountSetterSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    discount = serializers.FloatField(required=True, min_value=0.0, max_value=1.0)
+
+class OrderDiscountSetterSerializer(serializers.Serializer):
+    order = DiscountSetterSerializer()
+    products = DiscountSetterSerializer(many=True)

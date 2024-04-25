@@ -6,6 +6,10 @@ class ProductService {
   getForOrder(orderId) {
     return axios.get(API_URL + orderId);
   }
+
+  getWithOperationsForOrder(orderId) {
+    return axios.get(API_URL + `operations/${orderId}`);
+  }
 }
 
 const productService = new ProductService();

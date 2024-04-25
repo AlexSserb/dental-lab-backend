@@ -48,12 +48,23 @@ const OrderList = () => {
     }
   ];
 
+  const setSelectedDateFromLocalStorage = (date) => {
+    if (!date && localStorage.getItem('orderListDate')) {
+      setSelectedDate(dayjs(localStorage.getItem('orderListDate')));
+    }
+    else {
+      setSelectedDate(dayjs(date));
+      localStorage.setItem('orderListDate', date);
+    }
+  }
+
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
       navigate("/login");
       return;
     }
 
+    setSelectedDateFromLocalStorage();
     getOrders();
   }, []);
 
@@ -69,7 +80,9 @@ const OrderList = () => {
   );
 
   const getOrders = () => {
-    orderService.getOrders(selectedDate.month() + 1, selectedDate.year())
+    const date = dayjs(localStorage.getItem('orderListDate'));
+
+    orderService.getOrders(date.month() + 1, date.year())
       .then(res => {
         const result = res.data.map(function (order) {
           return {
@@ -115,7 +128,7 @@ const OrderList = () => {
               </Button>
               <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"ru"}>
                 <DatePicker value={selectedDate} label="Месяц для вывода заказов"
-                  onChange={(newValue) => setSelectedDate(newValue)}
+                  onChange={(newValue) => setSelectedDateFromLocalStorage(newValue)}
                   views={["month", "year"]} minDate={dayjs(new Date("01-01-2010"))}
                   maxDate={dayjs(new Date("01-01-2100"))} />
               </LocalizationProvider>

@@ -22,6 +22,10 @@ class ProfileService {
       "newPassword": newPassword
     });
   }
+
+  getTechnicians(group_id) {
+    return axios.get(API_URL + `technicians/${group_id}`);
+  }
 }
 
 const profileService = new ProfileService();

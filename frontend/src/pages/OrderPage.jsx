@@ -14,7 +14,7 @@ import AuthContext from '../context/AuthContext';
 import productService from '../servicies/ProductService';
 
 const OrderPage = () => {
-  const { authTokens } = useContext(AuthContext);
+  const { authTokens, user } = useContext(AuthContext);
   const [order, setOrder] = useState({});
   const [products, setProducts] = useState([]);
 
@@ -53,6 +53,8 @@ const OrderPage = () => {
         <TableCell>{product.amount}</TableCell>
         <TableCell>{product.productType.cost.toFixed(2)}</TableCell>
         <TableCell>{product.discount * 100}%</TableCell>
+        <TableCell>{order.discount * 100}%</TableCell>
+        <TableCell>{Math.max(product.discount, order.discount) * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
           <Button variant="contained" onClick={() => navigate('/operations-for-product', { state: { product: product } })}>
@@ -75,7 +77,7 @@ const OrderPage = () => {
         borderColor: "#4d4c4c",
         padding: 3,
         marginTop: 5,
-        width: "60%"
+        width: "80%"
       }}>
         <Typography textAlign={"center"} variant="h4" component="h4" sx={{ marginBottom: 2 }}>
           Информация о заказе
@@ -93,7 +95,9 @@ const OrderPage = () => {
                         <TableCell>Статус</TableCell>
                         <TableCell sx={{ width: "10%" }}>Кол-во</TableCell>
                         <TableCell>Цена</TableCell>
-                        <TableCell>Скидка</TableCell>
+                        <TableCell>Скидка на изделие</TableCell>
+                        <TableCell>Скидка на заказ</TableCell>
+                        <TableCell>Рез. скидка</TableCell>
                         <TableCell>Сумма</TableCell>
                         <TableCell>Подробнее</TableCell>
                       </TableRow>
@@ -103,29 +107,34 @@ const OrderPage = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                : <p for="products">Изделия для заказа</p>
+                : <p>Информации об изделиях нет</p>
             }
-            <TextField
-              InputProps={{ readOnly: true }}
-              InputLabelProps={{ shrink: true }}
-              label="Заказчик"
-              variant="outlined"
-              value={order?.user?.lastName + ' ' + order?.user?.firstName}
-            />
-            <TextField
-              InputProps={{ readOnly: true }}
-              InputLabelProps={{ shrink: true }}
-              label="Статус"
-              variant="outlined"
-              value={order?.status?.name}
-            />
-            <TextField
-              InputProps={{ readOnly: true }}
-              InputLabelProps={{ shrink: true }}
-              label="Дата"
-              variant="outlined"
-              value={order?.orderDate}
-            />
+            <Grid sx={{
+              display: "flex",
+              direction: "row",
+            }}>
+              <TextField item
+                sx={{ width: "100%", variant: "outlined" }}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+                label="Заказчик"
+                value={order?.user?.lastName + ' ' + order?.user?.firstName}
+              />
+              <TextField item
+                sx={{ width: "100%", marginX: 2, variant: "outlined" }}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+                label="Статус"
+                value={order?.status?.name}
+              />
+              <TextField item
+              sx={{ width: "100%", variant: "outlined" }}
+                InputProps={{ readOnly: true }}
+                InputLabelProps={{ shrink: true }}
+                label="Дата"
+                value={order?.orderDate}
+              />
+            </Grid>
             <Grid sx={{
               display: "flex",
               direction: "row",
@@ -134,19 +143,17 @@ const OrderPage = () => {
                 order?.discount !== 0 ?
                   <>
                     <TextField item
-                      sx={{ width: "100%" }}
+                      sx={{ width: "100%", variant: "outlined" }}
                       InputProps={{ readOnly: true }}
                       InputLabelProps={{ shrink: true }}
                       label="Сумма заказа (руб)"
-                      variant="outlined"
                       value={order?.cost?.toFixed(2)}
                     />
                     <TextField item
-                      sx={{ width: "100%", marginX: 2 }}
+                      sx={{ width: "100%", marginX: 2, variant: "outlined" }}
                       InputProps={{ readOnly: true }}
                       InputLabelProps={{ shrink: true }}
                       label="Скидка"
-                      variant="outlined"
                       value={order?.discount * 100 + "%"}
                     />
                   </>
@@ -158,9 +165,16 @@ const OrderPage = () => {
                 InputLabelProps={{ shrink: true }}
                 label="Итоговая сумма заказа (руб)"
                 variant="outlined"
-                value={(order?.cost * (1 - order?.discount)).toFixed(2)}
+                value={order?.cost?.toFixed(2)}
               />
             </Grid>
+            {
+              order?.status?.number === 1 && user?.group[0] === 'А' &&
+              <Button variant="contained" sx={{ paddingY: 1 }}
+                onClick={() => navigate('/process-order', { state: { order: order, products: products } })}>
+                Начать формирование наряда
+              </Button>
+            }
           </Stack>
         </Box>
       </Box>
