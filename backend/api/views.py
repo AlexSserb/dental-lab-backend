@@ -144,10 +144,8 @@ def confirm_order(request):
             return Response(order_serializer.data, status=status.HTTP_200_OK)
 
         except Exception as ex:
-            print(ex)
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-    print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -217,10 +215,24 @@ def get_operations_for_schedule(request, user_email, date):
 def set_operation_exec_start(request, id, exec_start):
     operation = get_object_or_404(Operation, id=id)
     operation.exec_start = datetime.strptime(exec_start, '%a, %d %b %Y %H:%M:%S %Z')
-    print(exec_start)
     operation.save()
 
     return Response(status=status.HTTP_200_OK)
+
+
+@extend_schema(request=AssignOperationSerializer)
+@api_view(['PATCH'])
+@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+def assign_operation(request):
+    serializer = AssignOperationSerializer(data=request.data)
+    if serializer.is_valid():
+        operation = get_object_or_404(Operation, id=serializer.validated_data['id'])
+        operation.tech = get_object_or_404(User, email=serializer.validated_data['tech_email'])
+        operation.exec_start = datetime.strptime(serializer.validated_data['exec_start'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        operation.save()
+        return Response(status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OperationDetail(APIView):

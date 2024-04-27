@@ -12,6 +12,8 @@ import {
 
 import AuthContext from '../context/AuthContext';
 import productService from '../servicies/ProductService';
+import { isDirector, isLabAdmin, isChiefTech } from '../utils/Permissions';
+
 
 const OrderPage = () => {
   const { authTokens, user } = useContext(AuthContext);
@@ -169,10 +171,17 @@ const OrderPage = () => {
               />
             </Grid>
             {
-              order?.status?.number === 1 && user?.group[0] === 'А' &&
+              order?.status?.number === 1 && isLabAdmin(user) &&
               <Button variant="contained" sx={{ paddingY: 1 }}
                 onClick={() => navigate('/process-order', { state: { order: order, products: products } })}>
                 Начать формирование наряда
+              </Button>
+            }
+            {
+              order?.status?.number === 2 && (isLabAdmin(user) || isChiefTech(user) || isDirector(user)) &&
+              <Button variant="contained" sx={{ paddingY: 1 }}
+                onClick={() => navigate('/assign-operations', { state: { order: order, products: products } })}>
+                Назначить операции
               </Button>
             }
           </Stack>

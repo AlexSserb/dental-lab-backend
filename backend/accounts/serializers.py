@@ -9,7 +9,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         token['email'] = user.email
-        token['group'] = user.groups.values_list('name', flat=True).first()
+        group = user.groups.first()
+        if group: 
+            token['group'] = group.name
+            token['group_id'] = group.id
         return token
 
 

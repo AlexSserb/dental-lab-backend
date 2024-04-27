@@ -100,7 +100,6 @@ const OrderProcessingPage = () => {
   }
 
   const submitOrder = () => {
-    console.log(order);
     orderService.confirmOrder(order, products)
       .then(res => {
         navigate("/order", { state: { order: res.data } });

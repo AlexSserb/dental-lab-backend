@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.contrib.auth.models import Group
 from django.core.serializers import serialize
 from django.conf import settings
+from django.forms.models import model_to_dict
 
 from datetime import datetime
 from uuid import uuid4
@@ -214,3 +215,26 @@ class OperationsTest(TestCase):
         self.assertEqual(len(resp[1]['operations']), 2)
         self.assertEqual(set(oper['operation_type']['name'] for oper in resp[1]['operations']), 
             set(('Operation type 1', 'Operation type 2')))
+
+    def test_assign_operation_correct(self):
+        order = Order.objects.create(user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3))
+        product = Product.objects.create(product_status=ProductStatus.objects.get(number=3),
+            product_type=ProductType.objects.get(name='Product type 2'), order=order, amount=2)
+
+        operation = Operation.objects.create(product=product, operation_status=OperationStatus.objects.get(number=2),
+            operation_type=OperationType.objects.get(name='Operation type 3'))
+
+        test_data = {
+            'id': operation.id,
+            'execStart': '2024-04-02T16:08:00.000Z',
+            'techEmail': self.user.email 
+        }
+
+        response = self.client.patch(self.URL + f'/assign-operation/', data=test_data, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        operation = Operation.objects.get(id=operation.id)
+        self.assertEqual(operation.tech, self.user)
+        self.assertEqual(operation.exec_start.year, 2024)
+        self.assertEqual(operation.exec_start.month, 4)
+

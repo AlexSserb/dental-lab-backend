@@ -1,8 +1,11 @@
 import axios from "axios";
+import dayjs from "dayjs";
 
 const API_URL = "api/";
 
 class OperationService {
+  timeZone = dayjs?.tz?.guess();
+
   getForTech(page) {
     return axios.get(API_URL + `operations-for-tech/?page=${page}`);
   }
@@ -24,7 +27,17 @@ class OperationService {
   }
 
   setOperationStatus(operationId, statusId) {
-    return axios.patch(API_URL + `operation/${operationId}/`, { "statusId": statusId });
+    return axios.patch(API_URL + `operation/${operationId}/`, { statusId: statusId });
+  }
+
+  assignOperation(operation) {
+    operation.execStart = dayjs.utc(operation?.execStart).tz(this.timeZone);
+
+    return axios.patch(API_URL + 'assign-operation/', {
+      id: operation?.id,
+      execStart: dayjs(operation?.execStart),
+      techEmail: operation?.tech?.email
+    });
   }
 }
 

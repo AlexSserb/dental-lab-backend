@@ -12,7 +12,7 @@ import moment from "moment";
 import ToothMarks from "../components/ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
-import getDepartmentName from "../utils/GetDepartmentName";
+import { getDepartmentName } from "../utils/GetDepartmentInfo";
 
 
 const OperationsForProductPage = () => {

@@ -9,13 +9,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import AuthContext from '../context/AuthContext';
 import operationService from "../servicies/OperationService";
+import { isPhysician, isDirector, isChiefTech, isLabAdmin } from "../utils/Permissions";
 
 const TechSchedule = () => {
-    const { authTokens, userGroupToString, user } = useContext(AuthContext);
+    const { authTokens, user } = useContext(AuthContext);
     const { state } = useLocation();
     const techEmail = state?.techEmail || user.email;
-    const userGroup = userGroupToString(user?.group);
-    let isEditable = userGroup.match(/^(А|Д|Г)/);
+    let isEditable = isDirector(user) || isLabAdmin(user) || isChiefTech(user);
     const calendarRef = useRef();
     let operations = [];
     const navigate = useNavigate();
@@ -26,11 +26,11 @@ const TechSchedule = () => {
             return;
         }
 
-        if (userGroup?.match(/^В/)) {
+        if (isPhysician(user)) {
             navigate("/");
             return;
         }
-    })
+    }, []);
 
     const renderEventContent = (eventInfo) => {
         const operInfo = eventInfo.event.extendedProps;
@@ -56,7 +56,8 @@ const TechSchedule = () => {
     async function getCalendarData(fetchInfo, successCallback) {
         await operationService.getForSchedule(techEmail, formatDate(fetchInfo.start))
             .then(res => {
-                operations = res.data;
+                if (res?.data?.length === 0) operations = [];
+                else operations = res.data;
                 successCallback(res.data);
             })
             .catch(err => console.log(err));
@@ -78,6 +79,7 @@ const TechSchedule = () => {
                     selectable={true}
                     initialView="timeGridWeek"
                     weekends={false}
+                    timeZone="local"
 
                     ref={calendarRef}
                     events={

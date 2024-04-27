@@ -39,7 +39,6 @@ const CreateOrderPage = () => {
 
     productTypesService.getAll()
       .then(res => {
-        console.log(res.data);
         let products = res.data.map(product => {
           return {
             key: product.id,

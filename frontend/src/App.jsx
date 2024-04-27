@@ -12,6 +12,7 @@ import OperationsForProductPage from './pages/OperationsForProductPage';
 import OrderPage from './pages/OrderPage';
 import TechSchedule from './components/TechSchedule';
 import OrderProcessingPage from './pages/OrderProcessingPage';
+import AssignOperationsPage from './pages/AssingOperationsPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path='/profile' element={<ProfilePage/>} />
           <Route path='/create-order' element={<CreateOrderPage/>} />
           <Route path='/process-order' element={<OrderProcessingPage/>} />
+          <Route path='/assign-operations' element={<AssignOperationsPage/>} />
           <Route path='/operations-for-product' element={<OperationsForProductPage/>} />
           <Route path='/order' element={<OrderPage/>} />
           <Route path='/schedule' element={<TechSchedule/>} />

@@ -113,8 +113,12 @@ class OperationForProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Operation
-        fields = ['id', 'operation_type', 'operation_status', 'tech']
+        fields = ['id', 'operation_type', 'operation_status', 'tech', 'exec_start']
 
+class AssignOperationSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=True)
+    exec_start = serializers.CharField(required=True)
+    tech_email = serializers.CharField(required=True)
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
     status_id = serializers.UUIDField(required=True)

@@ -22,4 +22,5 @@ urlpatterns = [
     path('operation-statuses/', views.OperationStatusesList.as_view(), name='operation-statuses'),
     path('operations-for-schedule/<str:user_email>/<str:date>', views.get_operations_for_schedule, name='operations-for-schedule'),
     path('operation-exec-start/<str:id>/<str:exec_start>', views.set_operation_exec_start, name='set-operation-exec-start'),
+    path('assign-operation/', views.assign_operation, name='operation-assignment'),
 ]
