@@ -69,9 +69,17 @@
     },
     {
         "model": "api.productstatus",
-        "pk": "6cbdb7a5-f7fc-4b7f-96bb-a21caf55045b",
+        "pk": "f793e514-e893-4da4-8781-51715f7251ee",
         "fields": {
             "number": 2,
+            "name": "Ожидает в очереди"
+        }
+    },
+    {
+        "model": "api.productstatus",
+        "pk": "6cbdb7a5-f7fc-4b7f-96bb-a21caf55045b",
+        "fields": {
+            "number": 3,
             "name": "В работе"
         }
     },
@@ -79,7 +87,7 @@
         "model": "api.productstatus",
         "pk": "3710f296-d25e-4833-8a46-6e1321b7844e",
         "fields": {
-            "number": 3,
+            "number": 4,
             "name": "Обнаружен брак"
         }
     },
@@ -87,7 +95,7 @@
         "model": "api.productstatus",
         "pk": "caa4c903-ae62-414b-9b27-21dc38f326ce",
         "fields": {
-            "number": 4,
+            "number": 5,
             "name": "Готово"
         }
     }

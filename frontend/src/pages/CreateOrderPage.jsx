@@ -172,7 +172,7 @@ const CreateOrderPage = () => {
     }}>
       <Stack container sx={{
         display: "flex",
-        width: "72%",
+        width: "76%",
         minWidth: "500px",
         spacing: 3
       }}>

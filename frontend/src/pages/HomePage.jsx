@@ -4,25 +4,19 @@ import AuthContext from '../context/AuthContext';
 import PhysicianOrderList from '../components/PhysicianOrderList';
 import AssignedOperations from '../components/AssignedOperations';
 import OrderList from '../components/OrderList';
+import { isPhysician, isRegularTech } from '../utils/Permissions';
 
 const HomePage = () => {
-  let {userGroupToString, user} = useContext(AuthContext);
-  const userGroup = userGroupToString(user?.group);
+  const { user } = useContext(AuthContext);
   
-  if (userGroup === 'Врач') {
-    return (
-      <PhysicianOrderList />
-    )
+  if (isPhysician(user)) {
+    return <PhysicianOrderList />;
   }
-  else if (userGroup.search(/^Техник/) !== -1) {
-    return (
-      <AssignedOperations />
-    )
+  if (isRegularTech(user)) {
+    return <AssignedOperations />;
   }
   
-  return (
-    <OrderList />
-  );
+  return <OrderList />;
 }
 
 export default HomePage;

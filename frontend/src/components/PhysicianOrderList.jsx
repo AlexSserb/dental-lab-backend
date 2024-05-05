@@ -18,11 +18,11 @@ import orderService from '../servicies/OrderService';
 import { useNavigate } from 'react-router-dom';
 import productService from '../servicies/ProductService';
 import ToothMarks from './ToothMarks';
+import { isPhysician } from '../utils/Permissions';
 
 
 const PhysicianOrderList = () => {
-  const { authTokens, userGroupToString, user } = useContext(AuthContext);
-  const userGroup = userGroupToString(user?.group);
+  const { authTokens, user } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -31,14 +31,12 @@ const PhysicianOrderList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!authTokens || !authTokens.access) {
+    if (!authTokens || !authTokens.access || !isPhysician(user)) {
       navigate('/login');
       return;
     }
     
-    if (userGroup === "Врач") {
-      getOrders(page);
-    }
+    getOrders(page);
   }, []);
 
   const handleChangePage = (_, newPage) => {
@@ -54,6 +52,9 @@ const PhysicianOrderList = () => {
       if (res.data.results.length > 0) {
         setCurrOrder(res.data.results[0]);
         getOrderInfo(res.data.results[0]);
+      }
+      else {
+        navigate('/create-order');
       }
     })
     .catch(err => {
@@ -101,6 +102,7 @@ const PhysicianOrderList = () => {
         <TableCell>{product.amount}</TableCell>
         <TableCell>{product.productType.cost.toFixed(2)}</TableCell>
         <TableCell>{product.discount * 100}%</TableCell>
+        <TableCell>{Math.max(product.discount, currOrder.discount) * 100}%</TableCell>
         <TableCell>{product.cost.toFixed(2)}</TableCell>
         <TableCell>
           <PopupState variant="popper" popupId="demo-popup-popper">
@@ -131,7 +133,7 @@ const PhysicianOrderList = () => {
   }
 
   return (
-    <Grid container spacing={3} wrap="wrap-reverse">
+    <Grid container spacing={1} wrap="wrap-reverse">
       <Grid item xs={4}>
         <h3 className='m-4 mt-5'>Заказы</h3>
         <Button variant="contained" onClick={() => { navigate("/create-order") }}
@@ -177,6 +179,7 @@ const PhysicianOrderList = () => {
           borderColor: '#4d4c4c',
           padding: 3,
           marginTop: 5,
+          marginRight: 1
         }}>
           <Typography textAlign={"center"} variant="h4" component="h4" sx={{ marginBottom: 2 }}>
             Информация о заказе
@@ -194,7 +197,8 @@ const PhysicianOrderList = () => {
                           <TableCell>Статус</TableCell>
                           <TableCell sx={{ width: "10%" }}>Кол-во</TableCell>
                           <TableCell>Цена</TableCell>
-                          <TableCell>Скидка</TableCell>
+                          <TableCell>Скидка на изделие</TableCell>
+                          <TableCell>Рез. скидка</TableCell>
                           <TableCell>Сумма</TableCell>
                           <TableCell>Отметки</TableCell>
                         </TableRow>

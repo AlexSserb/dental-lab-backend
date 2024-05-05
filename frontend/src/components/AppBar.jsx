@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Box,
@@ -8,29 +8,33 @@ import {
   Typography,
   Menu,
   Container,
-  Avatar,
   Button,
   Tooltip,
   MenuItem
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import AuthContext from "../context/AuthContext";
+import { isChiefTech, isRegularTech } from "../utils/Permissions";
 
 
 function ApplicationBar() {
   const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-  const { user, userGroupToString, logoutUser } = useContext(AuthContext);
-  const userGroup = userGroupToString(user?.group);
+  const { user, logoutUser } = useContext(AuthContext);
   const mainTitle = "InColor";
+  const navigate = useNavigate();
 
   let [pages, setPages] = useState([]);
 
   useEffect(() => {
     setPages([]);
-    if (userGroup.search(/^Техник/) !== -1) {
+    if (isRegularTech(user)) {
       setPages([["Расписание", "/schedule"]]);
+    }
+    if (isChiefTech(user)) {
+      setPages([["Расписание", "/schedule"], ["Операции", "/"]]);
     }
   }, [user]);
 
@@ -75,13 +79,13 @@ function ApplicationBar() {
     )
   }
 
-  const avatarAndSettingsMenu = () => {
+  const settingsMenu = () => {
     if (user) return (
       <Box sx={{ flexGrow: 0 }}>
         <Tooltip title="Open settings">
-          <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-          </IconButton>
+          <Button onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+            <SettingsIcon style={{ color: '#FFFFFF' }} />
+          </Button>
         </Tooltip>
         <Menu
           sx={{ mt: '45px' }}
@@ -131,6 +135,7 @@ function ApplicationBar() {
               aria-haspopup="true"
               onClick={handleOpenNavMenu}
               color="inherit"
+              hidden={pages?.length === 0}
             >
               <MenuIcon />
             </IconButton>
@@ -152,8 +157,9 @@ function ApplicationBar() {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              { pages.map(([page, linkTo]) => (
-                <MenuItem href={linkTo} style={{ textDecoration: "none", color: "black" }} key={page} onClick={handleCloseNavMenu}>
+              {pages.map(([page, linkTo]) => (
+                <MenuItem style={{ textDecoration: "none", color: "black" }} key={page} 
+                  onClick={() => { navigate(linkTo); handleCloseNavMenu(); }}>
                   <Typography textAlign="center">{page}</Typography>
                 </MenuItem>
               ))}
@@ -175,7 +181,7 @@ function ApplicationBar() {
             ))}
           </Box>
 
-          {avatarAndSettingsMenu()}
+          {settingsMenu()}
 
         </Toolbar>
       </Container>
