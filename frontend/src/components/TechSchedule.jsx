@@ -1,4 +1,4 @@
-import { useEffect, useRef, useContext, useState } from "react";
+import { useEffect, useRef, useContext } from "react";
 import { Stack, Typography, Box } from "@mui/material";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -39,8 +39,8 @@ const TechSchedule = () => {
                 <b>{eventInfo.timeText}</b><br />
                 <span>{operInfo.operationType?.name}</span>
             </div>
-        )
-    }
+        );
+    };
 
     const formatDate = (date) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
@@ -51,7 +51,7 @@ const TechSchedule = () => {
                 operations = calendar.getEvents();
             })
             .catch(err => console.log(err));
-    }
+    };
 
     async function getCalendarData(fetchInfo, successCallback) {
         await operationService.getForSchedule(techEmail, formatDate(fetchInfo.start))
@@ -102,7 +102,7 @@ const TechSchedule = () => {
                 </FullCalendar>
             </Box>
         </Stack>
-    )
-}
+    );
+};
 
 export default TechSchedule;

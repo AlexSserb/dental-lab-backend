@@ -13,6 +13,8 @@ import {
 import AuthContext from '../context/AuthContext';
 import productService from '../servicies/ProductService';
 import { isDirector, isLabAdmin, isChiefTech } from '../utils/Permissions';
+import GridContainer from '../components/GridContainer';
+import { boxContainerStyle } from './styles/OrderPageStyle';
 
 
 const OrderPage = () => {
@@ -34,7 +36,7 @@ const OrderPage = () => {
         setOrder({});
         console.log(err);
       });
-  }
+  };
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
@@ -65,22 +67,11 @@ const OrderPage = () => {
         </TableCell>
       </TableRow>
     ));
-  }
+  };
 
   return (
-    <Grid container sx={{
-      spacing: 0,
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
-      <Box sx={{
-        border: 1,
-        borderRadius: 2,
-        borderColor: "#4d4c4c",
-        padding: 3,
-        marginTop: 5,
-        width: "80%"
-      }}>
+    <GridContainer>
+      <Box sx={boxContainerStyle}>
         <Typography textAlign={"center"} variant="h4" component="h4" sx={{ marginBottom: 2 }}>
           Информация о заказе
         </Typography>
@@ -130,7 +121,7 @@ const OrderPage = () => {
                 value={order?.status?.name}
               />
               <TextField item
-              sx={{ width: "100%", variant: "outlined" }}
+                sx={{ width: "100%", variant: "outlined" }}
                 InputProps={{ readOnly: true }}
                 InputLabelProps={{ shrink: true }}
                 label="Дата"
@@ -187,8 +178,8 @@ const OrderPage = () => {
           </Stack>
         </Box>
       </Box>
-    </Grid>
-  )
-}
+    </GridContainer>
+  );
+};
 
 export default OrderPage;

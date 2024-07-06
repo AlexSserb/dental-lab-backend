@@ -13,7 +13,7 @@ import ToothMarks from "../components/ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
 import { getDepartmentName } from "../utils/GetDepartmentInfo";
-
+import GridContainer from "../components/GridContainer";
 
 const OperationsForProductPage = () => {
 	const { authTokens } = useContext(AuthContext);
@@ -30,7 +30,7 @@ const OperationsForProductPage = () => {
 				setOperations(res.data);
 			})
 			.catch(err => console.log(err));
-	}
+	};
 
 	useEffect(() => {
 		if (!authTokens || !authTokens.access) {
@@ -42,11 +42,11 @@ const OperationsForProductPage = () => {
 
 		operationService.getOperationStatuses()
 			.then(res => {
-				const operations = res.data.map(oper => { return { key: oper.id, value: oper.name } });
+				const operations = res.data.map(oper => { return { key: oper.id, value: oper.name }; });
 				setOperationStatuses(operations);
 			})
 			.catch(err => console.log(err));
-	}, [])
+	}, []);
 
 	const operationHistory = (history) => {
 		return history.map((entity) => (
@@ -59,7 +59,7 @@ const OperationsForProductPage = () => {
 				</TableCell>
 			</TableRow>
 		));
-	}
+	};
 
 	const renderOperations = () => {
 		return operations.map((oper) => (
@@ -78,7 +78,7 @@ const OperationsForProductPage = () => {
 							{oper.operationType.execTime.substring(3, 5)}
 						</Typography>
 						<Typography>
-							<>Назначена технику: </> 
+							<>Назначена технику: </>
 							<Link to="/profile" state={{ email: oper.tech.email }}>
 								{oper.tech.lastName} {oper.tech.firstName}
 							</Link>
@@ -105,15 +105,10 @@ const OperationsForProductPage = () => {
 				</AccordionDetails>
 			</Accordion>
 		));
-	}
+	};
 
 	return (
-		<Grid container sx={{
-			spacing: 0,
-			direction: "column",
-			alignItems: "center",
-			justifyContent: "center"
-		}}>
+		<GridContainer>
 			<Stack container sx={{
 				display: "flex",
 				width: "70%",
@@ -155,7 +150,7 @@ const OperationsForProductPage = () => {
 					}
 				</Box>
 			</Stack>
-		</Grid>
+		</GridContainer>
 	);
-}
+};
 export default OperationsForProductPage;

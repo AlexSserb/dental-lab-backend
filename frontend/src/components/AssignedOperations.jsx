@@ -12,6 +12,7 @@ import ToothMarks from "./ToothMarks";
 import operationService from "../servicies/OperationService";
 import AuthContext from '../context/AuthContext';
 import ModalSetOperStatus from "../modals/ModalSetOperStatus";
+import GridContainer from "./GridContainer";
 
 
 const AssignedOperations = () => {
@@ -30,7 +31,7 @@ const AssignedOperations = () => {
 				setTotalPages(res.data.totalPages);
 			})
 			.catch(err => console.log(err));
-	}
+	};
 
 	useEffect(() => {
 		if (!authTokens || !authTokens.access) {
@@ -40,18 +41,18 @@ const AssignedOperations = () => {
 
 		operationService.getOperationStatuses()
 			.then(res => {
-				let operations = res.data.map(oper => { return { key: oper.id, value: oper.name } });
+				let operations = res.data.map(oper => { return { key: oper.id, value: oper.name }; });
 				setOperationStatuses(operations);
 			})
 			.catch(err => console.log(err));
 
 		getOperations(page);
-	}, [])
+	}, []);
 
 	const handleChangePage = (_, newPage) => {
 		setPage(newPage);
 		getOperations(newPage);
-	}
+	};
 
 	const formatExecTime = (execTime) => {
 		const hours = Number(execTime.substring(0, 2));
@@ -61,14 +62,14 @@ const AssignedOperations = () => {
 		}
 		return <>
 			{hours} ч. {minutes} мин.
-		</>
-	}
+		</>;
+	};
 
 	const formatExecStartDateTime = (execStart) => {
 		return <>
 			{execStart.substring(0, 10)} {execStart.substring(11, 16)}
-		</>
-	}
+		</>;
+	};
 
 	const renderOperations = () => {
 		return operations.map((oper) => (
@@ -92,15 +93,19 @@ const AssignedOperations = () => {
 				</AccordionSummary>
 				<AccordionDetails>
 					<Grid container spacing={2} justifyContent={"space-between"}>
-						<Grid item>
-							<Typography>Информация об изделии</Typography>
-							<Typography>Вид: {oper.product.productType.name}</Typography>
-							<Typography>Статус: {oper.product.productStatus.name}</Typography>
-							<Typography>Количество: {oper.product.amount}</Typography>
+						<Grid item container spacing={2} justifyContent={"space-between"}>
+							<Grid item>
+								<Typography>Информация об изделии</Typography>
+								<Typography>Вид: {oper.product.productType.name}</Typography>
+								<Typography>Статус: {oper.product.productStatus.name}</Typography>
+								<Typography>Количество: {oper.product.amount}</Typography>
+							</Grid>
+							<Grid item>
+								<ModalSetOperStatus operation={oper} operationStatuses={operationStatuses}
+									page={page} loadOperations={getOperations} />
+							</Grid>
 						</Grid>
-						<Grid item>
-							<ModalSetOperStatus operation={oper} operationStatuses={operationStatuses}
-								page={page} loadOperations={getOperations} />
+						<Grid item width="100%">
 							<Typography>Формула для изделия</Typography>
 							<ToothMarks teethList={oper.product.teeth} />
 						</Grid>
@@ -108,19 +113,14 @@ const AssignedOperations = () => {
 				</AccordionDetails>
 			</Accordion>
 		));
-	}
+	};
 
 	return (
-		<Grid container sx={{
-			spacing: 0,
-			direction: "column",
-			alignItems: "center",
-			justifyContent: "center"
-		}}>
+		<GridContainer>
 			<Stack container sx={{
 				display: "flex",
 				width: "70%",
-				minWidth: "500px",
+				minWidth: "400px",
 				spacing: 3
 			}}>
 				<Box sx={{
@@ -150,7 +150,7 @@ const AssignedOperations = () => {
 					}
 				</Box>
 			</Stack>
-		</Grid>
+		</GridContainer>
 	);
-}
+};
 export default AssignedOperations;

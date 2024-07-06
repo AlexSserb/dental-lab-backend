@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import InfoIcon from "@mui/icons-material/Info";
 import {
   Typography,
-  Grid, Stack,
+  Stack,
   Button,
   Paper
 } from "@mui/material";
@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 import AuthContext from "../context/AuthContext";
 import orderService from "../servicies/OrderService";
+import GridContainer from "../components/GridContainer";
 
 
 const OrderList = () => {
@@ -43,7 +44,7 @@ const OrderList = () => {
             onClick={() => navigate("/order", { state: { order: params.row.orderInfo } })}>
             <InfoIcon />
           </Button>
-        )
+        );
       }
     }
   ];
@@ -56,7 +57,7 @@ const OrderList = () => {
       setSelectedDate(dayjs(date));
       localStorage.setItem('orderListDate', date);
     }
-  }
+  };
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
@@ -93,22 +94,17 @@ const OrderList = () => {
             cost: order.cost.toFixed(2),
             date: order.orderDate,
             orderInfo: order
-          }
+          };
         });
         setOrders(result);
       })
       .catch(err => {
         console.log(err);
       });
-  }
+  };
 
   return (
-    <Grid container sx={{
-      spacing: 0,
-      direction: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
+    <GridContainer>
       <Stack container sx={{
         display: "flex",
         minWidth: "500px",
@@ -174,8 +170,8 @@ const OrderList = () => {
           </Stack>
         </ThemeProvider>
       </Stack>
-    </Grid>
-  )
-}
+    </GridContainer>
+  );
+};
 
 export default OrderList;

@@ -7,18 +7,9 @@ import {
 
 import ToothMarks from '../components/ToothMarks';
 import operationService from "../servicies/OperationService";
+import { modalStyle } from './styles/ModalSetOperStatusStyle';
+import { modalTitleStyle } from './styles/ModalStyle';
 
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 550,
-  bgcolor: 'background.paper',
-  borderRadius: '8px',
-  boxShadow: 24,
-  p: 4,
-};
 
 const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations }) => {
   const [open, setOpen] = useState(false);
@@ -30,13 +21,13 @@ const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations
     const status = operationStatuses.find(operSt => operSt.value === selectedOperationStatus);
 
     operationService.setOperationStatus(operation.id, status?.key)
-      .then(_ => { 
+      .then(_ => {
         loadOperations(page);
       })
       .catch(err => console.log(err));
 
     handleClose();
-  }
+  };
 
   return (
     <div>
@@ -47,11 +38,8 @@ const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations
         open={open}
         onClose={handleClose}
       >
-        <Box sx={style}>
-          <Typography variant="h5" component="h5" sx={{
-            textAlign: "center",
-            marginBottom: 3
-          }}>
+        <Box sx={modalStyle}>
+          <Typography variant="h5" component="h5" sx={modalTitleStyle}>
             Изменение статуса операции
           </Typography>
           <Stack spacing={1}>
@@ -92,6 +80,6 @@ const ModalSetOperStatus = ({ operation, page, operationStatuses, loadOperations
       </Modal>
     </div>
   );
-}
+};
 
 export default ModalSetOperStatus;

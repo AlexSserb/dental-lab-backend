@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
   TextField, Typography, InputLabel, Select, MenuItem, OutlinedInput,
-  Box, Stack, Grid,
+  Box, Stack,
   Table, TableContainer, TableHead, TableBody, TableRow, TableCell,
   Button, Paper, FormControl
 } from "@mui/material";
@@ -12,14 +12,15 @@ import ToothMarks from "../components/ToothMarks";
 import productTypesService from "../servicies/ProductTypesService";
 import orderService from "../servicies/OrderService";
 import AuthContext from '../context/AuthContext';
+import GridContainer from "../components/GridContainer";
 
 
 const CreateOrderPage = () => {
-  let { authTokens } = useContext(AuthContext);
-  let [listOfProducts, setListOfProducts] = useState([]);
-  let [allProductTypes, setAllProductTypes] = useState([]);
-  let [selectedProductType, setSelectedProductType] = useState("");
-  let [orderCost, setOrderCost] = useState(0);
+  const { authTokens } = useContext(AuthContext);
+  const [listOfProducts, setListOfProducts] = useState([]);
+  const [allProductTypes, setAllProductTypes] = useState([]);
+  const [selectedProductType, setSelectedProductType] = useState("");
+  const [orderCost, setOrderCost] = useState(0);
 
   // States for dental formula
   const [upperJaw, setUpperJaw] = useState([]);
@@ -44,7 +45,7 @@ const CreateOrderPage = () => {
             key: product.id,
             value: product.name,
             cost: product.cost
-          }
+          };
         });
 
         setAllProductTypes(products);
@@ -53,7 +54,7 @@ const CreateOrderPage = () => {
         }
       })
       .catch(err => console.log(err));
-  }, [])
+  }, []);
 
   const saveProduct = (e) => {
     e.preventDefault();
@@ -63,19 +64,19 @@ const CreateOrderPage = () => {
     setOrderCost(orderCost + sumCost);
 
     const product = {
-      "product_type_id": productType.key,
-      "product_type_name": productType.value,
-      "product_type_cost": productType.cost,
-      "sum_cost": sumCost,
-      "amount": e.target.amount.value,
-      "teeth": [...markedTeeth]
+      product_type_id: productType.key,
+      product_type_name: productType.value,
+      product_type_cost: productType.cost,
+      sum_cost: sumCost,
+      amount: e.target.amount.value,
+      teeth: [...markedTeeth]
     };
 
     listOfProducts.push(product);
 
     const set = new Set();
     setMarkedTeeth(set);
-  }
+  };
 
   const handleDelete = (product) => {
     let list = [...listOfProducts];
@@ -86,7 +87,7 @@ const CreateOrderPage = () => {
       setListOfProducts(list);
       setOrderCost(orderCost - product.sum_cost);
     }
-  }
+  };
 
   const renderProducts = () => {
     let i = 1;
@@ -105,21 +106,21 @@ const CreateOrderPage = () => {
         </TableCell>
       </TableRow>
     ));
-  }
+  };
 
   // Functions to fill in the dental formula in the form
   const fillUpperJaw = () => {
     let arrUpperJaw = [];
     for (let num = 18; num >= 11; num--) arrUpperJaw.push(num);
-    for (let num = 21; num <= 28; num++) arrUpperJaw.push(num)
+    for (let num = 21; num <= 28; num++) arrUpperJaw.push(num);
     setUpperJaw(arrUpperJaw);
-  }
+  };
   const fillLowerJaw = () => {
     let arrLowerJaw = [];
     for (let num = 48; num >= 41; num--) arrLowerJaw.push(num);
     for (let num = 31; num <= 38; num++) arrLowerJaw.push(num);
     setLowerJaw(arrLowerJaw);
-  }
+  };
 
   const getToothMark = (number) => {
     let background = markedTeeth.has(number) ? "black" : "white";
@@ -136,7 +137,7 @@ const CreateOrderPage = () => {
       }
 
       setMarkedTeeth(teeth);
-    }
+    };
 
     return (
       <button type="button" onClick={onClickFunc} style={{
@@ -151,8 +152,8 @@ const CreateOrderPage = () => {
       }}>
         <p> {number}</p>
       </button>
-    )
-  }
+    );
+  };
 
   const sendOrder = () => {
     orderService.post(listOfProducts)
@@ -161,15 +162,10 @@ const CreateOrderPage = () => {
         alert("Заказ успешно оформлен!");
       })
       .catch(err => console.log(err));
-  }
+  };
 
   return (
-    <Grid container sx={{
-      spacing: 0,
-      direction: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
+    <GridContainer>
       <Stack container sx={{
         display: "flex",
         width: "76%",
@@ -191,10 +187,10 @@ const CreateOrderPage = () => {
           </Typography>
           <Box>
             <form onSubmit={saveProduct}>
-              <FormControl sx={{ 
-                paddingBlockEnd: 3, 
-                display: 'flex', 
-                flexDirection: 'row' 
+              <FormControl sx={{
+                paddingBlockEnd: 3,
+                display: 'flex',
+                flexDirection: 'row'
               }}>
                 <InputLabel>Тип изделия</InputLabel>
                 <Select
@@ -228,12 +224,12 @@ const CreateOrderPage = () => {
                     <TableBody>
                       <TableRow>
                         {upperJaw.map(tooth => {
-                          return <td>{getToothMark(tooth)}</td>
+                          return <td>{getToothMark(tooth)}</td>;
                         })}
                       </TableRow>
                       <TableRow>
                         {lowerJaw.map(tooth => {
-                          return <td>{getToothMark(tooth)}</td>
+                          return <td>{getToothMark(tooth)}</td>;
                         })}
                       </TableRow>
                     </TableBody>
@@ -294,7 +290,7 @@ const CreateOrderPage = () => {
           </Box>
         </Box>
       </Stack>
-    </Grid>
+    </GridContainer>
   );
-}
+};
 export default CreateOrderPage;

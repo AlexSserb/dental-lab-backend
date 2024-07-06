@@ -1,11 +1,12 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button, TextField, Typography, FormControl,
-  Grid, Stack, Paper, Alert
+  Stack, Paper, Alert
 } from "@mui/material";
 
 import AuthContext from '../context/AuthContext';
+import GridContainer from '../components/GridContainer';
 
 
 const RegisterPage = () => {
@@ -13,7 +14,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     setMessage("");
-  }, [setMessage])
+  }, [setMessage]);
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -29,15 +30,10 @@ const RegisterPage = () => {
     else {
       registerUser(e);
     }
-  }
+  };
 
   return (
-    <Grid container sx={{
-      spacing: 0,
-      direction: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
+    <GridContainer>
       <Stack container sx={{
         display: "flex",
         width: "40%",
@@ -106,9 +102,9 @@ const RegisterPage = () => {
           </form>
         </Paper>
       </Stack>
-    </Grid>
-  )
-}
+    </GridContainer>
+  );
+};
 
 export default RegisterPage;
 

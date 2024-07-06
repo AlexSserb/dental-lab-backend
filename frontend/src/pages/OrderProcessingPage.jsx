@@ -13,6 +13,13 @@ import {
 import AuthContext from '../context/AuthContext';
 import productService from '../servicies/ProductService';
 import orderService from '../servicies/OrderService';
+import { isLabAdmin } from '../utils/Permissions';
+
+
+const blockStyle = {
+  paddingY: 2,
+  paddingX: 2
+};
 
 const OrderProcessingPage = () => {
   const { authTokens, user } = useContext(AuthContext);
@@ -35,7 +42,7 @@ const OrderProcessingPage = () => {
         setProducts([]);
         console.log(err);
       });
-  }
+  };
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
@@ -43,7 +50,7 @@ const OrderProcessingPage = () => {
       return;
     }
 
-    if (!(user?.group[0] === 'А')) {
+    if (!isLabAdmin(user)) {
       navigate('/');
     }
 
@@ -57,7 +64,7 @@ const OrderProcessingPage = () => {
     if (discount >= 0 && discount < 100) {
       setOrder({ ...order, discount: e.target.value });
     }
-  }
+  };
 
   const handleProductDiscountChanged = (e) => {
     const discount = e.target.value;
@@ -65,16 +72,16 @@ const OrderProcessingPage = () => {
       products[curProdIdx].discount = discount;
       setProducts([...products]);
     }
-  }
+  };
 
   const getProductCost = (product) => {
     const discount = Math.max(product.discount, order.discount);
     return product.productType.cost * product.amount * (1 - discount / 100);
-  }
+  };
 
   const getOrderCost = () => {
     return products.reduce((partialSum, product) => partialSum + getProductCost(product), 0);
-  }
+  };
 
   const renderProducts = () => {
     return products.map(product => (
@@ -88,7 +95,7 @@ const OrderProcessingPage = () => {
         </TableCell>
       </TableRow>
     ));
-  }
+  };
 
   const renderOperations = () => {
     return products[curProdIdx].operations.map(operation => (
@@ -97,7 +104,7 @@ const OrderProcessingPage = () => {
         <TableCell>{operation.operationType.execTime}</TableCell>
       </TableRow>
     ));
-  }
+  };
 
   const submitOrder = () => {
     orderService.confirmOrder(order, products)
@@ -107,11 +114,6 @@ const OrderProcessingPage = () => {
       .catch(err => {
         console.log(err);
       });
-  }
-
-  const blockStyle = {
-    paddingY: 2,
-    paddingX: 2
   };
 
   return (
@@ -243,7 +245,7 @@ const OrderProcessingPage = () => {
         </Stack>
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
 export default OrderProcessingPage;

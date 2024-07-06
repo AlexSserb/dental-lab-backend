@@ -1,31 +1,26 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Button, TextField, Typography, FormControl,
-  Grid, Stack, Paper
+  Stack, Paper
 } from "@mui/material";
 
 import AuthContext from '../context/AuthContext';
-
+import GridContainer from '../components/GridContainer';
 
 const LoginPage = () => {
   const { loginUser, message, setMessage } = useContext(AuthContext);
 
   useEffect(() => {
     setMessage("");
-  }, [setMessage])
+  }, [setMessage]);
 
   return (
-    <Grid container sx={{
-      spacing: 0,
-      direction: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
+    <GridContainer>
       <Stack sx={{
         display: "flex",
         width: "33%",
-        minWidth: "500px",
+        minWidth: "400px",
         spacing: 3
       }}>
         <Paper elevation={5} sx={{ padding: 5, marginTop: 3 }}>
@@ -40,7 +35,7 @@ const LoginPage = () => {
                 name="email"
                 required
               />
-            </FormControl><br/>
+            </FormControl><br />
             <FormControl sx={{ paddingBlockEnd: 3 }}>
               <TextField
                 label="Пароль"
@@ -48,7 +43,7 @@ const LoginPage = () => {
                 name="password"
                 required
               />
-            </FormControl><br/>
+            </FormControl><br />
             {message && (
               <div className="form-group">
                 <div className="alert alert-danger" role="alert">
@@ -63,9 +58,9 @@ const LoginPage = () => {
           </form>
         </Paper>
       </Stack>
-    </Grid>
-  )
-}
+    </GridContainer>
+  );
+};
 
 export default LoginPage;
 

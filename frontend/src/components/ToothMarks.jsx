@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect } from "react";
+import { Box } from "@mui/material";
 
 const ToothMarks = ({ teethList }) => {
 	const [markedTeeth, setMarkedTeeth] = useState(new Set(teethList));
@@ -12,10 +12,10 @@ const ToothMarks = ({ teethList }) => {
 			arrUpperJaw.push(num);
 		}
 		for (let num = 21; num <= 28; num++) {
-			arrUpperJaw.push(num)
+			arrUpperJaw.push(num);
 		}
 		setUpperJaw(arrUpperJaw);
-	}
+	};
 
 	const fillLowerJaw = () => {
 		let arrLowerJaw = [];
@@ -23,10 +23,10 @@ const ToothMarks = ({ teethList }) => {
 			arrLowerJaw.push(num);
 		}
 		for (let num = 31; num <= 38; num++) {
-			arrLowerJaw.push(num)
+			arrLowerJaw.push(num);
 		}
 		setLowerJaw(arrLowerJaw);
-	}
+	};
 
 	useEffect(() => {
 		fillUpperJaw();
@@ -35,8 +35,8 @@ const ToothMarks = ({ teethList }) => {
 
 
 	const getToothMark = (number) => {
-		let background = markedTeeth.has(number) ? "black" : "white";
-		let color = markedTeeth.has(number) ? "white" : "black";
+		const background = markedTeeth.has(number) ? "black" : "white";
+		const color = markedTeeth.has(number) ? "white" : "black";
 
 		return (
 			<div style={{
@@ -45,35 +45,35 @@ const ToothMarks = ({ teethList }) => {
 				height: "25px",
 				backgroundColor: background,
 				color: color,
-				border: '1px solid black',
+				border: "1px solid black",
 				borderRadius: "50%",
-				textAlign: 'center'
+				textAlign: "center"
 			}}>
-				<p style={{ paddingLeft: '2px' }}>
+				<p style={{ paddingLeft: "2px" }}>
 					{number}
 				</p>
 			</div>
-		)
-	}
+		);
+	};
 
 	return (
-		<div>
+		<Box sx={{ overflowX: "auto" }}>
 			<table className="text-center">
 				<tbody>
 					<tr>
 						{upperJaw.map(tooth => {
-							return <td>{getToothMark(tooth)}</td>
+							return <td>{getToothMark(tooth)}</td>;
 						})}
 					</tr>
 					<tr>
 						{lowerJaw.map(tooth => {
-							return <td>{getToothMark(tooth)}</td>
+							return <td>{getToothMark(tooth)}</td>;
 						})}
 					</tr>
 				</tbody>
 			</table>
-		</div>
-	)
-}
+		</Box>
+	);
+};
 
 export default ToothMarks;

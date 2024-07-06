@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Box, Typography, Button, TextField, Alert
+  Box, Typography, Button, TextField, Alert,
+  Stack, Paper
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DoneIcon from "@mui/icons-material/Done";
@@ -9,17 +10,18 @@ import DoneIcon from "@mui/icons-material/Done";
 import AuthContext from "../context/AuthContext";
 import profileService from "../servicies/ProfileService";
 import ModalChangePassword from "../modals/ModalChangePassword";
+import GridContainer from "../components/GridContainer";
 
 
 const boxStyle = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center"
-}
+};
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState({});
-  const { authTokens, userGroupToString, user } = useContext(AuthContext);
+  const { authTokens, userGroupToString, user, logoutUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const { state } = useLocation();
   const [message, setMessage] = useState("");
@@ -35,7 +37,7 @@ const ProfilePage = () => {
       group: userGroupToString(data.group),
       createdAt: data.createdAt
     });
-  }
+  };
 
   useEffect(() => {
     if (!authTokens || !authTokens.access) {
@@ -47,11 +49,11 @@ const ProfilePage = () => {
       .catch(err => {
         console.log(err);
       });
-  }, [setUserData])
+  }, []);
 
   const saveFirstName = () => {
     if (isFirstNameEdit) {
-      profileService.patchUserFirstName(user.email, userData.firstName)
+      profileService.patchUserFirstName(user?.email, userData.firstName)
         .then(res => {
           formatAndSetUserData(res.data);
           setMessageSeverity("success");
@@ -67,7 +69,7 @@ const ProfilePage = () => {
     else {
       setIsFirstNameEdit(true);
     }
-  }
+  };
 
   const renderFirstName = () => {
     return (
@@ -80,7 +82,7 @@ const ProfilePage = () => {
         }
         <Box sx={{ marginBottom: 1 }}>
           {
-            user.email === userData.email && (
+            user?.email === userData.email && (
               <Button variant="contained" onClick={saveFirstName}>
                 {isFirstNameEdit ? <DoneIcon /> : <EditIcon />}
               </Button>
@@ -88,12 +90,12 @@ const ProfilePage = () => {
           }
         </Box>
       </Box>
-    )
-  }
+    );
+  };
 
   const saveLastName = () => {
     if (isLastNameEdit) {
-      profileService.patchUserLastName(user.email, userData.lastName)
+      profileService.patchUserLastName(user?.email, userData.lastName)
         .then(res => {
           formatAndSetUserData(res.data);
           setMessageSeverity("success");
@@ -109,7 +111,7 @@ const ProfilePage = () => {
     else {
       setIsLastNameEdit(true);
     }
-  }
+  };
 
   const renderLastName = () => {
     return (
@@ -122,7 +124,7 @@ const ProfilePage = () => {
         }
         <Box sx={{ marginBottom: 1 }}>
           {
-            user.email === userData.email && (
+            user?.email === userData.email && (
               <Button variant="contained" onClick={saveLastName}>
                 {isLastNameEdit ? <DoneIcon /> : <EditIcon />}
               </Button>
@@ -130,40 +132,59 @@ const ProfilePage = () => {
           }
         </Box>
       </Box>
-    )
-  }
+    );
+  };
+
+  const handleClickLogoutUser = () => {
+    logoutUser();
+    navigate('/login');
+  };
 
   return (
-    <div className="card card-container col-md-6 col-sm-60 mx-auto p-0 mt-5">
-      <h3 className="text-success text-uppercase text-center mt-4">
-        Профиль
-      </h3>
-      <div className='m-4'>
-        {message && <Alert sx={{ marginBottom: 2 }} severity={messageSeverity}>{message}</Alert>}
+    <GridContainer>
+      <Stack sx={{
+        display: "flex",
+        width: "33%",
+        minWidth: "400px",
+        spacing: 3
+      }}>
+        <Paper elevation={5} sx={{ padding: 5, marginTop: 3 }}>
+          <Typography textAlign={"center"} variant="h5" component="h5" sx={{ paddingBlockEnd: 3 }}>
+            Профиль
+          </Typography>
+          {message && <Alert sx={{ marginBottom: 2 }} severity={messageSeverity}>{message}</Alert>}
 
-        {renderLastName()}<hr />
+          {renderLastName()}<hr />
 
-        {renderFirstName()}<hr />
+          {renderFirstName()}<hr />
 
-        <p>Почтовый адрес: {userData.email}</p><hr />
+          <p>Почтовый адрес: {userData.email}</p><hr />
 
-        <p>Должность: {userData.group}</p><hr />
+          <p>Должность: {userData.group}</p><hr />
 
-        <p>Дата регистрации: {userData.createdAt}</p>
+          <p>Дата регистрации: {userData.createdAt}</p><hr />
 
-        {
-          user.email === userData.email ?
-            <ModalChangePassword setProfileMessage={setMessage} setProfileMessageSeverity={setMessageSeverity} />
-            : (
+          {
+            user?.email === userData.email ? (
+              <>
+                <ModalChangePassword
+                  setProfileMessage={setMessage}
+                  setProfileMessageSeverity={setMessageSeverity}
+                />
+                <Button variant="contained" onClick={() => handleClickLogoutUser()}>
+                  Выйти
+                </Button>
+              </>
+            ) : (
               <Button variant="contained" onClick={() => navigate("/schedule", { state: { techEmail: userData.email } })}>
                 Расписание
               </Button>
             )
-        }
-      </div>
-    </div >
-  )
-}
+          }
+        </Paper>
+      </Stack>
+    </GridContainer>
+  );
+};
 
 export default ProfilePage;
-

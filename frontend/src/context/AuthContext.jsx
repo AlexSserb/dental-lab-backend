@@ -1,18 +1,18 @@
-import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
+import { createContext, useState, useEffect } from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export default AuthContext;
 
 
-export const AuthProvider = ({children}) => {
-	let [authTokens, setAuthTokens] = useState(() => localStorage.getItem('authTokens') ? 
-		JSON.parse(localStorage.getItem('authTokens')) : null);
-	let [user, setUser] = useState(() => localStorage.getItem('authTokens') ? 
-		jwtDecode(localStorage.getItem('authTokens')) : null);
+export const AuthProvider = ({ children }) => {
+	let [authTokens, setAuthTokens] = useState(() => localStorage.getItem("authTokens") ?
+		JSON.parse(localStorage.getItem("authTokens")) : null);
+	let [user, setUser] = useState(() => localStorage.getItem("authTokens") ?
+		jwtDecode(localStorage.getItem("authTokens")) : null);
 
 	let [loading, setLoading] = useState(true);
 	let [message, setMessage] = useState("");
@@ -22,16 +22,16 @@ export const AuthProvider = ({children}) => {
 	let loginUser = (e) => {
 		e.preventDefault();
 		setMessage("");
-		axios.post('/accounts/token/',
-			{ 
-				'email': e.target.email.value, 
-				'password': e.target.password.value 
+		axios.post("/accounts/token/",
+			{
+				email: e.target.email.value,
+				password: e.target.password.value
 			})
 			.then(res => {
 				setAuthTokens(res.data);
 				setUser(jwtDecode(res.data.access));
-				localStorage.setItem('authTokens', JSON.stringify(res.data));
-				navigate('/');
+				localStorage.setItem("authTokens", JSON.stringify(res.data));
+				navigate("/");
 			})
 			.catch(err => {
 				console.log(err);
@@ -42,22 +42,22 @@ export const AuthProvider = ({children}) => {
 					defaultAuthErrorHandling(err, "Ошибка входа в систему.");
 				}
 			});
-	}
+	};
 
 	let registerUser = (e) => {
 		e.preventDefault();
-		axios.post('/accounts/register/',
+		axios.post("/accounts/register/",
 			{
-				'firstName': e.target.firstName.value,
-				'lastName': e.target.lastName.value,
-				'email': e.target.email.value,
-				'password': e.target.password.value 
+				firstName: e.target.firstName.value,
+				lastName: e.target.lastName.value,
+				email: e.target.email.value,
+				password: e.target.password.value
 			})
 			.then(res => {
 				setAuthTokens(res.data);
 				setUser(jwtDecode(res.data.access));
-				localStorage.setItem('authTokens', JSON.stringify(res.data));
-				navigate('/');
+				localStorage.setItem("authTokens", JSON.stringify(res.data));
+				navigate("/");
 			})
 			.catch(err => {
 				console.log(err.response?.data);
@@ -71,7 +71,7 @@ export const AuthProvider = ({children}) => {
 					defaultAuthErrorHandling(err, "Ошибка регистрации.");
 				}
 			});
-	}
+	};
 
 	let defaultAuthErrorHandling = (err, defaultErrorMsg) => {
 		if (!err.response) {
@@ -81,33 +81,33 @@ export const AuthProvider = ({children}) => {
 			console.log(err);
 			setMessage(defaultErrorMsg);
 		}
-	}
+	};
 
 	let logoutUser = () => {
 		setAuthTokens(null);
 		setUser(null);
 		localStorage.removeItem("authTokens");
-	}
+	};
 
 	let updateToken = () => {
-		console.log('Update token call!');
-		axios.post('/accounts/token/refresh/',
-			{ 'refresh': authTokens?.refresh })
+		console.log("Update token call!");
+		axios.post("/accounts/token/refresh/",
+			{ refresh: authTokens?.refresh })
 			.then((res) => {
 				setAuthTokens(res.data);
 				setUser(jwtDecode(res.data.access));
-				localStorage.setItem('authTokens', JSON.stringify(res.data));
+				localStorage.setItem("authTokens", JSON.stringify(res.data));
 			})
 			.catch(_ => logoutUser())
 			.finally(() => setLoading(false));
-	}
+	};
 
 	let userGroupToString = (group) => {
 		if (!group) {
 			return "Врач";
 		}
 		return group;
-	}
+	};
 
 	let contextData = {
 		user: user,
@@ -118,7 +118,7 @@ export const AuthProvider = ({children}) => {
 		message: message,
 		setMessage: setMessage,
 		logoutUser: logoutUser
-	}
+	};
 
 	useEffect(() => {
 		if (loading) {
@@ -132,11 +132,11 @@ export const AuthProvider = ({children}) => {
 			}
 		}, minutes);
 		return () => clearInterval(interval);
-	}, [authTokens, loading])
+	}, [authTokens, loading]);
 
-  return (
-    <AuthContext.Provider value={contextData}>
-      {loading ? null : children}
-    </AuthContext.Provider>
-  )
-}
+	return (
+		<AuthContext.Provider value={contextData}>
+			{loading ? null : children}
+		</AuthContext.Provider>
+	);
+};

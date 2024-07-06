@@ -21,6 +21,7 @@ import { isPhysician } from "../utils/Permissions";
 import { getDepartmentName, getDepartmentIdByCode } from "../utils/GetDepartmentInfo";
 import productService from "../servicies/ProductService";
 import profileService from "../servicies/ProfileService";
+import { operationStyle, calendarContainer } from "./styles/AssignOperationsPageStyle";
 
 
 const AssignOperationsPage = () => {
@@ -49,7 +50,7 @@ const AssignOperationsPage = () => {
             .catch(err => {
                 console.log(err);
             });
-    }
+    };
 
     useEffect(() => {
         if (!authTokens || !authTokens.access) {
@@ -76,8 +77,8 @@ const AssignOperationsPage = () => {
                 <b>{eventInfo.timeText}</b><br />
                 <span>{operInfo.operationType?.name}</span>
             </Box>
-        )
-    }
+        );
+    };
 
     const formatDate = (date) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
@@ -88,7 +89,7 @@ const AssignOperationsPage = () => {
                 operations = calendar.getEvents();
             })
             .catch(err => console.log(err));
-    }
+    };
 
     async function getCalendarData(fetchInfo, successCallback) {
         if (techEmail) {
@@ -114,7 +115,7 @@ const AssignOperationsPage = () => {
                 setTechs(res.data);
             })
             .catch(err => console.log(err));
-    }
+    };
 
     const saveOperation = () => {
         setMessage("");
@@ -133,25 +134,19 @@ const AssignOperationsPage = () => {
         operationService.assignOperation(currOperation)
             .then(_ => getProductsWithOperations())
             .catch(err => console.log(err));
-    }
+    };
 
     const selectTech = (event) => {
         setTechEmail(event.target.value);
-    }
+    };
 
     const formatExecTime = (time) => {
         return `${Number(time.substring(0, 2))} ч. ${Number(time.substring(3, 5))} мин.`;
-    }
+    };
 
     const renderOpeartions = () => {
         return operationsToAssign.map(operation => (
-            <Grid sx={{
-                padding: 2,
-                marginY: 1,
-                border: 2,
-                borderRadius: "8px",
-                backgroundColor: operation.id === currOperation?.id ? "#dcf0fa" : "#FFFFFF"
-            }}>
+            <Grid sx={operationStyle(operation.id === currOperation?.id)}>
                 <Box>
                     <Typography>Тип операции: {operation.operationType.name}</Typography>
                     <Typography>Группа: {getDepartmentName(operation.operationType.group)}</Typography>
@@ -172,8 +167,8 @@ const AssignOperationsPage = () => {
                     </Button>
                 </Box>
             </Grid>
-        ))
-    }
+        ));
+    };
 
     return (
         <Stack>
@@ -233,7 +228,7 @@ const AssignOperationsPage = () => {
                     </Stack>
                 </Box>
 
-                <Box component={Paper} sx={{ width: "70%", padding: 2 }}>
+                <Box component={Paper} sx={calendarContainer}>
                     <FullCalendar
                         plugins={[timeGridPlugin, interactionPlugin]}
 
@@ -267,7 +262,7 @@ const AssignOperationsPage = () => {
                 </Box>
             </Grid>
         </Stack>
-    )
-}
+    );
+};
 
 export default AssignOperationsPage;
