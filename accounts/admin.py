@@ -11,16 +11,14 @@ class UserCreationForm(forms.ModelForm):
     Form for creating new users
     """
 
-    password1 = forms.CharField(
-        label='Password', widget=forms.PasswordInput
-    )
+    password1 = forms.CharField(label="Пароль", widget=forms.PasswordInput)
     password2 = forms.CharField(
-        label='Password confirmation', widget=forms.PasswordInput
+        label="Подтверждение пароля", widget=forms.PasswordInput
     )
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name')
+        fields = ("email", "first_name", "last_name")
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -43,30 +41,54 @@ class UserChangeForm(forms.ModelForm):
     """
     A form for updating users.
     """
-    
+
     password = ReadOnlyPasswordHashField()
 
     class Meta:
         model = User
-        fields = ('email', 'password', 'is_active', 'is_staff', 'is_superuser', 'first_name', 'last_name')
+        fields = (
+            "email",
+            "password",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "first_name",
+            "last_name",
+        )
 
 
 class UserAdmin(BaseUserAdmin):
     add_form = UserCreationForm
     form = UserChangeForm
-    ordering = ('email',)
+    ordering = ("email",)
 
-    list_display = ('email', 'first_name', 'last_name')
+    list_display = ("email", "first_name", "last_name")
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal Information', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('groups',)}),
+        (None, {"fields": ("email", "password")}),
+        ("Персональные данные", {"fields": ("first_name", "last_name")}),
+        ("Роль", {"fields": ("groups",)}),
+        ("Прикрепить заказчиков", {"fields": ("customers",)}),
     )
     add_fieldsets = (
-        (None, {'fields': ('email', 'password1', 'password2', 'is_active', 'is_staff', 'is_superuser')}),
-        ('Personal Information', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('groups',)}),
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "password1",
+                    "password2",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                )
+            },
+        ),
+        ("Персональные данные", {"fields": ("first_name", "last_name")}),
+        ("Роль", {"fields": ("groups",)}),
+        ("Прикрепить заказчиков", {"fields": ("customers",)}),
     )
 
 
 admin.site.register(User, UserAdmin)
+
+admin.site.register(Customer)

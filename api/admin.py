@@ -23,6 +23,7 @@ class OperationTypeProductTypeInline(admin.TabularInline):
     verbose_name = "операция для выполнения изделия"
     verbose_name_plural = "операции для выполнения изделия"
     model = ProductType.operation_types.through
+    ordering = ("ordinal_number",)
     extra = 1
 
 

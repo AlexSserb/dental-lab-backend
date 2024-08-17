@@ -113,3 +113,35 @@ def get_technicians_by_group(request, group_id):
     technicians = User.objects.filter(groups__id__in=[group_id, 3])
     serializer = UserProfileSerializer(technicians, many=True)
     return Response(serializer.data)
+
+
+@extend_schema(responses=CustomerSerializer(many=True))
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_customers(request):
+    customers = Customer.objects.filter(is_active=True)
+    serializer = CustomerSerializer(customers, many=True)
+    return Response(serializer.data)
+
+
+@extend_schema(request=AttachCustomersToUserSerializer, responses=UserProfileSerializer)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def attach_customers_to_user(request):
+    serializer = AttachCustomersToUserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = request.user
+        customers = serializer.validated_data["customers"]
+        user.customers.clear()
+        user.customers.add(*customers)
+
+        serializer = UserProfileSerializer(user)
+
+        return Response(
+            {
+                **serializer.data,
+                "group": user.groups.values_list("name", flat=True).first(),
+            }
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

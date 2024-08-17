@@ -20,6 +20,7 @@ class OrdersTest(TestCase):
     fixtures: list[str] = [
         "./api/fixtures/groups_data.json",
         "./api/fixtures/test_data_statuses.json",
+        "./api/fixtures/test_data_customers.json",
         "./api/fixtures/operation_and_product_types.json",
     ]
 
@@ -154,7 +155,8 @@ class OrdersTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_create_order(self):
-        product_types_data = {
+        data = {
+            "customer_id": "a2203146-68ba-411f-ba45-815a52ef7236",
             "product_types": [
                 {
                     "product_type_id": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
@@ -166,11 +168,11 @@ class OrdersTest(TestCase):
                     "amount": 2,
                     "teeth": [45, 46],
                 },
-            ]
+            ],
         }
 
         response = self.client.post(
-            self.URL + "/create-order/", data=product_types_data, format="json"
+            self.URL + "/create-order/", data=data, format="json"
         )
 
         self.assertEqual(response.status_code, 200)
@@ -180,6 +182,7 @@ class OrdersTest(TestCase):
         self.assertEqual(len(orders), 1)
         self.assertEqual(orders[0].discount, 0)
         self.assertEqual(orders[0].status.name, OrderStatus.get_default_status().name)
+        self.assertEqual(orders[0].customer.name, "Городская стоматология №1")
 
         products = orders[0].products.all()
         product1, product2 = self.check_products_created_correctly(products)
@@ -213,18 +216,19 @@ class OrdersTest(TestCase):
 
     def test_create_order_incorrect_data(self):
         # Incorrect data => tooth number 90 is not correct
-        product_types_data = {
+        data = {
+            "customer_id": "a2203146-68ba-411f-ba45-815a52ef7236",
             "product_types": [
                 {
                     "product_type_id": "6622d6e9-b655-4894-acab-885bf17fa6a7",
                     "amount": 2,
                     "teeth": [90, 46],
                 },
-            ]
+            ],
         }
 
         response = self.client.post(
-            self.URL + "/create-order/", data=product_types_data, format="json"
+            self.URL + "/create-order/", data=data, format="json"
         )
 
         self.assertEqual(response.status_code, 400)

@@ -110,14 +110,17 @@ def get_products_for_order(request, order_id):
     return Response(serializer.data)
 
 
-@extend_schema(request=ManyProductsFromUserSerializer)
+@extend_schema(request=DataForOrderCreationSerializer)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_order(request):
-    serializer = ManyProductsFromUserSerializer(data=request.data)
+    serializer = DataForOrderCreationSerializer(data=request.data)
     if serializer.is_valid():
         order = Order.objects.create(
-            user=request.user, status=OrderStatus.get_default_status(), discount=0
+            user=request.user,
+            status=OrderStatus.get_default_status(),
+            discount=0,
+            customer=serializer.validated_data["customer_id"],
         )
         Product.products_from_product_types(request.data["product_types"], order)
         return Response(status=status.HTTP_200_OK)
@@ -311,11 +314,15 @@ def get_products_with_operations(request, order_id):
         order = Order.objects.get(id=order_id)
         for product in order.products.all():
             if product.operations.count() == 0:
-                for operation_type in product.product_type.operation_types.all():
+                for operation_type, through in zip(
+                    product.product_type.operation_types.all(),
+                    product.product_type.operation_types.through.objects.all(),
+                ):
                     Operation.objects.create(
                         product=product,
                         operation_type=operation_type,
                         operation_status=OperationStatus.get_default_status(),
+                        ordinal_number=through.ordinal_number,
                     )
 
         serializer = ProductAndOperationsSerializer(order.products, many=True)

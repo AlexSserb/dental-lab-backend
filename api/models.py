@@ -34,12 +34,15 @@ class OperationType(BaseModel):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True
     )
-    name = models.CharField(max_length=128)
-    exec_time = models.TimeField(auto_now=False, auto_now_add=False)
+    name = models.CharField(max_length=128, verbose_name="Наименование")
+    exec_time = models.TimeField(
+        auto_now=False, auto_now_add=False, verbose_name="Время выполнения"
+    )
     group = models.CharField(
         max_length=2,
         choices=OperationGroup.choices,
         default=OperationGroup.MODELS,
+        verbose_name="Группа",
     )
 
     class Meta:
@@ -61,12 +64,12 @@ class ProductType(BaseModel):
     id = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, verbose_name="Наименование")
     operation_types = models.ManyToManyField(
-        OperationType, related_name="product_types"
+        OperationType, related_name="product_types", through="ProductTypeOperationType"
     )
     cost = models.DecimalField(
-        max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0
+        max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0, verbose_name="Цена"
     )
 
     class Meta:
@@ -75,6 +78,20 @@ class ProductType(BaseModel):
 
     def __str__(self):
         return f"{self.name}"
+
+
+class ProductTypeOperationType(models.Model):
+    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE)
+    operation_type = models.ForeignKey(OperationType, on_delete=models.CASCADE)
+    ordinal_number = models.PositiveIntegerField(
+        verbose_name="Порядковый номер выполнения"
+    )
+
+    class Meta:
+        unique_together = (
+            "product_type",
+            "ordinal_number",
+        )
 
 
 # Статусы операций
@@ -157,6 +174,9 @@ class Order(BaseModel):
     order_date = models.DateField(auto_now_add=True)
     discount = models.IntegerField(
         default=0, validators=[MaxValueValidator(100), MinValueValidator(0)]
+    )
+    customer = models.ForeignKey(
+        "accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True
     )
 
     class Meta:
@@ -276,11 +296,16 @@ class Operation(BaseModel):
         User, related_name="operations", null=True, on_delete=models.CASCADE
     )
     created_at = models.DateTimeField(default=timezone.now)
+    ordinal_number = models.PositiveIntegerField()
     exec_start = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Операция"
         verbose_name_plural = "Операции"
+        unique_together = (
+            "product",
+            "ordinal_number",
+        )
 
     def __str__(self):
         return f'Операция "{self.operation_type.name}" для изделия "{self.product.product_type}" от даты {self.product.order.order_date}'

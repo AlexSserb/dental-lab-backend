@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 from .models import *
-from accounts.serializers import UserProfileSerializer
+from accounts.serializers import UserProfileSerializer, CustomerSerializer
+from accounts.models import Customer
 
 
 User = get_user_model()
@@ -62,10 +63,11 @@ class OrderStatusSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     status = OrderStatusSerializer()
     cost = serializers.SerializerMethodField("get_cost")
+    customer = CustomerSerializer()
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost"]
+        fields = ["id", "status", "order_date", "discount", "cost", "customer"]
 
     def get_cost(self, obj):
         return obj.get_cost()
@@ -92,7 +94,10 @@ class ProductFromUserSerializer(serializers.Serializer):
     )
 
 
-class ManyProductsFromUserSerializer(serializers.Serializer):
+class DataForOrderCreationSerializer(serializers.Serializer):
+    customer_id = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
+    )
     product_types = ProductFromUserSerializer(many=True)
 
 
@@ -103,7 +108,14 @@ class OperationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Operation
-        fields = ["id", "operation_type", "operation_status", "product", "exec_start"]
+        fields = [
+            "id",
+            "operation_type",
+            "operation_status",
+            "product",
+            "exec_start",
+            "ordinal_number",
+        ]
 
 
 class OperationForScheduleSerializer(serializers.Serializer):
@@ -130,7 +142,14 @@ class OperationForProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Operation
-        fields = ["id", "operation_type", "operation_status", "tech", "exec_start"]
+        fields = [
+            "id",
+            "operation_type",
+            "operation_status",
+            "tech",
+            "exec_start",
+            "ordinal_number",
+        ]
 
 
 class AssignOperationSerializer(serializers.Serializer):

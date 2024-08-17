@@ -19,16 +19,36 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
+class CustomerSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для заказчика (клиники, больницы)
+    """
+
+    class Meta:
+        model = Customer
+        fields = "__all__"
+
+
 class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор для регистрации пользователя
     """
 
     id = serializers.UUIDField(required=False)
+    customers = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
+    )
 
     class Meta:
         model = User
-        fields = ["id", "password", "email", "first_name", "last_name"]
+        fields = [
+            "id",
+            "password",
+            "email",
+            "first_name",
+            "last_name",
+            "customers",
+        ]
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -36,9 +56,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     Сериализатор для вывода данных в профиле пользователя
     """
 
+    customers = CustomerSerializer(many=True)
+
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "created_at"]
+        fields = ["email", "first_name", "last_name", "created_at", "customers"]
 
 
 class UserEditProfileSerializer(serializers.ModelSerializer):
@@ -60,3 +82,13 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=8)
+
+
+class AttachCustomersToUserSerializer(serializers.Serializer):
+    """
+    Сериализатор для прикрепления огранизаций к пользователю
+    """
+
+    customers = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
+    )
