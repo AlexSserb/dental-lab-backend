@@ -1,14 +1,14 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+import uuid
+from decimal import Decimal, getcontext
+
+import pghistory
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
-import pytz
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
 from django.utils import timezone
 
-import uuid
-from datetime import datetime
-from decimal import Decimal, getcontext
-import pghistory
+from accounts.singleton import SingletonModel
 
 User = get_user_model()
 
@@ -31,13 +31,9 @@ class OperationType(BaseModel):
         CERAMICS = "CE", "Керамика"
         DENTURES = "DE", "Протезы"
 
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128, verbose_name="Наименование")
-    exec_time = models.TimeField(
-        auto_now=False, auto_now_add=False, verbose_name="Время выполнения"
-    )
+    exec_time = models.TimeField(auto_now=False, auto_now_add=False, verbose_name="Время выполнения")
     group = models.CharField(
         max_length=2,
         choices=OperationGroup.choices,
@@ -61,16 +57,12 @@ def get_default_product_info():
 
 
 class ProductType(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128, verbose_name="Наименование")
     operation_types = models.ManyToManyField(
         OperationType, related_name="product_types", through="ProductTypeOperationType"
     )
-    cost = models.DecimalField(
-        max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0, verbose_name="Цена"
-    )
+    cost = models.DecimalField(max_digits=DECIMAL_PRECISION, decimal_places=2, default=0.0, verbose_name="Цена")
 
     class Meta:
         verbose_name = "Тип изделия"
@@ -83,9 +75,7 @@ class ProductType(BaseModel):
 class ProductTypeOperationType(models.Model):
     product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE)
     operation_type = models.ForeignKey(OperationType, on_delete=models.CASCADE)
-    ordinal_number = models.PositiveIntegerField(
-        verbose_name="Порядковый номер выполнения"
-    )
+    ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер выполнения")
 
     class Meta:
         unique_together = (
@@ -96,9 +86,7 @@ class ProductTypeOperationType(models.Model):
 
 # Статусы операций
 class OperationStatus(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
@@ -119,9 +107,7 @@ class OperationStatus(BaseModel):
 
 # Статусы операций
 class ProductStatus(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
@@ -141,9 +127,7 @@ class ProductStatus(BaseModel):
 
 
 class OrderStatus(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     number = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=128)
 
@@ -164,20 +148,12 @@ class OrderStatus(BaseModel):
 
 # Заказы
 class Order(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE)
-    status = models.ForeignKey(
-        OrderStatus, related_name="orders", on_delete=models.CASCADE
-    )
+    status = models.ForeignKey(OrderStatus, related_name="orders", on_delete=models.CASCADE)
     order_date = models.DateField(auto_now_add=True)
-    discount = models.IntegerField(
-        default=0, validators=[MaxValueValidator(100), MinValueValidator(0)]
-    )
-    customer = models.ForeignKey(
-        "accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True
-    )
+    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)])
+    customer = models.ForeignKey("accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = "Заказ"
@@ -201,28 +177,18 @@ BaseOrderEvent = pghistory.create_event_model(Order, fields=["status"])
 
 
 class OrderEvent(BaseOrderEvent):
-    status = models.ForeignKey(
-        OrderStatus, related_name="history", on_delete=models.CASCADE
-    )
+    status = models.ForeignKey(OrderStatus, related_name="history", on_delete=models.CASCADE)
     pgh_obj = models.ForeignKey(Order, related_name="history", on_delete=models.CASCADE)
 
 
 # Изделия
 class Product(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
-    product_type = models.ForeignKey(
-        ProductType, related_name="products", on_delete=models.CASCADE
-    )
-    product_status = models.ForeignKey(
-        ProductStatus, related_name="products", on_delete=models.CASCADE
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    product_type = models.ForeignKey(ProductType, related_name="products", on_delete=models.CASCADE)
+    product_status = models.ForeignKey(ProductStatus, related_name="products", on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name="products", on_delete=models.CASCADE)
     amount = models.IntegerField(default=1)
-    discount = models.IntegerField(
-        default=0, validators=[MaxValueValidator(100), MinValueValidator(0)]
-    )
+    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)])
     teeth = ArrayField(
         models.IntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)]),
         default=list,
@@ -233,7 +199,9 @@ class Product(BaseModel):
         verbose_name_plural = "Изделия"
 
     def __str__(self):
-        return f'Изделие "{self.product_type.name}" в кол-ве {self.amount} шт. для заказа от даты {self.order.order_date}'
+        return (
+            f'Изделие "{self.product_type.name}" в кол-ве {self.amount} шт. для заказа от даты {self.order.order_date}'
+        )
 
     @staticmethod
     def products_from_product_types(product_types: list[dict], order: Order):
@@ -243,9 +211,7 @@ class Product(BaseModel):
             amount = product_type.get("amount", None)
 
             if product_type_id and amount and teeth and type(teeth) is list:
-                product_type_inst = ProductType.objects.filter(
-                    id=product_type_id
-                ).first()
+                product_type_inst = ProductType.objects.filter(id=product_type_id).first()
 
                 if product_type_inst:
                     product = Product.objects.create(
@@ -270,31 +236,19 @@ BaseProductEvent = pghistory.create_event_model(Product, fields=["product_status
 
 
 class ProductEvent(BaseProductEvent):
-    product_status = models.ForeignKey(
-        ProductStatus, related_name="history", on_delete=models.CASCADE
-    )
-    pgh_obj = models.ForeignKey(
-        Product, related_name="history", on_delete=models.CASCADE
-    )
+    product_status = models.ForeignKey(ProductStatus, related_name="history", on_delete=models.CASCADE)
+    pgh_obj = models.ForeignKey(Product, related_name="history", on_delete=models.CASCADE)
 
 
 # Операции
 class Operation(BaseModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
-    operation_type = models.ForeignKey(
-        OperationType, related_name="operations", on_delete=models.CASCADE
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    operation_type = models.ForeignKey(OperationType, related_name="operations", on_delete=models.CASCADE)
     operation_status = models.ForeignKey(
         OperationStatus, related_name="operations", on_delete=models.CASCADE, null=True
     )
-    product = models.ForeignKey(
-        Product, related_name="operations", on_delete=models.CASCADE
-    )
-    tech = models.ForeignKey(
-        User, related_name="operations", null=True, on_delete=models.CASCADE
-    )
+    product = models.ForeignKey(Product, related_name="operations", on_delete=models.CASCADE)
+    tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     ordinal_number = models.PositiveIntegerField()
     exec_start = models.DateTimeField(null=True, blank=True)
@@ -312,15 +266,9 @@ class Operation(BaseModel):
 
 
 # История изменения статусов операций
-BaseOperationEvent = pghistory.create_event_model(
-    Operation, fields=["operation_status"]
-)
+BaseOperationEvent = pghistory.create_event_model(Operation, fields=["operation_status"])
 
 
 class OperationEvent(BaseOperationEvent):
-    operation_status = models.ForeignKey(
-        OperationStatus, related_name="history", on_delete=models.CASCADE
-    )
-    pgh_obj = models.ForeignKey(
-        Operation, related_name="history", on_delete=models.CASCADE
-    )
+    operation_status = models.ForeignKey(OperationStatus, related_name="history", on_delete=models.CASCADE)
+    pgh_obj = models.ForeignKey(Operation, related_name="history", on_delete=models.CASCADE)

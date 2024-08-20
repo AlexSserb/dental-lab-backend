@@ -1,15 +1,18 @@
-from django.db import models
+import uuid
+
+from attr.validators import min_len
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
     PermissionsMixin,
 )
-import uuid
 from django.core.validators import (
     MinLengthValidator,
     MaxValueValidator,
 )
-from django.utils import timezone
+from django.db import models
+
+from accounts.singleton import SingletonModel
 
 
 class CustomUserManager(BaseUserManager):
@@ -110,3 +113,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.email}"
+
+
+# Данные зуботехнической лаборатории
+class DentalLabData(SingletonModel):
+    name = models.CharField(max_length=256, verbose_name="Наименование лаборатории")
+    # БИК
+    bank_id_code = models.CharField(max_length=9, validators=[MinLengthValidator(9)], verbose_name="БИК")
+    # Наименование банка
+    bank_name = models.CharField(max_length=256, verbose_name="Наименование банка")
+    # Номер расчетного счета
+    current_account = models.CharField(max_length=20, validators=[MinLengthValidator(20)], verbose_name="Расчетный счет")
+    # Номер корреспондентского счета
+    correspondent_account = models.CharField(max_length=20, validators=[MinLengthValidator(20)], verbose_name="Корреспондентский счет")
+
+    class Meta:
+        verbose_name = "Данные лаборатории"
+        verbose_name_plural = "Данные лаборатории"

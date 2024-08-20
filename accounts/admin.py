@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django import forms
+from rest_framework.exceptions import ValidationError
 
 from .models import *
 
@@ -92,3 +93,15 @@ class UserAdmin(BaseUserAdmin):
 admin.site.register(User, UserAdmin)
 
 admin.site.register(Customer)
+
+class DentalLabDataAdmin(admin.ModelAdmin):
+    list_display = ["name", "bank_name", "bank_id_code", "current_account", "correspondent_account"]
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return not DentalLabData.objects.exists()
+
+
+admin.site.register(DentalLabData, DentalLabDataAdmin)

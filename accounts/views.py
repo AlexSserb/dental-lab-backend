@@ -1,16 +1,11 @@
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import Group
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
+
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-
-from django.utils import timezone
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .permissions import *
 from .serializers import *

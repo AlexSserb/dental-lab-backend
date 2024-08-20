@@ -13,6 +13,8 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -159,9 +161,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
     "DEFAULT_RENDERER_CLASSES": (
         "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
         "djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer",

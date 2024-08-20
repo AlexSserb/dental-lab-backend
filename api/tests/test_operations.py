@@ -1,14 +1,9 @@
+from datetime import datetime
+
+import pytz
+from django.conf import settings
 from django.test import TestCase
 from rest_framework.test import APIClient
-from django.urls import reverse
-from django.contrib.auth.models import Group
-from django.core.serializers import serialize
-from django.conf import settings
-from django.forms.models import model_to_dict
-
-from datetime import datetime
-from uuid import uuid4
-import pytz
 
 from accounts.models import User
 from api.models import *

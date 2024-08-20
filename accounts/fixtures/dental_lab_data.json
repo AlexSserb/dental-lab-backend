@@ -1,0 +1,13 @@
+[
+  {
+    "model": "accounts.dentallabdata",
+    "pk": 1,
+    "fields": {
+      "name": "InColor",
+      "bank_name":  "Филиал \"Центральный\" банка ААА (ПАО) г. Астрахань",
+      "bank_id_code":  "239841729",
+      "current_account":  "40702398472937423798",
+      "correspondent_account": "30101827398273984729"
+    }
+  }
+  ]

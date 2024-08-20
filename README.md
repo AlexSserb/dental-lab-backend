@@ -43,10 +43,11 @@ There are 5 roles in the system:
 <a name="tools"></a>
 ## Tools
 * Python interpreter
-* VS Code
+* Pycharm
+* WebStorm
+* DataGrip
 * Package manager for Node.js - npm
 * Package manager for Python - pip
-* PgAdmin
 * Git
 
 <a name="installation"></a>
@@ -85,7 +86,7 @@ There are 5 roles in the system:
     ```commandline
     python manage.py makemigrations accounts api
     python manage.py migrate
-    python manage.py loaddata groups_data.json statuses.json
+    python manage.py loaddata groups_data.json statuses.json dental_lab_data.json
     ```
     3.4. Start the backend server:
     ```commandline

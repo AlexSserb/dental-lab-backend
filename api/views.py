@@ -1,24 +1,17 @@
-from .serializers import *
-from accounts.permissions import *
-from .paginations import *
+import calendar
+from datetime import datetime, timedelta
 
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
-from rest_framework.generics import ListAPIView
-from django.db.models import Q
-from django.conf import settings
-
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import *
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema
 
-from datetime import datetime, timedelta
-import calendar
-import pytz
-
+from accounts.permissions import *
+from .paginations import *
+from .serializers import *
 
 User = get_user_model()
 
@@ -94,9 +87,7 @@ def get_orders_for_physician(request):
 def get_orders(request, year: int, month: int):
     date_from = datetime(year=year, month=month, day=1)
     date_to = datetime(year=year, month=month, day=calendar.monthrange(year, month)[1])
-    orders = Order.objects.filter(
-        is_active=True, order_date__range=(date_from, date_to)
-    ).order_by("-order_date")
+    orders = Order.objects.filter(is_active=True, order_date__range=(date_from, date_to)).order_by("-order_date")
     serializer = OrderWithPhysicianSerializer(orders, many=True)
     return Response(serializer.data)
 
@@ -173,17 +164,13 @@ def get_operations_for_tech(request):
 @api_view(["GET"])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
 def get_operations_for_product(request, product_id):
-    operations = Operation.objects.filter(product=product_id).order_by(
-        "operation_status__number"
-    )
+    operations = Operation.objects.filter(product=product_id).order_by("operation_status__number")
     serializer = OperationForProductSerializer(operations, many=True)
 
     # get history of operations for a product
     all_operations_history = OperationEvent.objects.select_related("operation_status")
     for operation in serializer.data:
-        curr_history = all_operations_history.filter(pgh_obj=operation["id"]).order_by(
-            "-pgh_created_at"
-        )
+        curr_history = all_operations_history.filter(pgh_obj=operation["id"]).order_by("-pgh_created_at")
         operation["history"] = OperationEventSerializer(curr_history, many=True).data
 
     return Response(serializer.data)
@@ -192,9 +179,7 @@ def get_operations_for_product(request, product_id):
 def preprocess_operation_for_schedule(operation):
     processed = {}
     exec_time = operation.operation_type.exec_time
-    delta = timedelta(
-        hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second
-    )
+    delta = timedelta(hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second)
 
     processed["id"] = operation.id
     processed["start"] = operation.exec_start
@@ -213,12 +198,8 @@ def get_operations_for_schedule(request, user_email, date):
     date_start = datetime.strptime(date, "%Y-%m-%d").date()
     date_end = date_start + timedelta(days=5)
     user = User.objects.filter(email=user_email).first()
-    operations = Operation.objects.filter(
-        tech=user, exec_start__gte=str(date_start), exec_start__lte=str(date_end)
-    )
-    operations = [
-        preprocess_operation_for_schedule(operation) for operation in operations
-    ]
+    operations = Operation.objects.filter(tech=user, exec_start__gte=str(date_start), exec_start__lte=str(date_end))
+    operations = [preprocess_operation_for_schedule(operation) for operation in operations]
     serializer = OperationForScheduleSerializer(operations, many=True)
     return Response(serializer.data)
 
@@ -241,12 +222,8 @@ def assign_operation(request):
     serializer = AssignOperationSerializer(data=request.data)
     if serializer.is_valid():
         operation = get_object_or_404(Operation, id=serializer.validated_data["id"])
-        operation.tech = get_object_or_404(
-            User, email=serializer.validated_data["tech_email"]
-        )
-        operation.exec_start = datetime.strptime(
-            serializer.validated_data["exec_start"], "%Y-%m-%dT%H:%M:%S.%fZ"
-        )
+        operation.tech = get_object_or_404(User, email=serializer.validated_data["tech_email"])
+        operation.exec_start = datetime.strptime(serializer.validated_data["exec_start"], "%Y-%m-%dT%H:%M:%S.%fZ")
         operation.save()
         return Response(status=status.HTTP_200_OK)
 
@@ -280,9 +257,7 @@ class OperationDetail(APIView):
         serializer = UpdateOperationStatusSerializer(data=request.data)
         if serializer.is_valid():
             operation = Operation.objects.filter(id=pk).first()
-            operation_status = OperationStatus.objects.filter(
-                id=serializer.validated_data["status_id"]
-            ).first()
+            operation_status = OperationStatus.objects.filter(id=serializer.validated_data["status_id"]).first()
             if not operation or not operation_status:
                 return Response(status=status.HTTP_404_NOT_FOUND)
             operation.operation_status = operation_status

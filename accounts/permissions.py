@@ -17,7 +17,7 @@ class IsDirector(permissions.BasePermission):
 class IsLabAdmin(permissions.BasePermission):
     """
         Permission class for laboratory administrator.
-        Administrator have not access to statistics and cannot perform the operations of technicians.
+        Administrator have no access to statistics and cannot perform the operations of technicians.
     """
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(id=2)
@@ -35,7 +35,7 @@ class IsChiefTech(permissions.BasePermission):
 class IsTech(permissions.BasePermission):
     """
         Permission class for technician.
-        Technician can get and complit his operations.
+        Technician can get and complete his operations.
     """
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(id__in=(4, 5, 6, 7))

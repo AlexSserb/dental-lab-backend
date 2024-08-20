@@ -1,10 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 
-from .models import *
-from accounts.serializers import UserProfileSerializer, CustomerSerializer
 from accounts.models import Customer
-
+from accounts.serializers import UserProfileSerializer, CustomerSerializer
+from .models import *
 
 User = get_user_model()
 
@@ -89,15 +87,11 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
 class ProductFromUserSerializer(serializers.Serializer):
     product_type_id = serializers.CharField(required=True)
     amount = serializers.IntegerField(required=True, min_value=1)
-    teeth = serializers.ListField(
-        child=serializers.IntegerField(min_value=11, max_value=48), required=True
-    )
+    teeth = serializers.ListField(child=serializers.IntegerField(min_value=11, max_value=48), required=True)
 
 
 class DataForOrderCreationSerializer(serializers.Serializer):
-    customer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
-    )
+    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), pk_field=serializers.UUIDField())
     product_types = ProductFromUserSerializer(many=True)
 
 
