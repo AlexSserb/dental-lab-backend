@@ -1,5 +1,6 @@
-
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -7,7 +8,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from api.models import Order
+from accounts.reports.order_report import OrderReport
 from .permissions import *
+from .reports.acceptance_report import AcceptanceReport
+from .reports.invoice_for_payment import InvoiceForPayment
 from .serializers import *
 
 
@@ -62,9 +67,7 @@ def edit_user_name(request, email, data, user_field):
     user.save()
     serializer = UserProfileSerializer(user)
 
-    return Response(
-        {**serializer.data, "group": user.groups.values_list("name", flat=True).first()}
-    )
+    return Response({**serializer.data, "group": user.groups.values_list("name", flat=True).first()})
 
 
 @extend_schema(responses=UserProfileSerializer)
@@ -94,9 +97,7 @@ def change_password(request):
             user.save()
             return Response(status=status.HTTP_200_OK)
 
-        return Response(
-            {"old_password": ["Wrong password"]}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"old_password": ["Wrong password"]}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,3 +141,33 @@ def attach_customers_to_user(request):
         )
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_order_report(request, order_id: str):
+    order = Order.objects.get(id=order_id)
+    dental_lab_data = DentalLabData.objects.get()
+    report = OrderReport(order, dental_lab_data)
+    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_acceptance_report(request, order_id: str):
+    order = Order.objects.get(id=order_id)
+    dental_lab_data = DentalLabData.objects.get()
+    report = AcceptanceReport(order, dental_lab_data)
+    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
+    return response
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_invoice_for_payment(request, order_id: str):
+    order = Order.objects.get(id=order_id)
+    dental_lab_data = DentalLabData.objects.get()
+    report = InvoiceForPayment(order, dental_lab_data)
+    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
+    return response

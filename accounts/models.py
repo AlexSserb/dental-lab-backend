@@ -1,6 +1,6 @@
+
 import uuid
 
-from attr.validators import min_len
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -34,9 +34,7 @@ class CustomUserManager(BaseUserManager):
 
 # Customer (Clinic/Hospital)
 class Customer(models.Model):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(
         max_length=256,
         verbose_name="Наименование организации",
@@ -69,12 +67,8 @@ class Customer(models.Model):
     )
     adrs_city = models.CharField(max_length=64, verbose_name="Город")
     adrs_street = models.CharField(max_length=64, verbose_name="Улица")
-    adrs_house = models.PositiveIntegerField(
-        validators=[MaxValueValidator(10000)], verbose_name="Дом"
-    )
-    mail_index = models.CharField(
-        max_length=6, validators=[MinLengthValidator(6)], verbose_name="Почтовый индекс"
-    )
+    adrs_house = models.PositiveIntegerField(validators=[MaxValueValidator(10000)], verbose_name="Дом")
+    mail_index = models.CharField(max_length=6, validators=[MinLengthValidator(6)], verbose_name="Почтовый индекс")
     created_at = models.DateField(auto_now_add=True, verbose_name="Дата создания")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
 
@@ -87,19 +81,13 @@ class Customer(models.Model):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, verbose_name="Имя")
     last_name = models.CharField(max_length=30, verbose_name="Фамилия")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
-    is_staff = models.BooleanField(
-        default=True, verbose_name="Доступ ко входу в админ-панель"
-    )
-    is_superuser = models.BooleanField(
-        default=False, verbose_name="Доступ к данным админ-панели"
-    )
+    is_staff = models.BooleanField(default=True, verbose_name="Доступ ко входу в админ-панель")
+    is_superuser = models.BooleanField(default=False, verbose_name="Доступ к данным админ-панели")
     created_at = models.DateField(auto_now_add=True, verbose_name="Дата создания")
     # Linked clinics and hospitals
     customers = models.ManyToManyField(Customer, verbose_name="Заказчики")
@@ -123,9 +111,25 @@ class DentalLabData(SingletonModel):
     # Наименование банка
     bank_name = models.CharField(max_length=256, verbose_name="Наименование банка")
     # Номер расчетного счета
-    current_account = models.CharField(max_length=20, validators=[MinLengthValidator(20)], verbose_name="Расчетный счет")
+    current_account = models.CharField(
+        max_length=20, validators=[MinLengthValidator(20)], verbose_name="Расчетный счет"
+    )
     # Номер корреспондентского счета
-    correspondent_account = models.CharField(max_length=20, validators=[MinLengthValidator(20)], verbose_name="Корреспондентский счет")
+    correspondent_account = models.CharField(
+        max_length=20, validators=[MinLengthValidator(20)], verbose_name="Корреспондентский счет"
+    )
+    # ИНН
+    tax_payer_id = models.CharField(
+        max_length=12,
+        validators=[MinLengthValidator(12)],
+        verbose_name="ИНН",
+    )
+    # КПП
+    reason_code_for_reg = models.CharField(
+        max_length=9,
+        validators=[MinLengthValidator(9)],
+        verbose_name="КПП",
+    )
 
     class Meta:
         verbose_name = "Данные лаборатории"

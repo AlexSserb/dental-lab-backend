@@ -13,9 +13,7 @@ class UserCreationForm(forms.ModelForm):
     """
 
     password1 = forms.CharField(label="Пароль", widget=forms.PasswordInput)
-    password2 = forms.CharField(
-        label="Подтверждение пароля", widget=forms.PasswordInput
-    )
+    password2 = forms.CharField(label="Подтверждение пароля", widget=forms.PasswordInput)
 
     class Meta:
         model = User
@@ -94,8 +92,17 @@ admin.site.register(User, UserAdmin)
 
 admin.site.register(Customer)
 
+
 class DentalLabDataAdmin(admin.ModelAdmin):
-    list_display = ["name", "bank_name", "bank_id_code", "current_account", "correspondent_account"]
+    list_display = [
+        "name",
+        "bank_name",
+        "bank_id_code",
+        "current_account",
+        "correspondent_account",
+        "tax_payer_id",
+        "reason_code_for_reg",
+    ]
 
     def has_delete_permission(self, request, obj=None):
         return False

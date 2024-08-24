@@ -40,12 +40,12 @@ class OperationTypeDetail(APIView):
         except OperationType.DoesNotExist:
             raise Http404
 
-    def get(self, request, pk, format=None):
+    def get(self, request, pk):
         oper_type = self.get_object(pk)
         serializer = self.serializer_class(oper_type)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
+    def put(self, request, pk):
         oper_type = self.get_object(pk)
         serializer = self.serializer_class(oper_type, data=request.data)
         if serializer.is_valid():
@@ -53,7 +53,7 @@ class OperationTypeDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk):
         oper_type = self.get_object(pk)
         oper_type.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -215,6 +215,21 @@ def set_operation_exec_start(request, id, exec_start):
     return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(request=UpdateOrderStatusSerializer, responses=OrderWithPhysicianSerializer)
+@api_view(["PATCH"])
+@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+def set_order_status(request, id: str):
+    order = get_object_or_404(Order, id=id)
+    serializer = UpdateOrderStatusSerializer(data=request.data)
+    if serializer.is_valid():
+        order.status = serializer.validated_data["status"]
+        order.save()
+        order_serializer = OrderWithPhysicianSerializer(order)
+        return Response(order_serializer.data)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @extend_schema(request=AssignOperationSerializer)
 @api_view(["PATCH"])
 @permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
@@ -275,6 +290,12 @@ class OperationStatusesList(ListAPIView):
     queryset = OperationStatus.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = OperationStatusSerializer
+
+
+class OrderStatusesList(ListAPIView):
+    queryset = OrderStatus.objects.order_by("number").all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderStatusSerializer
 
 
 @extend_schema(responses=ProductAndOperationsSerializer(many=True))

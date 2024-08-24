@@ -27,7 +27,7 @@ class BaseModel(models.Model):
 class OperationType(BaseModel):
     class OperationGroup(models.TextChoices):
         MODELS = "MO", "Модели"
-        CAD_CAM = "CA", "CAD\CAM"
+        CAD_CAM = "CA", "CAD\\CAM"
         CERAMICS = "CE", "Керамика"
         DENTURES = "DE", "Протезы"
 
@@ -87,7 +87,7 @@ class ProductTypeOperationType(models.Model):
 # Статусы операций
 class OperationStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    number = models.PositiveIntegerField(unique=True)
+    number = models.PositiveIntegerField()
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -108,7 +108,7 @@ class OperationStatus(BaseModel):
 # Статусы операций
 class ProductStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    number = models.PositiveIntegerField(unique=True)
+    number = models.PositiveIntegerField()
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -128,7 +128,7 @@ class ProductStatus(BaseModel):
 
 class OrderStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    number = models.PositiveIntegerField(unique=True)
+    number = models.PositiveIntegerField()
     name = models.CharField(max_length=128)
 
     class Meta:
@@ -222,11 +222,14 @@ class Product(BaseModel):
                         teeth=teeth,
                     )
 
+    def get_discount(self):
+        return max(self.discount, self.order.discount)
+
     def get_cost(self):
         return round(
             self.product_type.cost
             * self.amount
-            * Decimal.from_float(1 - max(self.discount, self.order.discount) / 100),
+            * Decimal.from_float(1 - self.get_discount() / 100),
             2,
         )
 

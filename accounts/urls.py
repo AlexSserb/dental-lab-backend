@@ -30,4 +30,19 @@ urlpatterns = [
         views.attach_customers_to_user,
         name="attach-customers-to-users",
     ),
+    path(
+        "order-report/<str:order_id>/",
+        views.get_order_report,
+        name="order-report",
+    ),
+    path(
+        "acceptance-report/<str:order_id>/",
+        views.get_acceptance_report,
+        name="acceptance-report",
+    ),
+    path(
+        "invoice-for-payment/<str:order_id>/",
+        views.get_invoice_for_payment,
+        name="invoice-for-payment",
+    )
 ]

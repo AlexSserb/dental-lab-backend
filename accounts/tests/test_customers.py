@@ -2,7 +2,6 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from django.urls import reverse
 
 
 class CustomersTest(TestCase):
@@ -49,11 +48,11 @@ class CustomersTest(TestCase):
         self.assertEqual(len(customers), 2)
         self.assertEqual(
             set((c["phone_number"] for c in customers)),
-            set(("88005553535", "88003333333")),
+            {"88005553535", "88003333333"},
         )
         self.assertEqual(
             set((c["created_at"] for c in customers)),
-            set(("2024-08-15", "2024-07-25")),
+            {"2024-08-15", "2024-07-25"},
         )
 
     def test_attach_customers_to_users(self):

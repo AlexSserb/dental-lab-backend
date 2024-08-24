@@ -86,9 +86,12 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class AttachCustomersToUserSerializer(serializers.Serializer):
     """
-    Сериализатор для прикрепления огранизаций к пользователю
+    Сериализатор для прикрепления организаций к пользователю
     """
 
     customers = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
     )
+
+class ReportSerializer(serializers.ModelSerializer):
+    report = serializers.FileField(required=True)

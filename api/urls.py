@@ -16,6 +16,7 @@ urlpatterns = [
     path("operations-for-product/<str:product_id>/", views.get_operations_for_product, name="operations-for-product"),
     path("operation/<str:pk>/", views.OperationDetail.as_view(), name="operation"),
     path("operation-statuses/", views.OperationStatusesList.as_view(), name="operation-statuses"),
+    path("order-statuses/", views.OrderStatusesList.as_view(), name="order-statuses"),
     path(
         "operations-for-schedule/<str:user_email>/<str:date>",
         views.get_operations_for_schedule,
@@ -27,4 +28,5 @@ urlpatterns = [
         name="set-operation-exec-start",
     ),
     path("assign-operation/", views.assign_operation, name="operation-assignment"),
+    path("set-order-status/<str:id>", views.set_order_status, name="set-order-status"),
 ]

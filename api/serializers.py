@@ -7,6 +7,12 @@ from .models import *
 User = get_user_model()
 
 
+class OrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderStatus
+        fields = "__all__"
+
+
 class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType
@@ -75,10 +81,11 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
     status = OrderStatusSerializer(read_only=True)
     cost = serializers.SerializerMethodField("get_cost")
     user = UserProfileSerializer()
+    customer = CustomerSerializer()
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "user"]
+        fields = ["id", "status", "order_date", "discount", "cost", "user", "customer"]
 
     def get_cost(self, obj):
         return obj.get_cost()
@@ -154,6 +161,10 @@ class AssignOperationSerializer(serializers.Serializer):
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
     status_id = serializers.UUIDField(required=True)
+
+
+class UpdateOrderStatusSerializer(serializers.Serializer):
+    status = serializers.PrimaryKeyRelatedField(queryset=OrderStatus.objects.all(), pk_field=serializers.UUIDField())
 
 
 class ProductAndOperationsSerializer(ProductSerializer):

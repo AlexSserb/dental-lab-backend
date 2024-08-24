@@ -26,3 +26,5 @@ sqlparse==0.4.4
 typing_extensions==4.9.0
 tzdata==2023.4
 uritemplate==4.1.1
+
+fpdf2~=2.7.9
