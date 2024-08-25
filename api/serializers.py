@@ -7,12 +7,6 @@ from .models import *
 User = get_user_model()
 
 
-class OrderStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrderStatus
-        fields = "__all__"
-
-
 class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType
@@ -61,7 +55,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatus
-        fields = ["id", "name", "number"]
+        fields = "__all__"
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -160,7 +154,7 @@ class AssignOperationSerializer(serializers.Serializer):
 
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
-    status_id = serializers.UUIDField(required=True)
+    status = serializers.PrimaryKeyRelatedField(queryset=OperationStatus.objects.all(), pk_field=serializers.UUIDField())
 
 
 class UpdateOrderStatusSerializer(serializers.Serializer):

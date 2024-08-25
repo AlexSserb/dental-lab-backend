@@ -271,14 +271,11 @@ class OperationDetail(APIView):
         """
         serializer = UpdateOperationStatusSerializer(data=request.data)
         if serializer.is_valid():
-            operation = Operation.objects.filter(id=pk).first()
-            operation_status = OperationStatus.objects.filter(id=serializer.validated_data["status_id"]).first()
-            if not operation or not operation_status:
-                return Response(status=status.HTTP_404_NOT_FOUND)
-            operation.operation_status = operation_status
+            operation = get_object_or_404(Operation, id=pk)
+            operation.operation_status = serializer.validated_data["status"]
             operation.save()
             return Response(self.serializer_class(operation).data)
-        return Response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
         operation = self.get_object(pk)

@@ -1,3 +1,5 @@
+from typing import Type
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -8,11 +10,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from api.models import Order
 from accounts.reports.order_report import OrderReport
+from api.models import Order
 from .permissions import *
 from .reports.acceptance_report import AcceptanceReport
 from .reports.invoice_for_payment import InvoiceForPayment
+from .reports.report import Report
 from .serializers import *
 
 
@@ -143,31 +146,27 @@ def attach_customers_to_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+def get_order(order_id: str, report_class: Type[Report]):
+    order = Order.objects.get(id=order_id)
+    dental_lab_data = DentalLabData.objects.get()
+    report = report_class(order, dental_lab_data)
+    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
+    return response
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_order_report(request, order_id: str):
-    order = Order.objects.get(id=order_id)
-    dental_lab_data = DentalLabData.objects.get()
-    report = OrderReport(order, dental_lab_data)
-    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
-    return response
+    return get_order(order_id, OrderReport)
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_acceptance_report(request, order_id: str):
-    order = Order.objects.get(id=order_id)
-    dental_lab_data = DentalLabData.objects.get()
-    report = AcceptanceReport(order, dental_lab_data)
-    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
-    return response
+    return get_order(order_id, AcceptanceReport)
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_invoice_for_payment(request, order_id: str):
-    order = Order.objects.get(id=order_id)
-    dental_lab_data = DentalLabData.objects.get()
-    report = InvoiceForPayment(order, dental_lab_data)
-    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
-    return response
+    return get_order(order_id, InvoiceForPayment)

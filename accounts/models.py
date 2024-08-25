@@ -90,7 +90,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False, verbose_name="Доступ к данным админ-панели")
     created_at = models.DateField(auto_now_add=True, verbose_name="Дата создания")
     # Linked clinics and hospitals
-    customers = models.ManyToManyField(Customer, verbose_name="Заказчики")
+    customers = models.ManyToManyField(Customer, verbose_name="Заказчики", blank=True)
 
     USERNAME_FIELD = "email"
     objects = CustomUserManager()
