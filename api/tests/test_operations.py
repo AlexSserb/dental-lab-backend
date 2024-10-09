@@ -176,7 +176,7 @@ class OperationsTest(TestCase):
 
         response = self.client.patch(
             self.URL + f"/operation/{operation.id}/",
-            data={"status_id": "efee01cc-e81b-4936-8580-33e778ae0f67"},
+            data={"status": "efee01cc-e81b-4936-8580-33e778ae0f67"},
             follow=True,
         )
 
@@ -188,7 +188,7 @@ class OperationsTest(TestCase):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
         response = client.patch(
-            self.URL + f"/operation/1", data={"status_id": 123}, follow=True
+            self.URL + f"/operation/1", data={"status": 123}, follow=True
         )
 
         self.assertEqual(response.status_code, 401)
@@ -198,7 +198,7 @@ class OperationsTest(TestCase):
 
         response = self.client.patch(
             self.URL + f"/operation/{incorrect_id}/",
-            data={"status_id": "efee01cc-e81b-4936-8580-33e778ae0f67"},
+            data={"status": "efee01cc-e81b-4936-8580-33e778ae0f67"},
             follow=True,
         )
 
