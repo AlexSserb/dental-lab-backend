@@ -1,6 +1,3 @@
-import calendar
-from datetime import datetime, timedelta
-
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -12,6 +9,7 @@ from rest_framework.views import APIView
 from accounts.permissions import *
 from .paginations import *
 from .serializers import *
+from .services import OperationService, OrderService, ProductService
 
 User = get_user_model()
 
@@ -73,32 +71,21 @@ class ProductTypeList(APIView):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_orders_for_physician(request):
-    user = request.user
-    paginator = StandardResultsSetPagination()
-    orders = Order.objects.filter(user=user).order_by("-order_date")
-    page = paginator.paginate_queryset(orders, request)
-    serializer = OrderSerializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
+    return OrderService.get_orders_for_physician(request)
 
 
 @extend_schema(responses=OrderWithPhysicianSerializer)
 @api_view(["GET"])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
 def get_orders(request, year: int, month: int):
-    date_from = datetime(year=year, month=month, day=1)
-    date_to = datetime(year=year, month=month, day=calendar.monthrange(year, month)[1])
-    orders = Order.objects.filter(is_active=True, order_date__range=(date_from, date_to)).order_by("-order_date")
-    serializer = OrderWithPhysicianSerializer(orders, many=True)
-    return Response(serializer.data)
+    return OrderService.get_orders_for_month(year, month)
 
 
 @extend_schema(responses=ProductSerializer)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_products_for_order(request, order_id):
-    products = Product.objects.filter(order=order_id)
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
+def get_products_for_order(request, order_id: str):
+    return ProductService.get_for_order(order_id)
 
 
 @extend_schema(request=DataForOrderCreationSerializer)
@@ -107,13 +94,7 @@ def get_products_for_order(request, order_id):
 def create_order(request):
     serializer = DataForOrderCreationSerializer(data=request.data)
     if serializer.is_valid():
-        order = Order.objects.create(
-            user=request.user,
-            status=OrderStatus.get_default_status(),
-            discount=0,
-            customer=serializer.validated_data["customer_id"],
-        )
-        Product.products_from_product_types(request.data["product_types"], order)
+        OrderService.create_order(request, serializer)
         return Response(status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -126,23 +107,9 @@ def confirm_order(request):
     serializer = OrderDiscountSetterSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            order = Order.objects.get(pk=serializer.validated_data["order"]["id"])
-            order.discount = serializer.validated_data["order"]["discount"]
-            order.status = OrderStatus.objects.get(number=2)
-            order.save()
+            return OrderService.confirm_order(serializer)
 
-            product_status = ProductStatus.objects.get(number=2)
-            for product_validated in serializer.validated_data["products"]:
-                product = Product.objects.get(pk=product_validated["id"])
-                product.discount = product_validated["discount"]
-                product.product_status = product_status
-                product.save()
-
-            order_serializer = OrderWithPhysicianSerializer(order)
-
-            return Response(order_serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as ex:
+        except Exception:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -152,67 +119,29 @@ def confirm_order(request):
 @api_view(["GET"])
 @permission_classes([IsTech | IsChiefTech])
 def get_operations_for_tech(request):
-    user = request.user
-    paginator = StandardResultsSetPagination()
-    operations = Operation.objects.filter(tech=user).order_by("id")
-    page = paginator.paginate_queryset(operations, request)
-    serializer = OperationSerializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
+    return OperationService.get_for_tech(request)
 
 
 @extend_schema(responses=OperationForProductSerializer)
 @api_view(["GET"])
 @permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
 def get_operations_for_product(request, product_id):
-    operations = Operation.objects.filter(product=product_id).order_by("operation_status__number")
-    serializer = OperationForProductSerializer(operations, many=True)
-
-    # get history of operations for a product
-    all_operations_history = OperationEvent.objects.select_related("operation_status")
-    for operation in serializer.data:
-        curr_history = all_operations_history.filter(pgh_obj=operation["id"]).order_by("-pgh_created_at")
-        operation["history"] = OperationEventSerializer(curr_history, many=True).data
-
-    return Response(serializer.data)
-
-
-def preprocess_operation_for_schedule(operation):
-    processed = {}
-    exec_time = operation.operation_type.exec_time
-    delta = timedelta(hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second)
-
-    processed["id"] = operation.id
-    processed["start"] = operation.exec_start
-    processed["end"] = operation.exec_start + delta
-    processed["operation_type"] = operation.operation_type
-    processed["operation_status"] = operation.operation_status
-    processed["product"] = operation.product
-
-    return processed
+    return OperationService.get_for_product(product_id)
 
 
 @extend_schema(responses=OperationForScheduleSerializer)
 @api_view(["GET"])
 @permission_classes([IsTech | IsChiefTech | IsLabAdmin | IsDirector])
-def get_operations_for_schedule(request, user_email, date):
-    date_start = datetime.strptime(date, "%Y-%m-%d").date()
-    date_end = date_start + timedelta(days=5)
-    user = User.objects.filter(email=user_email).first()
-    operations = Operation.objects.filter(tech=user, exec_start__gte=str(date_start), exec_start__lte=str(date_end))
-    operations = [preprocess_operation_for_schedule(operation) for operation in operations]
-    serializer = OperationForScheduleSerializer(operations, many=True)
-    return Response(serializer.data)
+def get_operations_for_schedule(request, user_email: str, date: str):
+    operation_service = OperationService()
+    return operation_service.get_for_schedule(user_email, date)
 
 
 @extend_schema()
 @api_view(["PATCH"])
 @permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
-def set_operation_exec_start(request, id, exec_start):
-    operation = get_object_or_404(Operation, id=id)
-    operation.exec_start = datetime.strptime(exec_start, "%a, %d %b %Y %H:%M:%S %Z")
-    operation.save()
-
-    return Response(status=status.HTTP_200_OK)
+def set_operation_exec_start(request, id: str, exec_start: str):
+    return OperationService.set_execution_start(id, exec_start)
 
 
 @extend_schema(request=UpdateOrderStatusSerializer, responses=OrderWithPhysicianSerializer)
@@ -222,10 +151,7 @@ def set_order_status(request, id: str):
     order = get_object_or_404(Order, id=id)
     serializer = UpdateOrderStatusSerializer(data=request.data)
     if serializer.is_valid():
-        order.status = serializer.validated_data["status"]
-        order.save()
-        order_serializer = OrderWithPhysicianSerializer(order)
-        return Response(order_serializer.data)
+        return OrderService.set_order_status(serializer, order)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -236,11 +162,7 @@ def set_order_status(request, id: str):
 def assign_operation(request):
     serializer = AssignOperationSerializer(data=request.data)
     if serializer.is_valid():
-        operation = get_object_or_404(Operation, id=serializer.validated_data["id"])
-        operation.tech = get_object_or_404(User, email=serializer.validated_data["tech_email"])
-        operation.exec_start = datetime.strptime(serializer.validated_data["exec_start"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        operation.save()
-        return Response(status=status.HTTP_200_OK)
+        return OperationService.assign(serializer)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -267,7 +189,7 @@ class OperationDetail(APIView):
     @extend_schema(request=UpdateOperationStatusSerializer)
     def patch(self, request, pk, format=None):
         """
-        Allows only the status of an operation to be changed via the status_id field
+        Allows only the status of an operation to be changed via the status field
         """
         serializer = UpdateOperationStatusSerializer(data=request.data)
         if serializer.is_valid():
@@ -303,22 +225,4 @@ def get_products_with_operations(request, order_id):
     View is called once during the formation of the order by the administrator.
     An operation list is generated for each item if it has not been generated previously.
     """
-    try:
-        order = Order.objects.get(id=order_id)
-        for product in order.products.all():
-            if product.operations.count() == 0:
-                for operation_type, through in zip(
-                    product.product_type.operation_types.all(),
-                    product.product_type.operation_types.through.objects.all(),
-                ):
-                    Operation.objects.create(
-                        product=product,
-                        operation_type=operation_type,
-                        operation_status=OperationStatus.get_default_status(),
-                        ordinal_number=through.ordinal_number,
-                    )
-
-        serializer = ProductAndOperationsSerializer(order.products, many=True)
-        return Response(serializer.data)
-    except Order.DoesNotExist:
-        raise Http404
+    return ProductService.get_products_with_operations(order_id)

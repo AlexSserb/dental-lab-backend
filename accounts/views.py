@@ -17,6 +17,7 @@ from .reports.acceptance_report import AcceptanceReport
 from .reports.invoice_for_payment import InvoiceForPayment
 from .reports.report import Report
 from .serializers import *
+from .services.user_service import UserService
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -27,91 +28,42 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        user = User.objects.get(email=request.data["email"])
-        user.last_login = timezone.now()
-        user.set_password(request.data["password"])
-        user.save()
-
-        refresh = CustomTokenObtainPairSerializer.get_token(user)
-
-        return Response({"refresh": str(refresh), "access": str(refresh.access_token)})
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return UserService.register(request)
 
 
 @extend_schema(responses=UserProfileSerializer)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_user_profile_data(request, email):
-    user = get_object_or_404(get_user_model(), email=email)
-    serializer = UserProfileSerializer(user)
-
-    group = user.groups.values_list("name", flat=True).first()
-    if not group:
-        group = "Врач"
-
-    return Response({**serializer.data, "group": group})
-
-
-def edit_user_name(request, email, data, user_field):
-    user = get_object_or_404(get_user_model(), email=email)
-
-    if request.user.email != email:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    if user_field == "first_name":
-        user.first_name = data
-    elif user_field == "last_name":
-        user.last_name = data
-
-    user.save()
-    serializer = UserProfileSerializer(user)
-
-    return Response({**serializer.data, "group": user.groups.values_list("name", flat=True).first()})
+def get_user_profile_data(request, email: str):
+    return UserService.get_profile_data(email)
 
 
 @extend_schema(responses=UserProfileSerializer)
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def edit_user_first_name(request, email, name):
-    return edit_user_name(request, email, name, "first_name")
+def edit_user_first_name(request, email: str, name: str):
+    return UserService().edit_user_first_name(request, email, name)
 
 
 @extend_schema(responses=UserProfileSerializer)
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-def edit_user_last_name(request, email, name):
-    return edit_user_name(request, email, name, "last_name")
+def edit_user_last_name(request, email: str, name: str):
+    return UserService().edit_user_last_name(request, email, name)
 
 
 @extend_schema(request=PasswordChangeSerializer)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_password(request):
-    serializer = PasswordChangeSerializer(data=request.data)
-    if serializer.is_valid():
-        user = request.user
-
-        if user.check_password(serializer.validated_data["old_password"]):
-            user.set_password(request.data["new_password"])
-            user.save()
-            return Response(status=status.HTTP_200_OK)
-
-        return Response({"old_password": ["Wrong password"]}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return UserService.change_password(request)
 
 
 @extend_schema(responses=UserProfileSerializer(many=True))
 @api_view(["GET"])
 @permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
-def get_technicians_by_group(request, group_id):
-    technicians = User.objects.filter(groups__id__in=[group_id, 3])
-    serializer = UserProfileSerializer(technicians, many=True)
-    return Response(serializer.data)
+def get_technicians_by_group(request, group_id: int):
+    return UserService.get_technicians_by_group(group_id)
 
 
 @extend_schema(responses=CustomerSerializer(many=True))
@@ -127,30 +79,14 @@ def get_customers(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def attach_customers_to_user(request):
-    serializer = AttachCustomersToUserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = request.user
-        customers = serializer.validated_data["customers"]
-        user.customers.clear()
-        user.customers.add(*customers)
-
-        serializer = UserProfileSerializer(user)
-
-        return Response(
-            {
-                **serializer.data,
-                "group": user.groups.values_list("name", flat=True).first(),
-            }
-        )
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return UserService.attach_customers(request)
 
 
 def get_order(order_id: str, report_class: Type[Report]):
     order = Order.objects.get(id=order_id)
     dental_lab_data = DentalLabData.objects.get()
     report = report_class(order, dental_lab_data)
-    response = HttpResponse(bytes(report.output()), content_type='application/pdf')
+    response = HttpResponse(bytes(report.output()), content_type="application/pdf")
     return response
 
 
