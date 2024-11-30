@@ -73,8 +73,8 @@ class ProductType(BaseModel):
 
 
 class ProductTypeOperationType(models.Model):
-    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE)
-    operation_type = models.ForeignKey(OperationType, on_delete=models.CASCADE)
+    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, verbose_name="Тип изделия")
+    operation_type = models.ForeignKey(OperationType, on_delete=models.CASCADE, verbose_name="Тип операции")
     ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер выполнения")
 
     class Meta:
@@ -87,8 +87,8 @@ class ProductTypeOperationType(models.Model):
 # Статусы операций
 class OperationStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    number = models.PositiveIntegerField()
-    name = models.CharField(max_length=128)
+    number = models.PositiveIntegerField(verbose_name="Номер")
+    name = models.CharField(max_length=128, verbose_name="Наименование")
 
     class Meta:
         verbose_name = "Статус операции"
@@ -108,8 +108,8 @@ class OperationStatus(BaseModel):
 # Статусы операций
 class ProductStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    number = models.PositiveIntegerField()
-    name = models.CharField(max_length=128)
+    number = models.PositiveIntegerField(verbose_name="Номер")
+    name = models.CharField(max_length=128, verbose_name="Наименование")
 
     class Meta:
         verbose_name = "Статус изделия"
@@ -129,7 +129,7 @@ class ProductStatus(BaseModel):
 class OrderStatus(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     number = models.PositiveIntegerField()
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, verbose_name="Наименование")
 
     class Meta:
         verbose_name = "Статус заказа"
@@ -227,9 +227,7 @@ class Product(BaseModel):
 
     def get_cost(self):
         return round(
-            self.product_type.cost
-            * self.amount
-            * Decimal.from_float(1 - self.get_discount() / 100),
+            self.product_type.cost * self.amount * Decimal.from_float(1 - self.get_discount() / 100),
             2,
         )
 

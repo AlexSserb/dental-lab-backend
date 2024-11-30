@@ -51,11 +51,9 @@ class OrderService:
         order.status = OrderStatus.objects.get(number=2)
         order.save()
 
-        product_status = ProductStatus.objects.get(number=2)
         for product_validated in serializer.validated_data["products"]:
             product = Product.objects.get(pk=product_validated["id"])
             product.discount = product_validated["discount"]
-            product.product_status = product_status
             product.save()
 
         order_serializer = OrderWithPhysicianSerializer(order)
