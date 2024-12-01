@@ -4,7 +4,7 @@ from django.conf import settings
 from fpdf import FPDF
 
 from accounts.models import DentalLabData
-from api.models import Order
+from orders.models import Order
 
 
 class Report(FPDF):

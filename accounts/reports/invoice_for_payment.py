@@ -2,7 +2,7 @@ from black import datetime
 
 from accounts.models import DentalLabData
 from accounts.reports.report import Report
-from api.models import Order
+from orders.models import Order
 
 
 class InvoiceForPayment(Report):

@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from api.models import Product, Order, Operation, OperationStatus
-from api.serializers import ProductSerializer, ProductAndOperationsSerializer
+from orders.models import Product, Order, Operation, OperationStatus
+from orders.serializers import ProductSerializer, ProductAndOperationsSerializer
 
 
 class ProductService:

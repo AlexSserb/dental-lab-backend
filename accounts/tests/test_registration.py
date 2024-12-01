@@ -13,7 +13,7 @@ class RegistrationTest(TestCase):
         "./accounts/fixtures/test_data.json",
     ]
 
-    URL: str = "/accounts"
+    URL: str = "/api/accounts"
 
     def test_registration_user_correct(self):
         registration_data = {

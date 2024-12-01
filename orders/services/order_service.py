@@ -5,9 +5,9 @@ from django.core.handlers.wsgi import WSGIRequest
 from rest_framework import status
 from rest_framework.response import Response
 
-from api.models import Order, OrderStatus, Product, ProductStatus
-from api.paginations import StandardResultsSetPagination
-from api.serializers import (
+from orders.models import Order, OrderStatus, Product, ProductStatus
+from orders.paginations import StandardResultsSetPagination
+from orders.serializers import (
     OrderSerializer,
     OrderWithPhysicianSerializer,
     DataForOrderCreationSerializer,

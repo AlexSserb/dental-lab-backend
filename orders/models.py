@@ -8,8 +8,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
 
-from accounts.singleton import SingletonModel
-
 User = get_user_model()
 
 DECIMAL_PRECISION = 9

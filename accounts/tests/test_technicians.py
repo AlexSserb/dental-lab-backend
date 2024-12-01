@@ -18,7 +18,7 @@ class TechniciansTest(TestCase):
     first_name: str = "Alex"
     last_name: str = "Serb"
 
-    URL: str = "/accounts"
+    URL: str = "/api/accounts"
 
     @classmethod
     def add_user(cls, id, email, first_name, last_name, password, group):

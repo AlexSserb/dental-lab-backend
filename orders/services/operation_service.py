@@ -6,9 +6,9 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from accounts.models import User
-from api.models import Operation, OperationEvent
-from api.paginations import StandardResultsSetPagination
-from api.serializers import (
+from orders.models import Operation, OperationEvent
+from orders.paginations import StandardResultsSetPagination
+from orders.serializers import (
     OperationSerializer,
     OperationForProductSerializer,
     OperationEventSerializer,

@@ -21,7 +21,7 @@ class ProfileTest(TestCase):
     first_name: str = "Alex"
     last_name: str = "Serb"
 
-    URL: str = "/accounts"
+    URL: str = "/api/accounts"
 
     @classmethod
     def setUpTestData(cls):
@@ -144,7 +144,7 @@ class ProfileTest(TestCase):
         self.create_user(3, "example2@mail.com", 4)
         self.create_user(4, "example3@mail.com", 7)
 
-        response = self.client.get("/accounts/technicians/4", follow=True)
+        response = self.client.get(self.URL + "/technicians/4", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)

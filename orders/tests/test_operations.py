@@ -6,7 +6,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from api.models import *
+from orders.models import *
 
 
 class OperationsTest(TestCase):
@@ -15,16 +15,16 @@ class OperationsTest(TestCase):
     """
 
     fixtures: list[str] = [
-        "./api/fixtures/groups_data.json",
-        "./api/fixtures/test_data_statuses.json",
-        "./api/fixtures/operation_and_product_types.json",
+        "./orders/fixtures/groups_data.json",
+        "./orders/fixtures/test_data_statuses.json",
+        "./orders/fixtures/operation_and_product_types.json",
     ]
 
     email: str = "alex@mail.com"
     password: str = "12345678sa"
     first_name: str = "Alex"
     last_name: str = "Serb"
-    URL: str = "/api"
+    URL: str = "/api/orders"
 
     @classmethod
     def setUpTestData(cls):
@@ -37,7 +37,7 @@ class OperationsTest(TestCase):
 
         client = APIClient()
         response = client.post(
-            "/accounts/token/", data={"email": cls.email, "password": cls.password}
+            "/api/accounts/token/", data={"email": cls.email, "password": cls.password}
         )
         cls.token = response.data["access"]
 
@@ -294,6 +294,8 @@ class OperationsTest(TestCase):
         response = client.get(
             self.URL + f"/operations-for-schedule/{self.user.email}/2024-03-25"
         )
+
+        self.assertEqual(response.status_code, 401)
 
     def test_get_products_with_operations_correct(self):
         order = Order.objects.create(

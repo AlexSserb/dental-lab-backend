@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from accounts.models import User
-from api.models import *
+from orders.models import *
 
 
 class TriggersTest(TestCase):
@@ -10,11 +10,11 @@ class TriggersTest(TestCase):
     """
 
     fixtures: list[str] = [
-        "./api/fixtures/test_data_statuses.json",
-        "./api/fixtures/operation_and_product_types.json",
+        "./orders/fixtures/test_data_statuses.json",
+        "./orders/fixtures/operation_and_product_types.json",
     ]
 
-    URL: str = "/api"
+    URL: str = "/api/orders"
 
     @classmethod
     def setUpTestData(cls):

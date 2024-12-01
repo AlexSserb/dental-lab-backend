@@ -84,7 +84,7 @@ There are 5 roles in the system:
     ```
     3.3. Create migrations and load fixtures:
     ```commandline
-    python manage.py makemigrations accounts api
+    python manage.py makemigrations accounts orders
     python manage.py migrate
     python manage.py loaddata groups_data.json statuses.json dental_lab_data.json
     ```

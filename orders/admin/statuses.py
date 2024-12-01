@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from api.admin.base_model_admin import BaseModelAdmin
-from api.models import OperationStatus, ProductStatus, OrderStatus
+from orders.admin.base_model_admin import BaseModelAdmin
+from orders.models import OperationStatus, ProductStatus, OrderStatus
 
 
 class BaseStatusAdmin(BaseModelAdmin):

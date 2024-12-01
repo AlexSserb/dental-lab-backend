@@ -1,17 +1,14 @@
 from typing import Type
 
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from accounts.reports.order_report import OrderReport
-from api.models import Order
+from orders.models import Order
 from .permissions import *
 from .reports.acceptance_report import AcceptanceReport
 from .reports.invoice_for_payment import InvoiceForPayment

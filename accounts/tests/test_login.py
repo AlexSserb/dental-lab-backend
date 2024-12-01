@@ -17,7 +17,7 @@ class LoginTest(TestCase):
     user1_psw = "12345678"
     user2_psw = "87654321"
 
-    URL: str = "/accounts"
+    URL: str = "/api/accounts"
 
     @classmethod
     def setUpTestData(cls):

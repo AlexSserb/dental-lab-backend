@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from api.admin.base_model_admin import BaseModelAdmin
-from api.models import ProductType
+from orders.admin.base_model_admin import BaseModelAdmin
+from orders.models import ProductType
 
 
 class OperationTypeProductTypeInline(admin.TabularInline):

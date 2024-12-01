@@ -18,7 +18,7 @@ class CustomersTest(TestCase):
     first_name: str = "Alex"
     last_name: str = "Serb"
 
-    URL: str = "/accounts"
+    URL: str = "/api/accounts"
 
     @classmethod
     def setUpTestData(cls):

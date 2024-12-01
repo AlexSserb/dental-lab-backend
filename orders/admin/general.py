@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from api.admin import BaseModelAdmin
-from api.models import OperationType, Order, Product, Operation
+from orders.admin import BaseModelAdmin
+from orders.models import OperationType, Order, Product, Operation
 
 admin.site.register(OperationType, BaseModelAdmin)
 

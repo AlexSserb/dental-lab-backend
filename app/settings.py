@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     "pghistory",
     # Internal Apps
     "accounts",
-    "api",
+    "orders",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
