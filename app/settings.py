@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -128,7 +130,11 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
+
+STATICFILES_DIRS = [
+    Path(BASE_DIR) / Path("static/"),
+]
 
 REST_AUTH_SERIALIZERS = {"USER_DETAILS_SERIALIZER": "api.serializers.UserSerializer"}
 
@@ -142,16 +148,20 @@ CSRF_COOKIE_NAME = "csrftoken"
 
 # This will avoid the need for an SMTP server as e-mails will be printed to the console.
 # For more information, please refer to:
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # SMTP SETTINGS
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = "smtp.yandex.ru"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = ""
-EMAIL_HOST_PASSWORD = ""
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+CLIENT_URL = os.getenv("CLIENT_URL")
 
 
 # REST_AUTH_SERIALIZERS = {'LOGIN_SERIALIZER': 'api.serializers.LoginSerializer'}

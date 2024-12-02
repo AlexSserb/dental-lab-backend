@@ -1,0 +1,23 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.box {
+    justify-items: center;
+    display: grid;
+    grid-auto-flow: row;
+    grid-row-gap: 1rem;
+    border-radius: 5px;
+    padding: 2em;
+}
+
+.box-success {
+    border: solid green 6px;
+}
+
+.box-error {
+    border: solid red 6px;
+}

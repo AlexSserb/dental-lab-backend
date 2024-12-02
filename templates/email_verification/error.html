@@ -1,0 +1,21 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>InColor</title>
+    <link rel="stylesheet" href="{% static 'styles/email_verification/style.css' %}"/>
+</head>
+<body>
+<div class="container">
+    <div class="box box-error">
+        <h1>InColor</h1>
+        <hr/>
+        <div>Ошибка подтверждения почты.</div>
+        <div>{{ error_details }}</div>
+        <div><a href="{{ path_to_app }}">Вернуться в приложение</a></div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,22 +1,44 @@
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import Token, RefreshToken
 
 from .models import *
 
 
+def get_tokens_with_payload(token: Token, user: User) -> Token:
+    token["email"] = user.email
+    token["isActive"] = user.is_active
+    token["isVerified"] = user.is_verified
+
+    group = user.groups.first()
+    if group:
+        token["group"], token["groupId"] = group.name, group.id
+    else:
+        token["group"], token["groupId"] = "Врач", 0
+
+    return token
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
-    def get_token(cls, user):
+    def get_token(cls, user: User) -> Token:
         token = super().get_token(user)
-        token["email"] = user.email
 
-        group = user.groups.first()
-        if group:
-            token["group"], token["groupId"] = group.name, group.id
-        else:
-            token["group"], token["groupId"] = "Врач", 0
+        return get_tokens_with_payload(token, user)
 
-        return token
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = attrs['refresh']
+
+        old_token = RefreshToken(refresh)
+        user = User.objects.get(email=old_token["email"])
+        token = get_tokens_with_payload(old_token, user)
+
+        return {
+            'access': str(token.access_token),
+            'refresh': str(token),
+        }
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -47,8 +69,14 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "last_name",
+            "is_verified",
+            "is_active",
             "customers",
         ]
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    access_token = serializers.CharField(max_length=510, read_only=True)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

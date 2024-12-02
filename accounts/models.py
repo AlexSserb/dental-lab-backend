@@ -88,6 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     is_staff = models.BooleanField(default=True, verbose_name="Доступ ко входу в админ-панель")
     is_superuser = models.BooleanField(default=False, verbose_name="Доступ к данным админ-панели")
+    is_verified = models.BooleanField(default=False, verbose_name="Email подтвержден")
     created_at = models.DateField(auto_now_add=True, verbose_name="Дата создания")
     # Linked clinics and hospitals
     customers = models.ManyToManyField(Customer, verbose_name="Заказчики", blank=True)

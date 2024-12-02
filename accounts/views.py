@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.reports.order_report import OrderReport
 from orders.models import Order
@@ -21,11 +21,29 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
+class CustomTokenRefreshView(TokenRefreshView):
+    serializer_class = CustomTokenRefreshSerializer
+
+
 @extend_schema(request=UserSerializer, responses=CustomTokenObtainPairSerializer)
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register(request):
     return UserService.register(request)
+
+
+@extend_schema(request=UserSerializer)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def send_email_verification(request):
+    return UserService.send_email_verification(request, request.user)
+
+
+@extend_schema(request=EmailVerificationSerializer)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def verify_email(request):
+    return UserService.verify_email(request)
 
 
 @extend_schema(responses=UserProfileSerializer)
