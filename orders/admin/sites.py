@@ -3,6 +3,9 @@ from django.contrib.sites.models import Site
 
 
 class SitesAdmin(admin.ModelAdmin):
+    def has_view_permission(self, request, obj=None):
+        return False
+
     def has_add_permission(self, request):
         return False
 

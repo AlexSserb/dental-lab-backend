@@ -5,6 +5,7 @@ from orders.models import OperationStatus, ProductStatus, OrderStatus
 
 
 class BaseStatusAdmin(BaseModelAdmin):
+    ordering = ("number",)
     exclude = ("number", "is_active")
 
     def has_add_permission(self, request):

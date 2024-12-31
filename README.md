@@ -25,7 +25,7 @@ There are 5 roles in the system:
 <a name="technologies"></a>
 ## Technologies
 * Backend:
-  - Python 3.10
+  - Python 3.13
   - Django 5
   - Django REST Framework
   - DRF-simplejwt
@@ -73,15 +73,10 @@ There are 5 roles in the system:
 
 3. Run the backend part.
 
-    3.1. Create and activate virtual environment:
-    ```commandline
-    python -m venv venv 
-    venv\\Scripts\\activate
-    ```
-    3.2. Install requirements:
-    ```commandline
-    pip install -r requirements.txt 
-    ```
+    3.1. Create and activate virtual environment
+
+    3.2. Install requirements
+
     3.3. Create migrations and load fixtures:
     ```commandline
     python manage.py makemigrations accounts orders
