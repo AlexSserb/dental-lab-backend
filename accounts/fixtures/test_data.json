@@ -3,7 +3,7 @@
     "model": "auth.group",
     "pk": 1,
     "fields": {
-      "name": "Директор",
+      "name": "Администратор лаборатории",
       "permissions": []
     }
   },
@@ -11,7 +11,7 @@
     "model": "auth.group",
     "pk": 2,
     "fields": {
-      "name": "Администратор лаборатории",
+      "name": "Техник - Модели",
       "permissions": []
     }
   },
@@ -19,7 +19,7 @@
     "model": "auth.group",
     "pk": 3,
     "fields": {
-      "name": "Главный техник",
+      "name": "Техник - CAD/CAM",
       "permissions": []
     }
   },
@@ -27,29 +27,13 @@
     "model": "auth.group",
     "pk": 4,
     "fields": {
-      "name": "Техник - Модели",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 5,
-    "fields": {
-      "name": "Техник - CAD/CAM",
-      "permissions": []
-    }
-  },
-  {
-    "model": "auth.group",
-    "pk": 6,
-    "fields": {
       "name": "Техник - Керамика",
       "permissions": []
     }
   },
   {
     "model": "auth.group",
-    "pk": 7,
+    "pk": 5,
     "fields": {
       "name": "Техник - Протезы",
       "permissions": []
@@ -111,9 +95,9 @@
     "pk": 1,
     "fields": {
       "name": "TestName",
-      "bank_name":  "TestBankName",
-      "bank_id_code":  "239841729",
-      "current_account":  "40702398472937423795",
+      "bank_name": "TestBankName",
+      "bank_id_code": "239841729",
+      "current_account": "40702398472937423795",
       "correspondent_account": "30101827398273984729",
       "tax_payer_id": "123456789123",
       "reason_code_for_reg": "123456789"

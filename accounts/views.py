@@ -76,7 +76,7 @@ def change_password(request):
 
 @extend_schema(responses=UserProfileSerializer(many=True))
 @api_view(["GET"])
-@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def get_technicians_by_group(request, group_id: int):
     return UserService.get_technicians_by_group(group_id)
 

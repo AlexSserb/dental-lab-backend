@@ -67,7 +67,7 @@ class ProfileTest(TestCase):
         self.assertEqual(response.data["email"], self.email)
         self.assertEqual(response.data["first_name"], self.first_name)
         self.assertEqual(response.data["last_name"], self.last_name)
-        self.assertEqual(response.data["group"], "Директор")
+        self.assertEqual(response.data["group"], "Администратор лаборатории")
         self.assertTrue("password" not in response.data)
 
     def test_edit_first_name_user_not_exist(self):
@@ -89,7 +89,7 @@ class ProfileTest(TestCase):
         self.assertEqual(response.data["email"], self.email)
         self.assertEqual(response.data["first_name"], self.first_name)
         self.assertEqual(response.data["last_name"], self.last_name)
-        self.assertEqual(response.data["group"], "Директор")
+        self.assertEqual(response.data["group"], "Администратор лаборатории")
         self.assertTrue("password" not in response.data)
 
     def test_edit_last_name_user_not_exist(self):
@@ -140,15 +140,15 @@ class ProfileTest(TestCase):
         tech.groups.add(group)
 
     def test_get_technicians(self):
-        self.create_user(2, "example1@mail.com", 3)
-        self.create_user(3, "example2@mail.com", 4)
-        self.create_user(4, "example3@mail.com", 7)
+        self.create_user(2, "example1@mail.com", 1)
+        self.create_user(3, "example2@mail.com", 2)
+        self.create_user(4, "example3@mail.com", 2)
 
-        response = self.client.get(self.URL + "/technicians/4", follow=True)
+        response = self.client.get(self.URL + "/technicians/2", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(
             set(tech["email"] for tech in response.data),
-            set(("example1@mail.com", "example2@mail.com")),
+            {"example2@mail.com", "example3@mail.com"},
         )

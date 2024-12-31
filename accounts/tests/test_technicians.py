@@ -29,9 +29,9 @@ class TechniciansTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.add_user(1, cls.email, cls.first_name, cls.last_name, cls.password, 2)
-        cls.add_user(2, "2@mail.com", "FN2", "LN2", "12345678", 6)
-        cls.add_user(3, "3@mail.com", "LN3", "LN3", "12345678", 7)
+        cls.add_user(1, cls.email, cls.first_name, cls.last_name, cls.password, 1)
+        cls.add_user(2, "2@mail.com", "FN2", "LN2", "12345678", 2)
+        cls.add_user(3, "3@mail.com", "LN3", "LN3", "12345678", 5)
 
         client = APIClient()
         response = client.post(cls.URL + "/token/", data={"email": cls.email, "password": cls.password})
@@ -42,8 +42,8 @@ class TechniciansTest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
 
     def test_get_technicians_by_id(self):
-        response = self.client.get(self.URL + "/technicians/6")
+        response = self.client.get(self.URL + "/technicians/5")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["email"], "2@mail.com")
+        self.assertEqual(response.data[0]["email"], "3@mail.com")

@@ -66,4 +66,4 @@ class LoginTest(TestCase):
             response.data["access"], verify=False, options={"verify_signature": False}
         )
         self.assertEqual(decoded["groupId"], 1)
-        self.assertEqual(decoded["group"], "Директор")
+        self.assertEqual(decoded["group"], "Администратор лаборатории")

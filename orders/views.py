@@ -16,7 +16,7 @@ User = get_user_model()
 
 class OperationTypeList(APIView):
     serializer_class = OperationTypeSerializer
-    permission_classes = [IsDirector | IsLabAdmin | IsChiefTech | IsTech]
+    permission_classes = [IsLabAdmin | IsTech]
 
     def get(self, request, *args, **kwargs):
         operation_types = OperationType.objects.all()
@@ -29,7 +29,7 @@ class OperationTypeDetail(APIView):
     Retrieve, update or delete an operation type instance.
     """
 
-    permission_classes = [IsDirector | IsLabAdmin | IsChiefTech]
+    permission_classes = [IsLabAdmin]
     serializer_class = OperationTypeSerializer
 
     def get_object(self, pk):
@@ -76,7 +76,7 @@ def get_orders_for_physician(request):
 
 @extend_schema(responses=OrderWithPhysicianSerializer)
 @api_view(["GET"])
-@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
+@permission_classes([IsLabAdmin])
 def get_orders(request, year: int, month: int):
     return OrderService.get_orders_for_month(year, month)
 
@@ -102,7 +102,7 @@ def create_order(request):
 
 @extend_schema(request=OrderDiscountSetterSerializer, responses=OrderSerializer)
 @api_view(["POST"])
-@permission_classes([IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def confirm_order(request):
     serializer = OrderDiscountSetterSerializer(data=request.data)
     if serializer.is_valid():
@@ -117,21 +117,21 @@ def confirm_order(request):
 
 @extend_schema(responses=OperationSerializer)
 @api_view(["GET"])
-@permission_classes([IsTech | IsChiefTech])
+@permission_classes([IsTech])
 def get_operations_for_tech(request):
     return OperationService.get_for_tech(request)
 
 
 @extend_schema(responses=OperationForProductSerializer)
 @api_view(["GET"])
-@permission_classes([IsDirector | IsLabAdmin | IsChiefTech])
+@permission_classes([IsLabAdmin])
 def get_operations_for_product(request, product_id):
     return OperationService.get_for_product(product_id)
 
 
 @extend_schema(responses=OperationForScheduleSerializer)
 @api_view(["GET"])
-@permission_classes([IsTech | IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsTech | IsLabAdmin])
 def get_operations_for_schedule(request, user_email: str, date: str):
     operation_service = OperationService()
     return operation_service.get_for_schedule(user_email, date)
@@ -139,14 +139,14 @@ def get_operations_for_schedule(request, user_email: str, date: str):
 
 @extend_schema()
 @api_view(["PATCH"])
-@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def set_operation_exec_start(request, id: str, exec_start: str):
     return OperationService.set_execution_start(id, exec_start)
 
 
 @extend_schema(request=UpdateOrderStatusSerializer, responses=OrderWithPhysicianSerializer)
 @api_view(["PATCH"])
-@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def set_order_status(request, id: str):
     order = get_object_or_404(Order, id=id)
     serializer = UpdateOrderStatusSerializer(data=request.data)
@@ -158,7 +158,7 @@ def set_order_status(request, id: str):
 
 @extend_schema(request=AssignOperationSerializer)
 @api_view(["PATCH"])
-@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def assign_operation(request):
     serializer = AssignOperationSerializer(data=request.data)
     if serializer.is_valid():
@@ -172,7 +172,7 @@ class OperationDetail(APIView):
     Retrieve, update or delete an operation instance.
     """
 
-    permission_classes = [IsTech | IsChiefTech]
+    permission_classes = [IsTech]
     serializer_class = OperationSerializer
 
     def get_object(self, pk):
@@ -219,7 +219,7 @@ class OrderStatusesList(ListAPIView):
 
 @extend_schema(responses=ProductAndOperationsSerializer(many=True))
 @api_view(["GET"])
-@permission_classes([IsChiefTech | IsLabAdmin | IsDirector])
+@permission_classes([IsLabAdmin])
 def get_products_with_operations(request, order_id):
     """
     View is called once during the formation of the order by the administrator.

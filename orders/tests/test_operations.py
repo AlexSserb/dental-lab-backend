@@ -20,35 +20,49 @@ class OperationsTest(TestCase):
         "./orders/fixtures/operation_and_product_types.json",
     ]
 
-    email: str = "alex@mail.com"
+    tech_email: str = "alex@mail.com"
+    admin_email: str = "admin@mail.com"
     password: str = "12345678sa"
     first_name: str = "Alex"
     last_name: str = "Serb"
     URL: str = "/api/orders"
 
     @classmethod
-    def setUpTestData(cls):
-        cls.user = User(
-            id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name
+    def create_user(cls, user_id: int, email: str, group: int) -> User:
+        user = User(
+            id=user_id, email=email, first_name=cls.first_name, last_name=cls.last_name
         )
-        cls.user.set_password(cls.password)
-        cls.user.save()
-        cls.user.groups.add(3)
+        user.set_password(cls.password)
+        user.save()
+        user.groups.add(group)
+        return user
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.tech = cls.create_user(1, cls.tech_email, 2)
+        cls.admin = cls.create_user(2, cls.admin_email, 1)
 
         client = APIClient()
-        response = client.post(
-            "/api/accounts/token/", data={"email": cls.email, "password": cls.password}
-        )
-        cls.token = response.data["access"]
+        token_endpoint = "/api/accounts/token/"
+        response = client.post(token_endpoint, data={"email": cls.tech_email, "password": cls.password})
+        cls.tech_token = response.data["access"]
 
-    def setUp(self):
+        response = client.post(token_endpoint, data={"email": cls.admin_email, "password": cls.password})
+        cls.admin_token = response.data["access"]
+
+    def set_up_for_tech(self):
         self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token)
+
+    def set_up_for_admin(self):
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.admin_token)
 
     def test_get_operations_for_tech_correct(self):
         # region set test data
+        self.set_up_for_tech()
         order = Order.objects.create(
-            user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0.05, status=OrderStatus.objects.get(number=3)
         )
         product = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -60,14 +74,14 @@ class OperationsTest(TestCase):
         operation_status = OperationStatus.objects.get(number=2)
         operation1 = Operation.objects.create(
             product=product,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 3"),
             ordinal_number=1,
         )
         operation2 = Operation.objects.create(
             product=product,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 2"),
             ordinal_number=2,
@@ -75,9 +89,9 @@ class OperationsTest(TestCase):
         # endregion
 
         response = self.client.get(self.URL + "/operations-for-tech/")
+        self.assertEqual(response.status_code, 200)
         resp: list = response.data["results"]
 
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(resp), 2)
         if resp[0]["operation_type"]["name"] != "Operation type 3":
             resp[0], resp[1] = resp[1], resp[0]
@@ -96,15 +110,16 @@ class OperationsTest(TestCase):
 
     def test_get_operations_for_tech_incorrect_token(self):
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token + "1")
         response = client.get(self.URL + "/operations-for-tech/")
 
         self.assertEqual(response.status_code, 401)
 
     def test_get_operations_for_product_correct(self):
         # region set test data
+        self.set_up_for_admin()
         order = Order.objects.create(
-            user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0.05, status=OrderStatus.objects.get(number=3)
         )
         product1 = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -122,14 +137,14 @@ class OperationsTest(TestCase):
         operation_status = OperationStatus.objects.get(number=2)
         operation1 = Operation.objects.create(
             product=product1,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 3"),
             ordinal_number=1,
         )
         operation2 = Operation.objects.create(
             product=product2,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 2"),
             ordinal_number=2,
@@ -148,15 +163,16 @@ class OperationsTest(TestCase):
 
     def test_get_operations_for_product_incorrect_token(self):
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token + "1")
         response = client.get(self.URL + "/operations-for-product/1/")
 
         self.assertEqual(response.status_code, 401)
 
     def test_set_operation_status_correct(self):
         # region set test data
+        self.set_up_for_tech()
         order = Order.objects.create(
-            user=self.user, discount=0, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0, status=OrderStatus.objects.get(number=3)
         )
         product = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -167,7 +183,7 @@ class OperationsTest(TestCase):
 
         operation = Operation.objects.create(
             product=product,
-            tech=self.user,
+            tech=self.tech,
             operation_status=OperationStatus.objects.get(number=2),
             operation_type=OperationType.objects.get(name="Operation type 3"),
             ordinal_number=1,
@@ -186,7 +202,7 @@ class OperationsTest(TestCase):
 
     def test_set_operation_status_incorrect_token(self):
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token + "1")
         response = client.patch(
             self.URL + f"/operation/1", data={"status": 123}, follow=True
         )
@@ -194,10 +210,10 @@ class OperationsTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_set_operation_status_incorrect_operation_id(self):
-        incorrect_id = "efee01cc-e81b-4936-8580-33e778ae0f67"
+        self.set_up_for_tech()
 
         response = self.client.patch(
-            self.URL + f"/operation/{incorrect_id}/",
+            self.URL + f"/operation/6acfbcb5-66eb-460b-a9c9-52a26b1b3461/",
             data={"status": "efee01cc-e81b-4936-8580-33e778ae0f67"},
             follow=True,
         )
@@ -205,26 +221,29 @@ class OperationsTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_get_all_operation_statuses_correct(self):
+        self.set_up_for_tech()
+
         response = self.client.get(self.URL + "/operation-statuses/")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 3)
         self.assertEqual(
             set(st["name"] for st in response.data),
-            set(("The work has not started", "At work", "Ready")),
+            {"The work has not started", "At work", "Ready"},
         )
 
     def test_get_all_operation_statuses_incorrect_token(self):
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token + "1")
         response = client.get(self.URL + "/operation-statuses/")
 
         self.assertEqual(response.status_code, 401)
 
     def test_get_operations_for_schedule_correct(self):
         # region set test data
+        self.set_up_for_tech()
         order = Order.objects.create(
-            user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0.05, status=OrderStatus.objects.get(number=3)
         )
         product1 = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -242,7 +261,7 @@ class OperationsTest(TestCase):
         operation_status = OperationStatus.objects.get(number=2)
         operation1 = Operation.objects.create(
             product=product1,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 3"),
             exec_start=datetime(
@@ -252,7 +271,7 @@ class OperationsTest(TestCase):
         )
         operation2 = Operation.objects.create(
             product=product2,
-            tech=self.user,
+            tech=self.tech,
             operation_status=operation_status,
             operation_type=OperationType.objects.get(name="Operation type 2"),
             exec_start=datetime(
@@ -263,7 +282,7 @@ class OperationsTest(TestCase):
         # endregion
 
         response = self.client.get(
-            self.URL + f"/operations-for-schedule/{self.user.email}/2024-03-25"
+            self.URL + f"/operations-for-schedule/{self.tech.email}/2024-03-25"
         )
         resp: list = response.data
 
@@ -289,17 +308,20 @@ class OperationsTest(TestCase):
         )
 
     def test_get_operations_for_schedule_incorrect_token(self):
+        self.set_up_for_tech()
+
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
+        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.tech_token + "1")
         response = client.get(
-            self.URL + f"/operations-for-schedule/{self.user.email}/2024-03-25"
+            self.URL + f"/operations-for-schedule/{self.tech.email}/2024-03-25"
         )
 
         self.assertEqual(response.status_code, 401)
 
     def test_get_products_with_operations_correct(self):
+        self.set_up_for_admin()
         order = Order.objects.create(
-            user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0.05, status=OrderStatus.objects.get(number=3)
         )
         product1 = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -326,19 +348,20 @@ class OperationsTest(TestCase):
         self.assertEqual(len(resp[0]["operations"]), 2)
         self.assertEqual(
             set(oper["operation_type"]["name"] for oper in resp[0]["operations"]),
-            set(("Operation type 2", "Operation type 3")),
+            {"Operation type 2", "Operation type 3"},
         )
 
         self.assertEqual(resp[1]["product_type"]["name"], "Product type 1")
         self.assertEqual(len(resp[1]["operations"]), 2)
         self.assertEqual(
             set(oper["operation_type"]["name"] for oper in resp[1]["operations"]),
-            set(("Operation type 1", "Operation type 2")),
+            {"Operation type 1", "Operation type 2"},
         )
 
     def test_assign_operation_correct(self):
+        self.set_up_for_admin()
         order = Order.objects.create(
-            user=self.user, discount=0.05, status=OrderStatus.objects.get(number=3)
+            user=self.tech, discount=0.05, status=OrderStatus.objects.get(number=3)
         )
         product = Product.objects.create(
             product_status=ProductStatus.objects.get(number=3),
@@ -357,7 +380,7 @@ class OperationsTest(TestCase):
         test_data = {
             "id": operation.id,
             "execStart": "2024-04-02T16:08:00.000Z",
-            "techEmail": self.user.email,
+            "techEmail": self.tech.email,
         }
 
         response = self.client.patch(
@@ -366,6 +389,6 @@ class OperationsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         operation = Operation.objects.get(id=operation.id)
-        self.assertEqual(operation.tech.email, self.user.email)
+        self.assertEqual(operation.tech.email, self.tech.email)
         self.assertEqual(operation.exec_start.year, 2024)
         self.assertEqual(operation.exec_start.month, 4)
