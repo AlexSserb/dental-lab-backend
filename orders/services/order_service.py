@@ -41,6 +41,7 @@ class OrderService:
             status=OrderStatus.get_default_status(),
             discount=0,
             customer=serializer.validated_data["customer_id"],
+            comment=serializer.validated_data["comment"],
         )
         Product.products_from_product_types(request.data["product_types"], order)
 

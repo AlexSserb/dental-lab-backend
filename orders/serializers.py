@@ -65,7 +65,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "customer"]
+        fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer"]
 
     def get_cost(self, obj):
         return obj.get_cost()
@@ -79,7 +79,7 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "user", "customer"]
+        fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer"]
 
     def get_cost(self, obj):
         return obj.get_cost()
@@ -94,6 +94,7 @@ class ProductFromUserSerializer(serializers.Serializer):
 class DataForOrderCreationSerializer(serializers.Serializer):
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), pk_field=serializers.UUIDField())
     product_types = ProductFromUserSerializer(many=True)
+    comment = serializers.CharField(default="", max_length=512)
 
 
 class OperationSerializer(serializers.ModelSerializer):

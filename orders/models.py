@@ -147,11 +147,14 @@ class OrderStatus(BaseModel):
 # Заказы
 class Order(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE)
-    status = models.ForeignKey(OrderStatus, related_name="orders", on_delete=models.CASCADE)
-    order_date = models.DateField(auto_now_add=True)
-    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)])
-    customer = models.ForeignKey("accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE, verbose_name="Заказчик")
+    status = models.ForeignKey(OrderStatus, related_name="orders", on_delete=models.CASCADE, verbose_name="Статус")
+    order_date = models.DateField(auto_now_add=True, verbose_name="Дата оформления")
+    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)],
+                                   verbose_name="Скидка")
+    comment = models.CharField(default="", max_length=512, verbose_name="Комментарий")
+    customer = models.ForeignKey("accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True,
+                                 verbose_name="Заказчик")
 
     class Meta:
         verbose_name = "Заказ"
@@ -182,14 +185,18 @@ class OrderEvent(BaseOrderEvent):
 # Изделия
 class Product(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    product_type = models.ForeignKey(ProductType, related_name="products", on_delete=models.CASCADE)
-    product_status = models.ForeignKey(ProductStatus, related_name="products", on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, related_name="products", on_delete=models.CASCADE)
-    amount = models.IntegerField(default=1)
-    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)])
+    product_type = models.ForeignKey(ProductType, related_name="products", on_delete=models.CASCADE,
+                                     verbose_name="Тип изделия")
+    product_status = models.ForeignKey(ProductStatus, related_name="products", on_delete=models.CASCADE,
+                                       verbose_name="Статус")
+    order = models.ForeignKey(Order, related_name="products", on_delete=models.CASCADE, verbose_name="Заказ")
+    amount = models.IntegerField(default=1, verbose_name="Количество")
+    discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)],
+                                   verbose_name="Скидка")
     teeth = ArrayField(
         models.IntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)]),
         default=list,
+        verbose_name="Номера зубов"
     )
 
     class Meta:
@@ -242,15 +249,15 @@ class ProductEvent(BaseProductEvent):
 # Операции
 class Operation(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
-    operation_type = models.ForeignKey(OperationType, related_name="operations", on_delete=models.CASCADE)
-    operation_status = models.ForeignKey(
-        OperationStatus, related_name="operations", on_delete=models.CASCADE, null=True
-    )
-    product = models.ForeignKey(Product, related_name="operations", on_delete=models.CASCADE)
-    tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(default=timezone.now)
-    ordinal_number = models.PositiveIntegerField()
-    exec_start = models.DateTimeField(null=True, blank=True)
+    operation_type = models.ForeignKey(OperationType, related_name="operations", on_delete=models.CASCADE,
+                                       verbose_name="Тип операции")
+    operation_status = models.ForeignKey(OperationStatus, related_name="operations", on_delete=models.CASCADE,
+                                         null=True, verbose_name="Статус")
+    product = models.ForeignKey(Product, related_name="operations", on_delete=models.CASCADE, verbose_name="Изделие")
+    tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE, verbose_name="Техник")
+    created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
+    ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер")
+    exec_start = models.DateTimeField(null=True, blank=True, verbose_name="Начало выполнения")
 
     class Meta:
         verbose_name = "Операция"
