@@ -1,19 +1,9 @@
-from django.test import TestCase
+from accounts.models import User
 
-from accounts.models import User, Customer
-from django.urls import reverse
+from accounts.tests.base_testcase import BaseTestCase
 
 
-class RegistrationTest(TestCase):
-    """
-    Integration tests for registration
-    """
-
-    fixtures: list[str] = [
-        "./accounts/fixtures/test_data.json",
-    ]
-
-    URL: str = "/api/accounts"
+class RegistrationTest(BaseTestCase):
 
     def test_registration_user_correct(self):
         registration_data = {
@@ -27,7 +17,6 @@ class RegistrationTest(TestCase):
             ],
         }
         response = self.client.post(self.URL + "/register/", data=registration_data)
-
         self.assertEqual(response.status_code, 200)
 
         user = User.objects.get(email=registration_data["email"])
@@ -75,6 +64,6 @@ class RegistrationTest(TestCase):
         # First registration is correct
         response = self.client.post(self.URL + "/register/", data=registration_data)
         self.assertEqual(response.status_code, 200)
-        # Second registratin is not correct
+        # Second registration is not correct
         response = self.client.post(self.URL + "/register/", data=registration_data)
         self.assertEqual(response.status_code, 400)

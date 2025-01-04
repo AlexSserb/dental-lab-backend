@@ -152,7 +152,7 @@ class Order(BaseModel):
     order_date = models.DateField(auto_now_add=True, verbose_name="Дата оформления")
     discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)],
                                    verbose_name="Скидка")
-    comment = models.CharField(default="", max_length=512, verbose_name="Комментарий")
+    comment = models.CharField(default="", max_length=512, verbose_name="Комментарий", blank=True)
     customer = models.ForeignKey("accounts.customer", related_name="orders", on_delete=models.CASCADE, null=True,
                                  verbose_name="Заказчик")
 
@@ -196,7 +196,8 @@ class Product(BaseModel):
     teeth = ArrayField(
         models.IntegerField(validators=[MinValueValidator(11), MaxValueValidator(48)]),
         default=list,
-        verbose_name="Номера зубов"
+        verbose_name="Номера зубов",
+        blank=True,
     )
 
     class Meta:
@@ -254,7 +255,8 @@ class Operation(BaseModel):
     operation_status = models.ForeignKey(OperationStatus, related_name="operations", on_delete=models.CASCADE,
                                          null=True, verbose_name="Статус")
     product = models.ForeignKey(Product, related_name="operations", on_delete=models.CASCADE, verbose_name="Изделие")
-    tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE, verbose_name="Техник")
+    tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE,
+                             verbose_name="Техник", blank=True)
     created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
     ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер")
     exec_start = models.DateTimeField(null=True, blank=True, verbose_name="Начало выполнения")

@@ -5,13 +5,10 @@ from orders.models import *
 
 
 class TriggersTest(TestCase):
-    """
-    Model unittests for order, product, and operation triggers
-    """
 
     fixtures: list[str] = [
-        "./orders/fixtures/test_data_statuses.json",
-        "./orders/fixtures/operation_and_product_types.json",
+        "./orders/fixtures/test_data/statuses.json",
+        "./orders/fixtures/test_data/object_types.json",
     ]
 
     URL: str = "/api/orders"
@@ -27,7 +24,7 @@ class TriggersTest(TestCase):
         )
         cls.product = Product.objects.create(
             product_status=ProductStatus.get_default_status(),
-            product_type=ProductType.objects.get(name="Product type 2"),
+            product_type=ProductType.objects.get(name="Изделие 2"),
             order=cls.order,
             amount=1,
         )
@@ -37,14 +34,14 @@ class TriggersTest(TestCase):
             tech=user,
             ordinal_number=1,
             operation_status=OperationStatus.get_default_status(),
-            operation_type=OperationType.objects.get(name="Operation type 3"),
+            operation_type=OperationType.objects.get(name="Операция 3"),
         )
 
     def test_order_history_trigger(self):
         order_history = OrderEvent.objects.filter(pgh_obj_id=self.order.id).all()
 
         self.assertEqual(len(order_history), 1)
-        self.assertEqual(order_history[0].status.name, "Sent for registration")
+        self.assertEqual(order_history[0].status.name, "Отправлено для формирования наряда")
 
         # Change status
         self.order.status = OrderStatus.objects.get(number=3)
@@ -57,13 +54,13 @@ class TriggersTest(TestCase):
             .all()
         )
         self.assertEqual(len(order_history), 2)
-        self.assertEqual(order_history[1].status.name, "At work")
+        self.assertEqual(order_history[1].status.name, "В работе")
 
     def test_product_history_trigger(self):
         product_history = ProductEvent.objects.filter(pgh_obj_id=self.product.id).all()
 
         self.assertEqual(len(product_history), 1)
-        self.assertEqual(product_history[0].product_status.name, "Under consideration")
+        self.assertEqual(product_history[0].product_status.name, "Работа не начата")
 
         # Change status
         self.product.product_status = ProductStatus.objects.get(number=3)
@@ -76,7 +73,7 @@ class TriggersTest(TestCase):
             .all()
         )
         self.assertEqual(len(product_history), 2)
-        self.assertEqual(product_history[1].product_status.name, "A defect was found")
+        self.assertEqual(product_history[1].product_status.name, "Готово")
 
     def test_operation_history_trigger(self):
         operation_history = OperationEvent.objects.filter(
@@ -85,7 +82,7 @@ class TriggersTest(TestCase):
 
         self.assertEqual(len(operation_history), 1)
         self.assertEqual(
-            operation_history[0].operation_status.name, "The work has not started"
+            operation_history[0].operation_status.name, "Работа не начата"
         )
 
         # Change status
@@ -99,4 +96,4 @@ class TriggersTest(TestCase):
             .all()
         )
         self.assertEqual(len(operation_history), 2)
-        self.assertEqual(operation_history[1].operation_status.name, "At work")
+        self.assertEqual(operation_history[1].operation_status.name, "В работе")

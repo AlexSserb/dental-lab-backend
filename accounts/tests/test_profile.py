@@ -1,37 +1,13 @@
-from django.test import TestCase
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from django.urls import reverse
-
-from django.contrib.auth.models import Group
+from accounts.tests.base_testcase import BaseTestCase
 
 
-class ProfileTest(TestCase):
-    """
-    Integration tests for profile
-    """
-
-    fixtures: list[str] = [
-        "./accounts/fixtures/test_data.json",
-    ]
-
-    email: str = "alex@mail.com"
-    password: str = "12345678sa"
-    first_name: str = "Alex"
-    last_name: str = "Serb"
-
-    URL: str = "/api/accounts"
+class ProfileTest(BaseTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User(
-            id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name
-        )
-        cls.user.set_password(cls.password)
-        cls.user.save()
-        cls.user.groups.add(1)
-
         client = APIClient()
         response = client.post(
             cls.URL + "/token/", data={"email": cls.email, "password": cls.password}
@@ -56,6 +32,14 @@ class ProfileTest(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def check_profile_data(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["email"], self.email)
+        self.assertEqual(response.data["first_name"], self.first_name)
+        self.assertEqual(response.data["last_name"], self.last_name)
+        self.assertEqual(response.data["group"], "Администратор лаборатории")
+        self.assertTrue("password" not in response.data)
+
     def test_edit_first_name_correct(self):
         self.first_name = "John"
         response = self.client.patch(
@@ -63,12 +47,7 @@ class ProfileTest(TestCase):
             follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["email"], self.email)
-        self.assertEqual(response.data["first_name"], self.first_name)
-        self.assertEqual(response.data["last_name"], self.last_name)
-        self.assertEqual(response.data["group"], "Администратор лаборатории")
-        self.assertTrue("password" not in response.data)
+        self.check_profile_data(response)
 
     def test_edit_first_name_user_not_exist(self):
         response = self.client.patch(
@@ -85,12 +64,7 @@ class ProfileTest(TestCase):
             follow=True,
         )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["email"], self.email)
-        self.assertEqual(response.data["first_name"], self.first_name)
-        self.assertEqual(response.data["last_name"], self.last_name)
-        self.assertEqual(response.data["group"], "Администратор лаборатории")
-        self.assertTrue("password" not in response.data)
+        self.check_profile_data(response)
 
     def test_edit_last_name_user_not_exist(self):
         response = self.client.patch(
@@ -125,30 +99,9 @@ class ProfileTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["new_password"][0].code, "min_length")
 
-    def create_user(
-        self,
-        id: int,
-        email: str,
-        group: int,
-        first_name: str = "test",
-        last_name: str = "test",
-        password: str = "test",
-    ):
-        tech = User(id=id, email=email, first_name=first_name, last_name=last_name)
-        tech.set_password(password)
-        tech.save()
-        tech.groups.add(group)
-
     def test_get_technicians(self):
-        self.create_user(2, "example1@mail.com", 1)
-        self.create_user(3, "example2@mail.com", 2)
-        self.create_user(4, "example3@mail.com", 2)
-
         response = self.client.get(self.URL + "/technicians/2", follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(
-            set(tech["email"] for tech in response.data),
-            {"example2@mail.com", "example3@mail.com"},
-        )
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["email"], "tech1@mail.com")

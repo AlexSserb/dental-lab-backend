@@ -1,0 +1,41 @@
+[
+{
+    "model": "orders.product",
+    "pk": "2b1fa828-44aa-42d3-bb5c-6802c52097c3",
+    "fields": {
+        "is_active": true,
+        "product_type": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
+        "product_status": "6cbdb7a5-f7fc-4b7f-96bb-a21caf55045b",
+        "order": "68eb5be8-d29f-4a6c-ac64-5be9740fb3f3",
+        "amount": 2,
+        "discount": 0,
+        "teeth": "[]"
+    }
+},
+{
+    "model": "orders.product",
+    "pk": "60b5e09a-9d70-486e-a010-64f3504ce0a9",
+    "fields": {
+        "is_active": true,
+        "product_type": "e830ae5d-07cb-4955-96a1-0b7668c90851",
+        "product_status": "caa4c903-ae62-414b-9b27-21dc38f326ce",
+        "order": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9",
+        "amount": 5,
+        "discount": 15,
+        "teeth": "[\"12\", \"13\"]"
+    }
+},
+{
+    "model": "orders.product",
+    "pk": "8186b733-ff3f-4e28-8361-9701cb63e5e5",
+    "fields": {
+        "is_active": true,
+        "product_type": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
+        "product_status": "caa4c903-ae62-414b-9b27-21dc38f326ce",
+        "order": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9",
+        "amount": 3,
+        "discount": 6,
+        "teeth": "[\"25\"]"
+    }
+}
+]

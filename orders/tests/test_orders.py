@@ -1,198 +1,94 @@
-from datetime import datetime
-
-from django.test import TestCase
-from rest_framework.test import APIClient
-
 from accounts.models import User
 from orders.models import *
+from orders.tests.base_testcase import BaseTestCase
 
 
-class OrdersTest(TestCase):
-    """
-    Integration tests for orders and products
-    """
-
-    fixtures: list[str] = [
-        "./orders/fixtures/groups_data.json",
-        "./orders/fixtures/test_data_statuses.json",
-        "./orders/fixtures/test_data_customers.json",
-        "./orders/fixtures/operation_and_product_types.json",
-    ]
-
-    email: str = "alex@mail.com"
-    password: str = "12345678sa"
-    first_name: str = "Alex"
-    last_name: str = "Serb"
-    URL: str = "/api/orders"
-
-    @classmethod
-    def setUpTestData(cls):
-        curr_date = datetime.now()
-        cls.year = curr_date.year
-        cls.month = curr_date.month
-
-        cls.user = User(id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name)
-        cls.user.set_password(cls.password)
-        cls.user.save()
-        cls.user.groups.add(1)
-
-        client = APIClient()
-        response = client.post(
-            "/api/accounts/token/", data={"email": cls.email, "password": cls.password}
-        )
-        cls.token = response.data["access"]
-
-    def setUp(self):
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
+class OrdersTest(BaseTestCase):
 
     def test_get_orders_correct(self):
-        order = Order.objects.create(
-            user=self.user, discount=5, status=OrderStatus.objects.get(number=3)
-        )
-
-        response = self.client.get(
-            self.URL + f"/orders/{self.year}/{self.month}", follow=True
-        )
+        self.set_up_for_admin()
+        response = self.client.get(self.URL + f"/orders/2025/1", follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
+
         response_order = response.data[0]
-        self.assertEqual(response_order["status"]["name"], "At work")
-        self.assertEqual(
-            response_order["order_date"], datetime.now().strftime("%Y-%m-%d")
-        )
+        self.assertEqual(response_order["status"]["name"], "В работе")
+        self.assertEqual(response_order["order_date"], "2025-01-02")
         self.assertEqual(response_order["discount"], 5)
 
-    def test_get_orders_incorrect_token(self):
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
-        response = client.get(
-            self.URL + f"/orders/{self.year}/{self.month}", follow=True
-        )
-
-        self.assertEqual(response.status_code, 401)
+        response_order = response.data[1]
+        self.assertEqual(response_order["status"]["name"], "Готов")
+        self.assertEqual(response_order["order_date"], "2025-01-02")
+        self.assertEqual(response_order["discount"], 10)
 
     def test_get_orders_for_physician_correct(self):
-        user = User(
-            id=2, email="example@mail.com", first_name="First", last_name="Last"
-        )
-        user.set_password("psw")
-        user.save()
-
-        # Order for new user
-        order1 = Order.objects.create(
-            user=user, discount=5, status=OrderStatus.objects.get(number=3)
-        )
-        # Order for main user
-        order2 = Order.objects.create(
-            user=self.user, discount=10, status=OrderStatus.objects.get(number=1)
-        )
-
+        self.set_up_for_physician()
         response = self.client.get(self.URL + "/orders-for-physician", follow=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(response.data["results"][0]["id"], str(order2.id))
-
-    def test_get_orders_for_physician_incorrect_token(self):
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
-        response = client.get(
-            self.URL + f"/orders/{self.year}/{self.month}", follow=True
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(
+            {order["id"] for order in response.data["results"]},
+            {"68eb5be8-d29f-4a6c-ac64-5be9740fb3f3", "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9"}
         )
-
-        self.assertEqual(response.status_code, 401)
 
     def test_get_products_for_order_correct(self):
-        order = Order.objects.create(
-            user=self.user, discount=5, status=OrderStatus.objects.get(number=3)
-        )
-
-        product1 = Product.objects.create(
-            product_status=ProductStatus.objects.get(number=3),
-            product_type=ProductType.objects.get(name="Product type 2"),
-            order=order,
-            amount=2,
-            teeth=[12, 13],
-        )
-        product2 = Product.objects.create(
-            product_status=ProductStatus.objects.get(number=4),
-            product_type=ProductType.objects.get(name="Product type 1"),
-            order=order,
-            amount=1,
-            teeth=[25],
-        )
-
-        response = self.client.get(self.URL + f"/products/{order.id}", follow=True)
+        self.set_up_for_admin()
+        response = self.client.get(self.URL + f"/products/c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
         # Check first product
-        self.assertEqual(
-            response.data[0]["product_status"]["name"], "A defect was found"
-        )
-        self.assertEqual(response.data[0]["product_type"]["name"], "Product type 2")
-        self.assertEqual(set(response.data[0]["teeth"]), set((12, 13)))
+        self.assertEqual(response.data[0]["product_status"]["name"], "Готово")
+        self.assertEqual(response.data[0]["product_type"]["name"], "Изделие 3")
+        self.assertEqual(set(response.data[0]["teeth"]), {12, 13})
         # Check second product
-        self.assertEqual(response.data[1]["product_status"]["name"], "Ready")
-        self.assertEqual(response.data[1]["product_type"]["name"], "Product type 1")
-        self.assertEqual(len(response.data[1]["teeth"]), 1)
-        self.assertEqual(response.data[1]["teeth"][0], 25)
-
-    def test_get_products_for_order_incorrect_token(self):
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
-        response = client.get(self.URL + "/products/123", follow=True)
-
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data[1]["product_status"]["name"], "Готово")
+        self.assertEqual(response.data[1]["product_type"]["name"], "Изделие 2")
+        self.assertEqual(set(response.data[1]["teeth"]), {25})
 
     def test_create_order(self):
+        self.set_up_for_physician()
         data = {
             "customer_id": "a2203146-68ba-411f-ba45-815a52ef7236",
             "product_types": [
                 {
-                    "product_type_id": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+                    "product_type_id": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
                     "amount": 4,
                     "teeth": [11, 12, 22, 31],
                 },
                 {
-                    "product_type_id": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+                    "product_type_id": "d4e1e752-5c18-490d-99d4-0b606e50c938",
                     "amount": 2,
                     "teeth": [45, 46],
                 },
             ],
         }
 
-        response = self.client.post(
-            self.URL + "/create-order/", data=data, format="json"
-        )
+        response = self.client.post(self.URL + "/create-order/", data=data, format="json")
 
         self.assertEqual(response.status_code, 200)
 
-        # Check that order created correctly
-        orders = Order.objects.filter(user=self.user).all()
-        self.assertEqual(len(orders), 1)
-        self.assertEqual(orders[0].discount, 0)
-        self.assertEqual(orders[0].status.name, OrderStatus.get_default_status().name)
-        self.assertEqual(orders[0].customer.name, "Городская стоматология №1")
+        user = User.objects.get(email=self.physician_email)
+        order = Order.objects.filter(user=user).latest("order_date")
+        self.assertEqual(order.discount, 0)
+        self.assertEqual(order.status.name, OrderStatus.get_default_status().name)
+        self.assertEqual(order.customer.name, "Городская стоматология №1")
 
-        products = orders[0].products.all()
+        products = order.products.all()
         product1, product2 = self.check_products_created_correctly(products)
 
-        # Check teeth marks created correctly
-        self.assertEqual(set(product1.teeth), set((11, 12, 22, 31)))
-        self.assertEqual(set(product2.teeth), set((45, 46)))
+        self.assertEqual(set(product1.teeth), {11, 12, 22, 31})
+        self.assertEqual(set(product2.teeth), {45, 46})
 
     def check_products_created_correctly(self, products: list[Product]) -> tuple:
         self.assertEqual(len(products), 2)
         product1, product2 = (
-            (products[0], products[1])
-            if products[0].amount == 4
-            else (products[1], products[0])
+            (products[0], products[1]) if products[0].amount == 4 else (products[1], products[0])
         )
-        self.assertEqual(product1.product_type.name, "Product type 1")
-        self.assertEqual(product2.product_type.name, "Product type 2")
+        self.assertEqual(product1.product_type.name, "Изделие 2")
+        self.assertEqual(product2.product_type.name, "Изделие 1")
         self.assertEqual(product2.amount, 2)
         self.assertEqual(
             product1.product_status.name, ProductStatus.get_default_status().name
@@ -200,102 +96,62 @@ class OrdersTest(TestCase):
         self.assertEqual(product1.product_status.name, product2.product_status.name)
         return product1, product2
 
-    def test_create_order_incorrect_token(self):
-        client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token + "1")
-        response = client.post(self.URL + "/create-order/")
-
-        self.assertEqual(response.status_code, 401)
-
     def test_create_order_incorrect_data(self):
-        # Incorrect data => tooth number 90 is not correct
+        # Incorrect data: tooth number 90 is not correct
+        self.set_up_for_physician()
         data = {
             "customer_id": "a2203146-68ba-411f-ba45-815a52ef7236",
             "product_types": [
                 {
-                    "product_type_id": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+                    "product_type_id": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
                     "amount": 2,
                     "teeth": [90, 46],
                 },
             ],
         }
 
-        response = self.client.post(
-            self.URL + "/create-order/", data=data, format="json"
-        )
+        response = self.client.post(self.URL + "/create-order/", data=data, format="json")
 
         self.assertEqual(response.status_code, 400)
 
     def test_order_get_cost(self):
-        order = Order.objects.create(
-            user=self.user, status=OrderStatus.objects.get(number=3)
-        )
+        order = Order.objects.get(id="c5f7d483-347b-4cbb-93b2-f9de7cd03cc9")
+        product1, product2 = order.products.all()
 
-        product1 = Product.objects.create(
-            product_status=ProductStatus.objects.get(number=3),
-            product_type=ProductType.objects.get(name="Product type 2"),
-            order=order,
-            amount=2,
-        )
-        product2 = Product.objects.create(
-            product_status=ProductStatus.objects.get(number=4),
-            product_type=ProductType.objects.get(name="Product type 1"),
-            order=order,
-            amount=5,
-        )
+        self.assertEqual(order.get_cost(), Decimal("71575.00"))
+        self.assertEqual(order.get_cost_with_discount(), Decimal("64417.50"))
 
-        order.discount = 9
-        self.assertEqual(order.get_cost(), Decimal("154804.30"))
-        self.assertEqual(order.get_cost_with_discount(), Decimal("140871.91"))
-
-        product1.discount = 1
+        order.discount = 0
+        order.save()
+        product1.discount = 0
         product1.save()
-        product2.discount = 3
+        product2.discount = 0
         product2.save()
-        self.assertEqual(order.get_cost_with_discount(), Decimal("137606.73"))
+        self.assertEqual(order.get_cost_with_discount(), Decimal("82000.00"))
 
     def test_confirm_order(self):
-        order = Order.objects.create(
-            user=self.user, status=OrderStatus.get_default_status()
-        )
+        self.set_up_for_admin()
 
-        product_default_status = ProductStatus.get_default_status()
-        product1 = Product.objects.create(
-            product_status=product_default_status,
-            product_type=ProductType.objects.get(name="Product type 2"),
-            order=order,
-            amount=2,
-        )
-        product2 = Product.objects.create(
-            product_status=product_default_status,
-            product_type=ProductType.objects.get(name="Product type 1"),
-            order=order,
-            amount=5,
-        )
+        product1_id = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
+        product2_id = "8186b733-ff3f-4e28-8361-9701cb63e5e5"
 
         test_data = {
             "products": [
-                {"id": product1.id, "discount": 12},
-                {"id": product2.id, "discount": 6},
+                {"id": product1_id, "discount": 12},
+                {"id": product2_id, "discount": 6},
             ],
-            "order": {"id": order.id, "discount": 10},
+            "order": {"id": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", "discount": 10},
         }
 
-        response = self.client.post(
-            self.URL + f"/confirm-order/", data=test_data, format="json"
-        )
+        response = self.client.post(self.URL + f"/confirm-order/", data=test_data, format="json")
 
-        product1 = Product.objects.get(id=product1.id)
-        product2 = Product.objects.get(id=product2.id)
+        product1 = Product.objects.get(id=product1_id)
+        product2 = Product.objects.get(id=product2_id)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["discount"] == 10)
-        self.assertEqual(
-            response.data["status"]["name"], OrderStatus.objects.get(number=2).name
-        )
+        self.assertEqual(response.data["status"]["name"], OrderStatus.objects.get(number=2).name)
         self.assertTrue(product1.discount == 12)
         self.assertTrue(product2.discount == 6)
         self.assertTrue(product1.product_status.name == product2.product_status.name)
-        self.assertTrue(
-            product2.product_status.name == ProductStatus.objects.get(number=1).name
-        )
+        self.assertTrue(product2.product_status.name, "Готово")

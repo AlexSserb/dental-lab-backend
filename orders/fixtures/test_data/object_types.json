@@ -1,0 +1,59 @@
+[
+{
+    "model": "orders.operationtype",
+    "pk": "0e7e268a-20f1-4d57-8b41-213795abf4dc",
+    "fields": {
+        "is_active": true,
+        "name": "Операция 3",
+        "exec_time": "00:50:00",
+        "group": "CE"
+    }
+},
+{
+    "model": "orders.operationtype",
+    "pk": "80efce40-c538-4c97-aaba-01b9146fd46a",
+    "fields": {
+        "is_active": true,
+        "name": "Операция 2",
+        "exec_time": "00:45:00",
+        "group": "CA"
+    }
+},
+{
+    "model": "orders.operationtype",
+    "pk": "bc60f643-cd69-4e48-b617-9902cf43a51f",
+    "fields": {
+        "is_active": true,
+        "name": "Операция 1",
+        "exec_time": "01:10:00",
+        "group": "MO"
+    }
+},
+{
+    "model": "orders.producttype",
+    "pk": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
+    "fields": {
+        "is_active": true,
+        "name": "Изделие 2",
+        "cost": "12500.00"
+    }
+},
+{
+    "model": "orders.producttype",
+    "pk": "d4e1e752-5c18-490d-99d4-0b606e50c938",
+    "fields": {
+        "is_active": true,
+        "name": "Изделие 1",
+        "cost": "10000.00"
+    }
+},
+{
+    "model": "orders.producttype",
+    "pk": "e830ae5d-07cb-4955-96a1-0b7668c90851",
+    "fields": {
+        "is_active": true,
+        "name": "Изделие 3",
+        "cost": "8900.00"
+    }
+}
+]

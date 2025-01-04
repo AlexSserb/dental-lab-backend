@@ -1,0 +1,28 @@
+[
+{
+    "model": "orders.order",
+    "pk": "68eb5be8-d29f-4a6c-ac64-5be9740fb3f3",
+    "fields": {
+        "is_active": true,
+        "user": "d5cb1759-8ad1-45a5-b289-455d910bbb17",
+        "status": "a759097c-91a9-4749-a1e9-93edeb07fc0b",
+        "order_date": "2025-01-02",
+        "discount": 5,
+        "comment": "",
+        "customer": "a2203146-68ba-411f-ba45-815a52ef7236"
+    }
+},
+{
+    "model": "orders.order",
+    "pk": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9",
+    "fields": {
+        "is_active": true,
+        "user": "d5cb1759-8ad1-45a5-b289-455d910bbb17",
+        "status": "3912b571-4f2d-4158-ab12-a260fe96438e",
+        "order_date": "2025-01-02",
+        "discount": 10,
+        "comment": "Тестовый комментарий",
+        "customer": "3b1479eb-306c-44f7-926f-ef9fb1530d25"
+    }
+}
+]

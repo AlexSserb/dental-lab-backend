@@ -1,34 +1,12 @@
-from django.test import TestCase
 from rest_framework.test import APIClient
 
-from accounts.models import User
+from accounts.tests.base_testcase import BaseTestCase
 
 
-class CustomersTest(TestCase):
-    """
-    Integration tests for customers
-    """
-
-    fixtures: list[str] = [
-        "./accounts/fixtures/test_data.json",
-    ]
-
-    email: str = "alex@mail.com"
-    password: str = "12345678sa"
-    first_name: str = "Alex"
-    last_name: str = "Serb"
-
-    URL: str = "/api/accounts"
+class CustomersTest(BaseTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User(
-            id=1, email=cls.email, first_name=cls.first_name, last_name=cls.last_name
-        )
-        cls.user.set_password(cls.password)
-        cls.user.save()
-        cls.user.groups.add(1)
-
         client = APIClient()
         response = client.post(
             cls.URL + "/token/", data={"email": cls.email, "password": cls.password}
@@ -47,11 +25,11 @@ class CustomersTest(TestCase):
         customers = response.data
         self.assertEqual(len(customers), 2)
         self.assertEqual(
-            set((c["phone_number"] for c in customers)),
+            {c["phone_number"] for c in customers},
             {"88005553535", "88003333333"},
         )
         self.assertEqual(
-            set((c["created_at"] for c in customers)),
+            {c["created_at"] for c in customers},
             {"2024-08-15", "2024-07-25"},
         )
 

@@ -1,0 +1,107 @@
+[
+{
+    "model": "accounts.user",
+    "pk": "4852bf52-dced-4e76-87a0-e8f67462dbc1",
+    "fields": {
+        "password": "pbkdf2_sha256$720000$x57Md3ATp3dNgQ9hLAi3vt$9c/5WdBSTSXv3PlqXdg5Z9DcRm2WTPXn480exNWKJ0M=",
+        "last_login": "2024-12-31T12:03:48.931Z",
+        "email": "admin@gmail.com",
+        "first_name": "AdminFirstName",
+        "last_name": "AdminLastName",
+        "is_active": true,
+        "is_staff": true,
+        "is_superuser": true,
+        "is_verified": true,
+        "created_at": "2024-12-01",
+        "groups": [
+            1
+        ],
+        "user_permissions": [],
+        "customers": []
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": "83525595-781c-4c2e-ba82-713f55039cbb",
+    "fields": {
+        "password": "pbkdf2_sha256$720000$F0tVg3IPUHiTuo1zjtxpOj$Bdweci0Pg80WMVPF1o3mx89q4/X6iOdkKT8NNQm0uYw=",
+        "last_login": null,
+        "email": "tech2@mail.com",
+        "first_name": "TechFirstName2",
+        "last_name": "TechLastName2",
+        "is_active": true,
+        "is_staff": true,
+        "is_superuser": false,
+        "is_verified": true,
+        "created_at": "2025-01-02",
+        "groups": [
+            3
+        ],
+        "user_permissions": [],
+        "customers": []
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": "9bbaf934-cfc1-44d3-a6c1-3573944b932e",
+    "fields": {
+        "password": "pbkdf2_sha256$720000$SdF3E2U3CcmXrShHxRfDrQ$e0ab9NDZsjA0yP8X6EzP5kI3pRieNrd7kDEOPN7q7CU=",
+        "last_login": null,
+        "email": "tech1@mail.com",
+        "first_name": "TechFirstName1",
+        "last_name": "TechLastName1",
+        "is_active": true,
+        "is_staff": true,
+        "is_superuser": false,
+        "is_verified": true,
+        "created_at": "2024-12-02",
+        "groups": [
+            2
+        ],
+        "user_permissions": [],
+        "customers": []
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": "d5cb1759-8ad1-45a5-b289-455d910bbb17",
+    "fields": {
+        "password": "pbkdf2_sha256$720000$v4W1SlRu7hj0Z8h4GGGBqB$XB+BWJxltlxiN1mbSqWXawQoGc41hbqR6CkTvJwbW5c=",
+        "last_login": null,
+        "email": "doctor1@mail.com",
+        "first_name": "Doctor1FirstName",
+        "last_name": "Doctor1LastName",
+        "is_active": true,
+        "is_staff": false,
+        "is_superuser": false,
+        "is_verified": true,
+        "created_at": "2025-01-02",
+        "groups": [],
+        "user_permissions": [],
+        "customers": [
+            "a2203146-68ba-411f-ba45-815a52ef7236"
+        ]
+    }
+},
+{
+    "model": "accounts.user",
+    "pk": "efdf4d20-4b2b-4e43-80de-f509c3e6d177",
+    "fields": {
+        "password": "pbkdf2_sha256$720000$ycVQcEFmr1GT8EKI03zIQI$vtUZFHr29TunEL0O2ZqNs1SabStjAtyEwKEAjTFj8Nk=",
+        "last_login": null,
+        "email": "tech3@mail.com",
+        "first_name": "TechFirstName3",
+        "last_name": "TechLastName3",
+        "is_active": true,
+        "is_staff": true,
+        "is_superuser": false,
+        "is_verified": true,
+        "created_at": "2025-01-02",
+        "groups": [
+            5
+        ],
+        "user_permissions": [],
+        "customers": []
+    }
+}
+]

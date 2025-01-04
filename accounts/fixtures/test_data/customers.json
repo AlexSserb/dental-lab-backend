@@ -1,5 +1,5 @@
 [
-  {
+    {
     "model": "accounts.customer",
     "pk": "a2203146-68ba-411f-ba45-815a52ef7236",
     "fields": {

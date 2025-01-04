@@ -1,0 +1,15 @@
+[
+    {
+    "model": "accounts.dentallabdata",
+    "pk": 1,
+    "fields": {
+      "name": "TestName",
+      "bank_name": "TestBankName",
+      "bank_id_code": "239841729",
+      "current_account": "40702398472937423795",
+      "correspondent_account": "30101827398273984729",
+      "tax_payer_id": "123456789123",
+      "reason_code_for_reg": "123456789"
+    }
+  }
+]

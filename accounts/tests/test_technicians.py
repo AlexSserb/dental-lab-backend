@@ -1,38 +1,12 @@
-from django.test import TestCase
 from rest_framework.test import APIClient
 
-from accounts.models import User
+from accounts.tests.base_testcase import BaseTestCase
 
 
-class TechniciansTest(TestCase):
-    """
-    Integration tests for technicians
-    """
-
-    fixtures: list[str] = [
-        "./accounts/fixtures/test_data.json",
-    ]
-
-    email: str = "alex@mail.com"
-    password: str = "12345678sa"
-    first_name: str = "Alex"
-    last_name: str = "Serb"
-
-    URL: str = "/api/accounts"
-
-    @classmethod
-    def add_user(cls, id, email, first_name, last_name, password, group):
-        user = User(id=id, email=email, first_name=first_name, last_name=last_name)
-        user.set_password(password)
-        user.groups.add(group)
-        user.save()
+class TechniciansTest(BaseTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.add_user(1, cls.email, cls.first_name, cls.last_name, cls.password, 1)
-        cls.add_user(2, "2@mail.com", "FN2", "LN2", "12345678", 2)
-        cls.add_user(3, "3@mail.com", "LN3", "LN3", "12345678", 5)
-
         client = APIClient()
         response = client.post(cls.URL + "/token/", data={"email": cls.email, "password": cls.password})
         cls.token = response.data["access"]
@@ -46,4 +20,4 @@ class TechniciansTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["email"], "3@mail.com")
+        self.assertEqual(response.data[0]["email"], "tech3@mail.com")

@@ -133,7 +133,7 @@ class UserService:
 
     @staticmethod
     def get_technicians_by_group(group_id: int) -> Response:
-        technicians = User.objects.filter(groups__id__in=[group_id, 3])
+        technicians = User.objects.filter(groups__id=group_id)
         serializer = UserProfileSerializer(technicians, many=True)
         return Response(serializer.data)
 

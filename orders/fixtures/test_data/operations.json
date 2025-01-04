@@ -1,0 +1,58 @@
+[
+{
+    "model": "orders.operation",
+    "pk": "519beb85-e9a9-43a3-a753-16ed36d4de48",
+    "fields": {
+        "is_active": true,
+        "operation_type": "80efce40-c538-4c97-aaba-01b9146fd46a",
+        "operation_status": "efee01cc-e81b-4936-8580-33e778ae0f67",
+        "product": "60b5e09a-9d70-486e-a010-64f3504ce0a9",
+        "tech": "83525595-781c-4c2e-ba82-713f55039cbb",
+        "created_at": "2025-01-02T14:02:32Z",
+        "ordinal_number": 2,
+        "exec_start": "2024-03-29T11:10:00Z"
+    }
+},
+{
+    "model": "orders.operation",
+    "pk": "8277495a-8222-4d6b-976a-54703ff6cdb3",
+    "fields": {
+        "is_active": true,
+        "operation_type": "80efce40-c538-4c97-aaba-01b9146fd46a",
+        "operation_status": "d36c536b-7c07-495c-a34e-8cb0a5ccc3f1",
+        "product": "2b1fa828-44aa-42d3-bb5c-6802c52097c3",
+        "tech": "9bbaf934-cfc1-44d3-a6c1-3573944b932e",
+        "created_at": "2025-01-02T13:39:43Z",
+        "ordinal_number": 2,
+        "exec_start": null
+    }
+},
+{
+    "model": "orders.operation",
+    "pk": "9c891983-7afc-41bf-aef4-e2e532743abd",
+    "fields": {
+        "is_active": true,
+        "operation_type": "0e7e268a-20f1-4d57-8b41-213795abf4dc",
+        "operation_status": "d36c536b-7c07-495c-a34e-8cb0a5ccc3f1",
+        "product": "2b1fa828-44aa-42d3-bb5c-6802c52097c3",
+        "tech": null,
+        "created_at": "2025-01-02T13:38:39Z",
+        "ordinal_number": 1,
+        "exec_start": null
+    }
+},
+{
+    "model": "orders.operation",
+    "pk": "cd14866d-6436-4e0c-b362-d8dcbcdcd1f1",
+    "fields": {
+        "is_active": true,
+        "operation_type": "bc60f643-cd69-4e48-b617-9902cf43a51f",
+        "operation_status": "efee01cc-e81b-4936-8580-33e778ae0f67",
+        "product": "60b5e09a-9d70-486e-a010-64f3504ce0a9",
+        "tech": "83525595-781c-4c2e-ba82-713f55039cbb",
+        "created_at": "2025-01-02T14:01:50Z",
+        "ordinal_number": 1,
+        "exec_start": "2024-03-25T16:25:00Z"
+    }
+}
+]
