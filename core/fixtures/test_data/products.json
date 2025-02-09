@@ -1,6 +1,6 @@
 [
 {
-    "model": "orders.product",
+    "model": "products.product",
     "pk": "2b1fa828-44aa-42d3-bb5c-6802c52097c3",
     "fields": {
         "is_active": true,
@@ -13,7 +13,7 @@
     }
 },
 {
-    "model": "orders.product",
+    "model": "products.product",
     "pk": "60b5e09a-9d70-486e-a010-64f3504ce0a9",
     "fields": {
         "is_active": true,
@@ -26,7 +26,7 @@
     }
 },
 {
-    "model": "orders.product",
+    "model": "products.product",
     "pk": "8186b733-ff3f-4e28-8361-9701cb63e5e5",
     "fields": {
         "is_active": true,

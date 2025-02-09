@@ -6,15 +6,10 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from accounts.models import User
-from orders.models import Operation, OperationEvent
-from orders.paginations import StandardResultsSetPagination
-from orders.serializers import (
-    OperationSerializer,
-    OperationForProductSerializer,
-    OperationEventSerializer,
-    OperationForScheduleSerializer,
-    AssignOperationSerializer,
-)
+from operations.models import Operation, OperationEvent
+from core.paginations import StandardResultsSetPagination
+from operations.serializers import OperationSerializer, OperationForScheduleSerializer, OperationEventSerializer, \
+    OperationForProductSerializer, AssignOperationSerializer
 
 
 class OperationService:
@@ -55,7 +50,7 @@ class OperationService:
 
         return processed
 
-    def get_for_schedule(self, user_email: str, date: str) -> Response:
+    def get_for_schedule(self, date: str, user_email: str) -> Response:
         date_start = datetime.strptime(date, "%Y-%m-%d").date()
         date_end = date_start + timedelta(days=5)
         user = User.objects.filter(email=user_email).first()

@@ -1,6 +1,6 @@
 [
 {
-    "model": "orders.operationtype",
+    "model": "operations.operationtype",
     "pk": "0e7e268a-20f1-4d57-8b41-213795abf4dc",
     "fields": {
         "is_active": true,
@@ -10,7 +10,7 @@
     }
 },
 {
-    "model": "orders.operationtype",
+    "model": "operations.operationtype",
     "pk": "80efce40-c538-4c97-aaba-01b9146fd46a",
     "fields": {
         "is_active": true,
@@ -20,7 +20,7 @@
     }
 },
 {
-    "model": "orders.operationtype",
+    "model": "operations.operationtype",
     "pk": "bc60f643-cd69-4e48-b617-9902cf43a51f",
     "fields": {
         "is_active": true,
@@ -30,7 +30,7 @@
     }
 },
 {
-    "model": "orders.producttype",
+    "model": "products.producttype",
     "pk": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
     "fields": {
         "is_active": true,
@@ -39,7 +39,7 @@
     }
 },
 {
-    "model": "orders.producttype",
+    "model": "products.producttype",
     "pk": "d4e1e752-5c18-490d-99d4-0b606e50c938",
     "fields": {
         "is_active": true,
@@ -48,7 +48,7 @@
     }
 },
 {
-    "model": "orders.producttype",
+    "model": "products.producttype",
     "pk": "e830ae5d-07cb-4955-96a1-0b7668c90851",
     "fields": {
         "is_active": true,

@@ -1,13 +1,15 @@
 from accounts.models import User
 from orders.models import *
-from orders.tests.base_testcase import BaseTestCase
+from core.tests import BaseTestCase
+from products.models import ProductStatus, Product
 
 
 class OrdersTest(BaseTestCase):
+    url = "/api/orders"
 
     def test_get_orders_correct(self):
         self.set_up_for_admin()
-        response = self.client.get(self.URL + f"/orders/2025/1", follow=True)
+        response = self.client.get(self.url + f"/orders/2025/1", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
@@ -24,7 +26,7 @@ class OrdersTest(BaseTestCase):
 
     def test_get_orders_for_physician_correct(self):
         self.set_up_for_physician()
-        response = self.client.get(self.URL + "/orders-for-physician", follow=True)
+        response = self.client.get(self.url + "/orders-for-physician", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 2)
@@ -32,21 +34,6 @@ class OrdersTest(BaseTestCase):
             {order["id"] for order in response.data["results"]},
             {"68eb5be8-d29f-4a6c-ac64-5be9740fb3f3", "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9"}
         )
-
-    def test_get_products_for_order_correct(self):
-        self.set_up_for_admin()
-        response = self.client.get(self.URL + f"/products/c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-        # Check first product
-        self.assertEqual(response.data[0]["product_status"]["name"], "Готово")
-        self.assertEqual(response.data[0]["product_type"]["name"], "Изделие 3")
-        self.assertEqual(set(response.data[0]["teeth"]), {12, 13})
-        # Check second product
-        self.assertEqual(response.data[1]["product_status"]["name"], "Готово")
-        self.assertEqual(response.data[1]["product_type"]["name"], "Изделие 2")
-        self.assertEqual(set(response.data[1]["teeth"]), {25})
 
     def test_create_order(self):
         self.set_up_for_physician()
@@ -66,7 +53,7 @@ class OrdersTest(BaseTestCase):
             ],
         }
 
-        response = self.client.post(self.URL + "/create-order/", data=data, format="json")
+        response = self.client.post(self.url + "/create-order/", data=data, format="json")
 
         self.assertEqual(response.status_code, 200)
 
@@ -110,7 +97,7 @@ class OrdersTest(BaseTestCase):
             ],
         }
 
-        response = self.client.post(self.URL + "/create-order/", data=data, format="json")
+        response = self.client.post(self.url + "/create-order/", data=data, format="json")
 
         self.assertEqual(response.status_code, 400)
 
@@ -143,7 +130,7 @@ class OrdersTest(BaseTestCase):
             "order": {"id": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", "discount": 10},
         }
 
-        response = self.client.post(self.URL + f"/confirm-order/", data=test_data, format="json")
+        response = self.client.post(self.url + f"/confirm-order/", data=test_data, format="json")
 
         product1 = Product.objects.get(id=product1_id)
         product2 = Product.objects.get(id=product2_id)

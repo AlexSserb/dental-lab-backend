@@ -2,21 +2,10 @@ from rest_framework import serializers
 
 from accounts.models import Customer
 from accounts.serializers import UserProfileSerializer, CustomerSerializer
+from products.models import ProductType, ProductStatus
 from .models import *
 
 User = get_user_model()
-
-
-class OperationTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OperationType
-        fields = ["id", "name", "exec_time", "group"]
-
-
-class OperationStatusSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OperationStatus
-        fields = ["id", "name", "number"]
 
 
 class ProductTypeSerializer(serializers.ModelSerializer):
@@ -94,72 +83,14 @@ class ProductFromUserSerializer(serializers.Serializer):
 class DataForOrderCreationSerializer(serializers.Serializer):
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), pk_field=serializers.UUIDField())
     product_types = ProductFromUserSerializer(many=True)
-    comment = serializers.CharField(default="", max_length=512)
-
-
-class OperationSerializer(serializers.ModelSerializer):
-    operation_type = OperationTypeSerializer(required=True)
-    operation_status = OperationStatusSerializer(required=True)
-    product = ProductSerializer()
-
-    class Meta:
-        model = Operation
-        fields = [
-            "id",
-            "operation_type",
-            "operation_status",
-            "product",
-            "exec_start",
-            "ordinal_number",
-        ]
-
-
-class OperationForScheduleSerializer(serializers.Serializer):
-    id = serializers.UUIDField(required=True)
-    start = serializers.DateTimeField(required=True)
-    end = serializers.DateTimeField(required=True)
-    operation_type = OperationTypeSerializer(required=True)
-    operation_status = OperationStatusSerializer(required=True)
-    product = ProductSerializer(required=True)
-
-
-class OperationEventSerializer(serializers.ModelSerializer):
-    operation_status = OperationStatusSerializer(read_only=True)
-
-    class Meta:
-        model = OperationEvent
-        fields = ["operation_status", "pgh_created_at"]
-
-
-class OperationForProductSerializer(serializers.ModelSerializer):
-    operation_type = OperationTypeSerializer(required=True)
-    operation_status = OperationStatusSerializer(required=True)
-    tech = UserProfileSerializer()
-
-    class Meta:
-        model = Operation
-        fields = [
-            "id",
-            "operation_type",
-            "operation_status",
-            "tech",
-            "exec_start",
-            "ordinal_number",
-        ]
-
-
-class AssignOperationSerializer(serializers.Serializer):
-    id = serializers.UUIDField(required=True)
-    exec_start = serializers.CharField(required=True)
-    tech_email = serializers.CharField(required=True)
-
-
-class UpdateOperationStatusSerializer(serializers.Serializer):
-    status = serializers.PrimaryKeyRelatedField(queryset=OperationStatus.objects.all(), pk_field=serializers.UUIDField())
+    comment = serializers.CharField(default="", max_length=512, allow_blank=True)
 
 
 class UpdateOrderStatusSerializer(serializers.Serializer):
     status = serializers.PrimaryKeyRelatedField(queryset=OrderStatus.objects.all(), pk_field=serializers.UUIDField())
+
+
+from operations.serializers import OperationForProductSerializer
 
 
 class ProductAndOperationsSerializer(ProductSerializer):

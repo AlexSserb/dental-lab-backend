@@ -1,9 +1,9 @@
 import jwt
 
-from accounts.tests.base_testcase import BaseTestCase
+from accounts.tests.base_testcase import BaseAccountsTestCase
 
 
-class LoginTest(BaseTestCase):
+class LoginTest(BaseAccountsTestCase):
 
     email_doctor = "doctor1@mail.com"
 

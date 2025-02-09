@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from orders.admin.base_model_admin import BaseModelAdmin
-from orders.models import ProductType
+from core.admin import BaseModelAdmin, BaseStatusAdmin
+from products.models import Product, ProductStatus, ProductType
 
 
 class OperationTypeProductTypeInline(admin.TabularInline):
@@ -26,3 +26,12 @@ class ProductTypeAdmin(BaseModelAdmin):
 
 
 admin.site.register(ProductType, ProductTypeAdmin)
+
+admin.site.register(ProductStatus, BaseStatusAdmin)
+
+
+class ProductAdmin(BaseModelAdmin):
+    list_display = ["product_type", "product_status", "order", "amount"]
+
+
+admin.site.register(Product, ProductAdmin)

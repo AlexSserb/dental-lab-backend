@@ -1,10 +1,10 @@
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from accounts.tests.base_testcase import BaseTestCase
+from accounts.tests.base_testcase import BaseAccountsTestCase
 
 
-class ProfileTest(BaseTestCase):
+class ProfileTest(BaseAccountsTestCase):
 
     @classmethod
     def setUpTestData(cls):

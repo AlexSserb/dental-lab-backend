@@ -37,8 +37,11 @@ INSTALLED_APPS = [
     "pgtrigger",
     "pghistory",
     # Internal Apps
+    "core",
     "accounts",
     "orders",
+    "products",
+    "operations",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

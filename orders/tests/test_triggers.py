@@ -1,14 +1,16 @@
 from django.test import TestCase
 
 from accounts.models import User
+from operations.models import OperationStatus, OperationEvent, Operation, OperationType
 from orders.models import *
+from products.models import ProductType, ProductStatus, Product, ProductEvent
 
 
 class TriggersTest(TestCase):
 
     fixtures: list[str] = [
-        "./orders/fixtures/test_data/statuses.json",
-        "./orders/fixtures/test_data/object_types.json",
+        "./core/fixtures/test_data/statuses.json",
+        "./core/fixtures/test_data/object_types.json",
     ]
 
     URL: str = "/api/orders"

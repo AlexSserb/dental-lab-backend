@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 
-class BaseTestCase(TestCase):
+class BaseAccountsTestCase(TestCase):
     email = "admin@gmail.com"
     password = "12345678"
     first_name = "AdminFirstName"

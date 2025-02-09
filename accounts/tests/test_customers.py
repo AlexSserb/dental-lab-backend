@@ -1,9 +1,9 @@
 from rest_framework.test import APIClient
 
-from accounts.tests.base_testcase import BaseTestCase
+from accounts.tests.base_testcase import BaseAccountsTestCase
 
 
-class CustomersTest(BaseTestCase):
+class CustomersTest(BaseAccountsTestCase):
 
     @classmethod
     def setUpTestData(cls):

@@ -1,0 +1,162 @@
+[
+  {
+    "model": "accounts.customer",
+    "pk": "a2203146-68ba-411f-ba45-815a52ef7236",
+    "fields": {
+      "name": "Городская стоматология №1",
+      "phone_number": "88005553535",
+      "tax_payer_id": "123456654321",
+      "reason_code_for_reg": "123456789",
+      "checking_account": "12345123451234512345",
+      "adrs_city": "Москва",
+      "adrs_street": "Ленина",
+      "adrs_house": "12",
+      "mail_index": "700912",
+      "created_at": "2024-07-25",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.customer",
+    "pk": "3b1479eb-306c-44f7-926f-ef9fb1530d25",
+    "fields": {
+      "name": "Городская стоматология №2",
+      "phone_number": "88003333333",
+      "tax_payer_id": "111111111111",
+      "reason_code_for_reg": "987654321",
+      "checking_account": "54321543215432154321",
+      "adrs_city": "Астрахань",
+      "adrs_street": "Свердлова",
+      "adrs_house": "78",
+      "mail_index": "404444",
+      "created_at": "2024-08-15",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "4852bf52-dced-4e76-87a0-e8f67462dbc1",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-09T12:03:48.931Z",
+      "email": "doctor@gmail.com",
+      "first_name": "Валерий",
+      "last_name": "Иванов",
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-09",
+      "user_permissions": [],
+      "customers": [
+        "a2203146-68ba-411f-ba45-815a52ef7236",
+        "3b1479eb-306c-44f7-926f-ef9fb1530d25"
+      ]
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "83525595-781c-4c2e-ba82-713f55039cbb",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-08T12:00:00.931Z",
+      "email": "admin@gmail.com",
+      "first_name": "Александр",
+      "last_name": "Татищев",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": true,
+      "is_verified": true,
+      "created_at": "2025-02-08",
+      "groups": [
+        1
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "29992e9d-9411-4878-b34d-8fea1169fc86",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-08T10:03:48.931Z",
+      "email": "tech1@gmail.com",
+      "first_name": "Даниил",
+      "last_name": "Сербин",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-08",
+      "groups": [
+        2
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "4d02e9e6-7c7f-4f54-8942-6074c671be5f",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-09T18:03:48.931Z",
+      "email": "tech2@gmail.com",
+      "first_name": "Иван",
+      "last_name": "Абрамов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-08",
+      "groups": [
+        3
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "b7a6e126-f48b-465f-842d-0e3b7e630e7e",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-09T18:03:48.931Z",
+      "email": "tech3@gmail.com",
+      "first_name": "Павел",
+      "last_name": "Кравченков",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-09",
+      "groups": [
+        4
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "18904e24-f32c-4c54-9fe7-58f5e7747c58",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-10T18:03:48.931Z",
+      "email": "tech4@gmail.com",
+      "first_name": "Данил",
+      "last_name": "Сютов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-09",
+      "groups": [
+        5
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  }
+]

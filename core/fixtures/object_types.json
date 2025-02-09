@@ -1,0 +1,155 @@
+[
+  {
+    "model": "operations.operationtype",
+    "pk": "842cb14e-a654-4081-8334-b87917a62040",
+    "fields": {
+      "name": "Операция 1",
+      "exec_time": "01:10:00",
+      "group": "MO"
+    }
+  },
+  {
+    "model": "operations.operationtype",
+    "pk": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
+    "fields": {
+      "name": "Операция 2",
+      "exec_time": "01:00:00",
+      "group": "CA"
+    }
+  },
+  {
+    "model": "operations.operationtype",
+    "pk": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
+    "fields": {
+      "name": "Операция 3",
+      "exec_time": "00:35:00",
+      "group": "CE"
+    }
+  },
+  {
+    "model": "operations.operationtype",
+    "pk": "c643d713-ff30-419f-858f-6756a14cfaaa",
+    "fields": {
+      "name": "Операция 4",
+      "exec_time": "00:45:00",
+      "group": "DE"
+    }
+  },
+  {
+    "model": "products.producttype",
+    "pk": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+    "fields": {
+      "name": "Изделие 1",
+      "operation_types": [],
+      "cost": "20400.70"
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 1,
+    "fields": {
+      "product_type": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+      "operation_type": "842cb14e-a654-4081-8334-b87917a62040",
+      "ordinal_number": 1
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 2,
+    "fields": {
+      "product_type": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+      "operation_type": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
+      "ordinal_number": 2
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 3,
+    "fields": {
+      "product_type": "a038f028-cfda-4e8b-b971-44cf7d5b84ae",
+      "operation_type": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
+      "ordinal_number": 3
+    }
+  },
+  {
+    "model": "products.producttype",
+    "pk": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+    "fields": {
+      "name": "Изделие 2",
+      "operation_types": [],
+      "cost": "26400.40"
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 4,
+    "fields": {
+      "product_type": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+      "operation_type": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
+      "ordinal_number": 1
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 5,
+    "fields": {
+      "product_type": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+      "operation_type": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
+      "ordinal_number": 2
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 6,
+    "fields": {
+      "product_type": "6622d6e9-b655-4894-acab-885bf17fa6a7",
+      "operation_type": "c643d713-ff30-419f-858f-6756a14cfaaa",
+      "ordinal_number": 3
+    }
+  },
+  {
+    "model": "products.producttype",
+    "pk": "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4",
+    "fields": {
+      "name": "Изделие 3",
+      "operation_types": [],
+      "cost": "30090.00"
+    }
+  },
+    {
+    "model": "operations.producttypeoperationtype",
+    "pk": 7,
+    "fields": {
+      "product_type": "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4",
+      "operation_type": "842cb14e-a654-4081-8334-b87917a62040",
+      "ordinal_number": 1
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 8,
+    "fields": {
+      "product_type": "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4",
+      "operation_type": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
+      "ordinal_number": 2
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 9,
+    "fields": {
+      "product_type": "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4",
+      "operation_type": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
+      "ordinal_number": 3
+    }
+  },
+  {
+    "model": "operations.producttypeoperationtype",
+    "pk": 10,
+    "fields": {
+      "product_type": "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4",
+      "operation_type": "c643d713-ff30-419f-858f-6756a14cfaaa",
+      "ordinal_number": 4
+    }
+  }
+]

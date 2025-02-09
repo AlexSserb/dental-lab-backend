@@ -1,6 +1,6 @@
 [
 {
-    "model": "orders.operation",
+    "model": "operations.operation",
     "pk": "519beb85-e9a9-43a3-a753-16ed36d4de48",
     "fields": {
         "is_active": true,
@@ -14,7 +14,7 @@
     }
 },
 {
-    "model": "orders.operation",
+    "model": "operations.operation",
     "pk": "8277495a-8222-4d6b-976a-54703ff6cdb3",
     "fields": {
         "is_active": true,
@@ -28,7 +28,7 @@
     }
 },
 {
-    "model": "orders.operation",
+    "model": "operations.operation",
     "pk": "9c891983-7afc-41bf-aef4-e2e532743abd",
     "fields": {
         "is_active": true,
@@ -42,7 +42,7 @@
     }
 },
 {
-    "model": "orders.operation",
+    "model": "operations.operation",
     "pk": "cd14866d-6436-4e0c-b362-d8dcbcdcd1f1",
     "fields": {
         "is_active": true,

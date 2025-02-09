@@ -10,3 +10,14 @@ class BaseModelAdmin(ModelAdmin):
     def delete_model(self, request, obj):
         obj.is_active = False
         obj.save()
+
+
+class BaseStatusAdmin(BaseModelAdmin):
+    ordering = ("number",)
+    exclude = ("number", "is_active")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

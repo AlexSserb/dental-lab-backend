@@ -1,9 +1,9 @@
 from accounts.models import User
 
-from accounts.tests.base_testcase import BaseTestCase
+from accounts.tests.base_testcase import BaseAccountsTestCase
 
 
-class RegistrationTest(BaseTestCase):
+class RegistrationTest(BaseAccountsTestCase):
 
     def test_registration_user_correct(self):
         registration_data = {

@@ -77,9 +77,9 @@ There are 3 roles in the system:
 
     3.3. Create migrations and load fixtures:
     ```commandline
-    python manage.py makemigrations accounts orders
+    python manage.py makemigrations core accounts orders products operations
     python manage.py migrate
-    python manage.py loaddata groups.json statuses.json dental_lab_data.json
+    python manage.py loaddata groups.json users.json statuses.json object_types.json dental_lab_data.json
     ```
     3.4. Start the backend server:
     ```commandline

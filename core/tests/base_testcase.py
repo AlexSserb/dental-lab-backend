@@ -10,18 +10,18 @@ class BaseTestCase(TestCase):
     physician_email = "doctor1@mail.com"
     password = "12345678"
 
-    URL: str = "/api/orders"
+    url: str = "/api"
 
     fixtures: list[str] = [
         "./accounts/fixtures/test_data/groups.json",
         "./accounts/fixtures/test_data/customers.json",
         "./accounts/fixtures/test_data/users.json",
 
-        "./orders/fixtures/test_data/statuses.json",
-        "./orders/fixtures/test_data/object_types.json",
-        "./orders/fixtures/test_data/orders.json",
-        "./orders/fixtures/test_data/products.json",
-        "./orders/fixtures/test_data/operations.json",
+        "./core/fixtures/test_data/statuses.json",
+        "./core/fixtures/test_data/object_types.json",
+        "./core/fixtures/test_data/orders.json",
+        "./core/fixtures/test_data/products.json",
+        "./core/fixtures/test_data/operations.json",
     ]
 
     @classmethod
