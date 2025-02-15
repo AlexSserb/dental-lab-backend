@@ -101,10 +101,10 @@ class Product(BaseModel):
                         teeth=teeth,
                     )
 
-    def get_discount(self):
+    def get_discount(self) -> float:
         return max(self.discount, self.order.discount)
 
-    def get_cost(self):
+    def get_cost(self) -> float:
         return round(
             self.product_type.cost * self.amount * Decimal.from_float(1 - self.get_discount() / 100),
             2,

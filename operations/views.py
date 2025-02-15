@@ -1,139 +1,120 @@
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from accounts.permissions import IsLabAdmin, IsTech
 from operations.serializers import *
 from .service import OperationService
 
 
-class OperationTypeList(APIView):
-    serializer_class = OperationTypeSerializer
-    permission_classes = [IsLabAdmin | IsTech]
-
-    def get(self, request, *args, **kwargs):
-        operation_types = OperationType.objects.all()
-        serializer = self.serializer_class(operation_types, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class OperationTypeDetail(APIView):
-    """
-    Retrieve, update or delete an operation type instance.
-    """
-
-    permission_classes = [IsLabAdmin]
-    serializer_class = OperationTypeSerializer
-
-    def get_object(self, pk):
-        try:
-            return OperationType.objects.get(pk=pk)
-        except OperationType.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk):
-        oper_type = self.get_object(pk)
-        serializer = self.serializer_class(oper_type)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        oper_type = self.get_object(pk)
-        serializer = self.serializer_class(oper_type, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        oper_type = self.get_object(pk)
-        oper_type.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@extend_schema(responses=OperationSerializer)
+@extend_schema(
+    operation_id="get_for_tech",
+    responses=OperationsPaginatedListSerializer,
+    parameters=[
+        OpenApiParameter(
+            name="page",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsTech])
 def get_operations_for_tech(request):
     return OperationService.get_for_tech(request)
 
 
-@extend_schema(responses=OperationForProductSerializer)
+@extend_schema(
+    operation_id="get_for_product",
+    responses=FullOperationSerializer(many=True),
+    parameters=[
+        OpenApiParameter(
+            name="product_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsLabAdmin])
-def get_operations_for_product(request, product_id):
+def get_operations_for_product(request, product_id: str):
     return OperationService.get_for_product(product_id)
 
 
-@extend_schema(responses=OperationForScheduleSerializer)
+@extend_schema(
+    operation_id="get_for_schedule",
+    responses=OperationForScheduleSerializer(many=True),
+    parameters=[
+        OpenApiParameter(
+            name="date_start",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.PATH,
+        ),
+        OpenApiParameter(
+            name="tech_email",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.PATH,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsTech | IsLabAdmin])
-def get_operations_for_schedule(request, date: str, user_email: str):
-    operation_service = OperationService()
-    return operation_service.get_for_schedule(user_email, date)
+def get_operations_for_schedule(request, date_start: str, tech_email: str):
+    return OperationService().get_for_schedule(date_start, tech_email)
 
 
-@extend_schema()
+@extend_schema(
+    operation_id="set_operation_exec_start",
+    parameters=[
+        OpenApiParameter(
+            name="operation_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+        ),
+        OpenApiParameter(
+            name="exec_start",
+            type=OpenApiTypes.DATETIME,
+            location=OpenApiParameter.PATH,
+        ),
+    ],
+)
 @api_view(["PATCH"])
 @permission_classes([IsLabAdmin])
-def set_operation_exec_start(request, id: str, exec_start: str):
-    return OperationService.set_execution_start(id, exec_start)
+def set_operation_exec_start(request, operation_id: str, exec_start: str):
+    return OperationService.set_execution_start(operation_id, exec_start)
 
 
-@extend_schema(request=AssignOperationSerializer)
+@extend_schema(
+    operation_id="assign_operation",
+    request=AssignOperationSerializer,
+)
 @api_view(["PATCH"])
 @permission_classes([IsLabAdmin])
 def assign_operation(request):
-    serializer = AssignOperationSerializer(data=request.data)
-    if serializer.is_valid():
-        return OperationService.assign(serializer)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return OperationService.assign(request)
 
 
-class OperationDetail(APIView):
-    """
-    Retrieve, update or delete an operation instance.
-    """
-
-    permission_classes = [IsTech]
-    serializer_class = OperationSerializer
-
-    def get_object(self, pk):
-        try:
-            return Operation.objects.get(pk=pk)
-        except Operation.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        operation = self.get_object(pk)
-        serializer = self.serializer_class(operation)
-        return Response(serializer.data)
-
-    @extend_schema(request=UpdateOperationStatusSerializer)
-    def patch(self, request, pk, format=None):
-        """
-        Allows only the status of an operation to be changed via the status field
-        """
-        serializer = UpdateOperationStatusSerializer(data=request.data)
-        if serializer.is_valid():
-            operation = get_object_or_404(Operation, id=pk)
-            operation.operation_status = serializer.validated_data["status"]
-            operation.save()
-            return Response(self.serializer_class(operation).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        operation = self.get_object(pk)
-        operation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+@extend_schema(
+    operation_id="update_operation_status",
+    request=UpdateOperationStatusSerializer,
+    responses=OperationSerializer,
+    parameters=[
+        OpenApiParameter(
+            name="operation_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+        ),
+    ],
+)
+@api_view(["PATCH"])
+@permission_classes([IsLabAdmin | IsTech])
+def update_operation_status(request, operation_id: str):
+    return OperationService.update_status(request, operation_id)
 
 
+@extend_schema(operation_id="get_operation_statuses")
 class OperationStatusesList(ListAPIView):
     queryset = OperationStatus.objects.all()
     permission_classes = [IsAuthenticated]

@@ -1,12 +1,13 @@
 from accounts.models import DentalLabData
-from accounts.reports.report import Report
+from orders.reports.report import Report
 from orders.models import Order
 
 
-class AcceptanceReport(Report):
+class OrderReport(Report):
     def __init__(self, order: Order, dental_lab_data: DentalLabData):
         super().__init__(order, dental_lab_data)
-        self.print_customer_and_dental_lab_data()
+        self.print_customer_data()
+        self.print_dental_lab_data()
         self.print_products()
 
     def header(self):
@@ -14,7 +15,7 @@ class AcceptanceReport(Report):
         self.cell(txt="InColor", ln=True, border="B")
         self.ln()
         self.set_bold_font()
-        self.cell(txt="Акт сдачи-приема")
+        self.cell(txt=f"Наряд № {self.doc_id} от {self.order.order_date.strftime('%d.%m.%Y')}")
         self.divider()
 
     def print_products(self):
@@ -44,32 +45,45 @@ class AcceptanceReport(Report):
         self.cell(txt=f"Итого: {sum_cost} руб.")
         self.ln(h=10)
 
-    def print_customer_and_dental_lab_data(self):
+    def print_customer_data(self):
         self.set_default_font()
         self.ln(h=10)
-        self.cell(txt=f"Настоящий акт составлен в том, что зуботехническая лаборатория {self.lab.name}")
+        self.cell(txt=f"Заказчик: {self.order.customer.name}")
         self.ln(h=10)
-        self.cell(txt=f"выполнила работы для Заказчика {self.order.customer.name}")
+        self.cell(
+            txt=f"Адрес заказчика: г. {self.order.customer.adrs_city} ул. {self.order.customer.adrs_street} д. {self.order.customer.adrs_house}"
+        )
         self.ln(h=10)
-        self.cell(txt=f"по наряду № {self.doc_id} от {self.order.order_date.strftime('%d.%m.%Y')}")
+        self.cell(txt=f"Врач: {self.order.user.last_name} {self.order.user.first_name}")
+        self.divider()
+
+    def print_dental_lab_data(self):
+        self.set_default_font()
         self.ln(h=10)
+        self.cell(txt=f"Исполнитель: {self.lab.name}")
+        self.ln(h=10)
+        self.cell(txt=f"Банк исполнителя: {self.lab.bank_name}")
+        self.ln(h=10)
+        self.cell(txt=f"БИК: {self.lab.bank_id_code}")
+        self.cell(w=20)
+        self.cell(txt=f"ИНН: {self.lab.tax_payer_id}")
+        self.cell(w=20)
+        self.cell(txt=f"КПП: {self.lab.reason_code_for_reg}")
+        self.ln(h=10)
+        self.cell(txt=f"Р/с: {self.lab.current_account}")
+        self.ln(h=10)
+        self.cell(txt=f"Кор/с: {self.lab.correspondent_account}")
+        self.divider()
 
     def footer(self):
         self.set_default_font()
         self.ln()
-        signature_w, label_w = 40, 38
-        self.cell(txt="Вышеперечисленные работы выполнены полностью и в срок.")
-        self.ln(h=8)
-        self.cell(txt="Заказчик претензий по объему, сроку и качеству оказания работ не имеет.")
-        self.ln(h=8)
-        self.cell(w=18, txt="Дата")
-        self.cell(w=signature_w, txt="         ", border="B")
-        self.ln(h=10)
-        self.cell(w=93, txt="Работу принял:")
-        self.cell(w=92, txt="Работу сдал:")
-        self.ln(h=8)
+        signature_w, label_w = 40, 45
         self.cell(w=label_w, txt="Заказчик")
         self.cell(w=signature_w, txt="         ", border="B")
         self.cell(w=15)
-        self.cell(w=label_w, txt="Исполнитель")
+        self.cell(w=label_w, txt="Администратор")
+        self.cell(w=signature_w, txt="         ", border="B")
+        self.ln(h=10)
+        self.cell(w=label_w, txt="Зав. лаборатории")
         self.cell(w=signature_w, txt="         ", border="B")

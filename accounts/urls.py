@@ -1,11 +1,10 @@
 from django.urls import path
 
 from . import views
-from .views import CustomTokenRefreshView
 
 urlpatterns = [
     path("token/", views.CustomTokenObtainPairView.as_view(), name="token-obtain-pair"),
-    path("token/refresh/", CustomTokenRefreshView.as_view(), name="token-refresh"),
+    path("token/refresh/", views.CustomTokenRefreshView.as_view(), name="token-refresh"),
     path("register/", views.register, name="user-registration"),
     path("send-email-verification/", views.send_email_verification, name="send-email-verification"),
     path("verify-email/", views.verify_email, name="verify-email"),
@@ -32,19 +31,4 @@ urlpatterns = [
         views.attach_customers_to_user,
         name="attach-customers-to-users",
     ),
-    path(
-        "order-report/<str:order_id>/",
-        views.get_order_report,
-        name="order-report",
-    ),
-    path(
-        "acceptance-report/<str:order_id>/",
-        views.get_acceptance_report,
-        name="acceptance-report",
-    ),
-    path(
-        "invoice-for-payment/<str:order_id>/",
-        views.get_invoice_for_payment,
-        name="invoice-for-payment",
-    )
 ]

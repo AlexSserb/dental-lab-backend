@@ -1,5 +1,5 @@
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import Token, RefreshToken
 
 from .models import *
@@ -25,6 +25,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         return get_tokens_with_payload(token, user)
+
+
+class TokenPairSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+    access = serializers.CharField()
 
 
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
@@ -85,10 +90,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
 
     customers = CustomerSerializer(many=True)
+    group = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "created_at", "customers"]
+        fields = ["email", "first_name", "last_name", "created_at", "customers", "group"]
+
+    def get_group(self, user):
+        group = user.groups.values_list("name", flat=True).first()
+        if not group:
+            group = "Врач"
+        return group
 
 
 class UserEditProfileSerializer(serializers.ModelSerializer):
@@ -120,6 +132,7 @@ class AttachCustomersToUserSerializer(serializers.Serializer):
     customers = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Customer.objects.all(), pk_field=serializers.UUIDField()
     )
+
 
 class ReportSerializer(serializers.ModelSerializer):
     report = serializers.FileField(required=True)

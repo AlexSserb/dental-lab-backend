@@ -1,13 +1,18 @@
 import calendar
+import json
 from datetime import datetime
+from typing import Type
 
 from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from orders.models import Order, OrderStatus
-from products.models import Product
+from accounts.models import DentalLabData
 from core.paginations import StandardResultsSetPagination
+from orders.models import Order, OrderStatus
+from orders.reports import Report
 from orders.serializers import (
     OrderSerializer,
     OrderWithPhysicianSerializer,
@@ -15,6 +20,7 @@ from orders.serializers import (
     OrderDiscountSetterSerializer,
     UpdateOrderStatusSerializer,
 )
+from products.models import Product
 
 
 class OrderService:
@@ -36,7 +42,16 @@ class OrderService:
         return Response(serializer.data)
 
     @staticmethod
-    def create_order(request: WSGIRequest, serializer: DataForOrderCreationSerializer) -> None:
+    def create_order(request) -> Response:
+        serializer = DataForOrderCreationSerializer(data=request.data)
+
+        print(f'request.data = {request.data}')
+
+        if not serializer.is_valid():
+            print('Serializer is not valid')
+            print(f'errors = {serializer.errors}')
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         order = Order.objects.create(
             user=request.user,
             status=OrderStatus.get_default_status(),
@@ -46,24 +61,47 @@ class OrderService:
         )
         Product.products_from_product_types(request.data["product_types"], order)
 
-    @staticmethod
-    def confirm_order(serializer: OrderDiscountSetterSerializer) -> Response:
-        order = Order.objects.get(pk=serializer.validated_data["order"]["id"])
-        order.discount = serializer.validated_data["order"]["discount"]
-        order.status = OrderStatus.objects.get(number=2)
-        order.save()
-
-        for product_validated in serializer.validated_data["products"]:
-            product = Product.objects.get(pk=product_validated["id"])
-            product.discount = product_validated["discount"]
-            product.save()
-
-        order_serializer = OrderWithPhysicianSerializer(order)
-        return Response(order_serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
     @staticmethod
-    def set_order_status(serializer: UpdateOrderStatusSerializer, order: Order) -> Response:
+    def confirm_order(request) -> Response:
+        serializer = OrderDiscountSetterSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            order = Order.objects.get(pk=serializer.validated_data["order_discount_data"]["id"])
+            order.discount = serializer.validated_data["order_discount_data"]["discount"]
+            order.status = OrderStatus.objects.get(number=2)
+            order.save()
+
+            for product_validated in serializer.validated_data["products_discounts_data"]:
+                product = Product.objects.get(pk=product_validated["id"])
+                product.discount = product_validated["discount"]
+                product.save()
+
+            order_serializer = OrderWithPhysicianSerializer(order)
+            return Response(order_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    @staticmethod
+    def set_order_status(request, order_id) -> Response:
+        order = get_object_or_404(Order, id=order_id)
+        serializer = UpdateOrderStatusSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         order.status = serializer.validated_data["status"]
         order.save()
         order_serializer = OrderWithPhysicianSerializer(order)
         return Response(order_serializer.data)
+
+    @staticmethod
+    def get_order(order_id: str, report_class: Type[Report]):
+        order = Order.objects.get(id=order_id)
+        dental_lab_data = DentalLabData.objects.get()
+        report = report_class(order, dental_lab_data)
+        response = HttpResponse(bytes(report.output()), content_type="application/pdf")
+        return response

@@ -6,10 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from accounts.models import User
-from operations.models import Operation, OperationEvent
 from core.paginations import StandardResultsSetPagination
-from operations.serializers import OperationSerializer, OperationForScheduleSerializer, OperationEventSerializer, \
-    OperationForProductSerializer, AssignOperationSerializer
+from operations.serializers import *
 
 
 class OperationService:
@@ -25,7 +23,7 @@ class OperationService:
     @staticmethod
     def get_for_product(product_id: str) -> Response:
         operations = Operation.objects.filter(product=product_id).order_by("operation_status__number")
-        serializer = OperationForProductSerializer(operations, many=True)
+        serializer = FullOperationSerializer(operations, many=True)
 
         # get history of operations for a product
         all_operations_history = OperationEvent.objects.select_related("operation_status")
@@ -68,9 +66,23 @@ class OperationService:
         return Response(status=status.HTTP_200_OK)
 
     @staticmethod
-    def assign(serializer: AssignOperationSerializer) -> Response:
+    def assign(request) -> Response:
+        serializer = AssignOperationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         operation = get_object_or_404(Operation, id=serializer.validated_data["id"])
         operation.tech = get_object_or_404(User, email=serializer.validated_data["tech_email"])
         operation.exec_start = datetime.strptime(serializer.validated_data["exec_start"], "%Y-%m-%dT%H:%M:%S.%fZ")
         operation.save()
         return Response(status=status.HTTP_200_OK)
+
+    @staticmethod
+    def update_status(request, operation_id: str) -> Response:
+        serializer = UpdateOperationStatusSerializer(data=request.data)
+        if serializer.is_valid():
+            operation = get_object_or_404(Operation, id=operation_id)
+            operation.operation_status = serializer.validated_data["status"]
+            operation.save()
+            return Response(OperationSerializer(operation).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

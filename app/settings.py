@@ -1,9 +1,8 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
-from datetime import timedelta
-
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -83,7 +82,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "app.wsgi.application"
 
-
 # Database
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
@@ -117,7 +115,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -128,7 +125,6 @@ LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
 
 USE_I18N = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -148,7 +144,6 @@ CORS_ORIGIN_WHITELIST = (
 
 CSRF_COOKIE_NAME = "csrftoken"
 
-
 # This will avoid the need for an SMTP server as e-mails will be printed to the console.
 # For more information, please refer to:
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -165,7 +160,6 @@ EMAIL_ADMIN = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 CLIENT_URL = os.getenv("CLIENT_URL")
-
 
 # REST_AUTH_SERIALIZERS = {'LOGIN_SERIALIZER': 'api.serializers.LoginSerializer'}
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -188,7 +182,6 @@ REST_FRAMEWORK = {
     "COERCE_DECIMAL_TO_STRING": False,
 }
 
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
@@ -206,7 +199,21 @@ SIMPLE_JWT = {
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
 }
 
-
 SPECTACULAR_SETTINGS = {
     "TITLE": "DentalLab project API",
+    "VERSION": "1.0.0",
+    # Split components into request and response parts where appropriate
+    "COMPONENT_SPLIT_REQUEST": False,
+    # Aid client generator targets that have trouble with read-only properties.
+    "COMPONENT_NO_READ_ONLY_REQUIRED": False,
+    # Create separate components for PATCH endpoints (without required list)
+    "COMPONENT_SPLIT_PATCH": True,
+    "SCHEMA_PATH_PREFIX": "/api",
+    "SCHEMA_PATH_PREFIX_TRIM": True,
+    "SERVE_INCLUDE_SCHEMA": False,
+    "CAMELIZE_NAMES": True,
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields",
+    ],
+    "PARSER_WHITELIST": ["rest_framework.parsers.JSONParser"],
 }

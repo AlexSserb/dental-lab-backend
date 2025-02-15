@@ -18,9 +18,11 @@ from accounts.serializers import (
     UserProfileSerializer,
     PasswordChangeSerializer,
     AttachCustomersToUserSerializer,
+    TokenPairSerializer,
 )
 from accounts.utils import Util
 from app.settings import CLIENT_URL
+from core.serializers import MessageSerializer
 
 
 class UserService:
@@ -43,7 +45,7 @@ class UserService:
 
         Util.send_email(data=data)
 
-        return Response({"message": "Сообщение для подтверждения почты отправлено"})
+        return Response(MessageSerializer(message="Сообщение для подтверждения почты отправлено"))
 
     @staticmethod
     def register(request: WSGIRequest) -> Response:
@@ -58,7 +60,7 @@ class UserService:
             refresh = CustomTokenObtainPairSerializer.get_token(user)
             UserService.send_email_verification(request, user)
 
-            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})
+            return Response(TokenPairSerializer(refresh=str(refresh), access=str(refresh.access_token)))
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -86,12 +88,7 @@ class UserService:
     def get_profile_data(email: str) -> Response:
         user = get_object_or_404(get_user_model(), email=email)
         serializer = UserProfileSerializer(user)
-
-        group = user.groups.values_list("name", flat=True).first()
-        if not group:
-            group = "Врач"
-
-        return Response({**serializer.data, "group": group})
+        return Response(serializer.data)
 
     @staticmethod
     def _edit_user_name(request: WSGIRequest, email: str, data: str, user_field: str) -> Response:
@@ -108,7 +105,7 @@ class UserService:
         user.save()
         serializer = UserProfileSerializer(user)
 
-        return Response({**serializer.data, "group": user.groups.values_list("name", flat=True).first()})
+        return Response(serializer.data)
 
     def edit_user_first_name(self, request: WSGIRequest, email: str, name: str) -> Response:
         return self._edit_user_name(request, email, name, "first_name")
@@ -117,7 +114,7 @@ class UserService:
         return self._edit_user_name(request, email, name, "last_name")
 
     @staticmethod
-    def change_password(request: WSGIRequest) -> Response:
+    def change_password(request) -> Response:
         serializer = PasswordChangeSerializer(data=request.data)
         if serializer.is_valid():
             user = request.user

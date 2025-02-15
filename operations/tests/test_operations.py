@@ -45,7 +45,7 @@ class OperationsTest(BaseTestCase):
         self.set_up_for_tech()
 
         response = self.client.patch(
-            self.url + f"/operation/519beb85-e9a9-43a3-a753-16ed36d4de48/",
+            self.url + f"/operation/519beb85-e9a9-43a3-a753-16ed36d4de48",
             data={"status": "d36c536b-7c07-495c-a34e-8cb0a5ccc3f1"},
             follow=True,
         )
@@ -80,7 +80,7 @@ class OperationsTest(BaseTestCase):
     def test_get_operations_for_schedule_correct(self):
         self.set_up_for_tech()
 
-        response = self.client.get(self.url + f"/operations-for-schedule/tech2@mail.com/2024-03-25")
+        response = self.client.get(self.url + f"/operations-for-schedule/2024-03-25/tech2@mail.com")
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)
@@ -116,7 +116,7 @@ class OperationsTest(BaseTestCase):
         }
 
         response = self.client.patch(
-            self.url + f"/assign-operation/", data=test_data, format="json"
+            self.url + f"/assign-operation", data=test_data, format="json"
         )
 
         self.assertEqual(response.status_code, 200)

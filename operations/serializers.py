@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from accounts.serializers import UserProfileSerializer
+from core.serializers import PaginationSerializer
 from operations.models import OperationType, OperationStatus, Operation, OperationEvent
 
 
@@ -16,7 +17,16 @@ class OperationStatusSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "number"]
 
 
-class OperationForProductSerializer(serializers.ModelSerializer):
+class OperationEventSerializer(serializers.ModelSerializer):
+    operation_status = OperationStatusSerializer(read_only=True)
+
+    class Meta:
+        model = OperationEvent
+        fields = ["operation_status", "pgh_created_at"]
+
+
+class FullOperationSerializer(serializers.ModelSerializer):
+    history = OperationEventSerializer(many=True)
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     tech = UserProfileSerializer()
@@ -30,10 +40,11 @@ class OperationForProductSerializer(serializers.ModelSerializer):
             "tech",
             "exec_start",
             "ordinal_number",
+            "history",
         ]
 
 
-from orders.serializers import ProductSerializer
+from products.serializers import ProductSerializer
 
 
 class OperationSerializer(serializers.ModelSerializer):
@@ -53,6 +64,10 @@ class OperationSerializer(serializers.ModelSerializer):
         ]
 
 
+class OperationsPaginatedListSerializer(PaginationSerializer):
+    results = OperationSerializer(many=True)
+
+
 class OperationForScheduleSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True)
     start = serializers.DateTimeField(required=True)
@@ -62,14 +77,6 @@ class OperationForScheduleSerializer(serializers.Serializer):
     product = ProductSerializer(required=True)
 
 
-class OperationEventSerializer(serializers.ModelSerializer):
-    operation_status = OperationStatusSerializer(read_only=True)
-
-    class Meta:
-        model = OperationEvent
-        fields = ["operation_status", "pgh_created_at"]
-
-
 class AssignOperationSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True)
     exec_start = serializers.CharField(required=True)
@@ -77,5 +84,7 @@ class AssignOperationSerializer(serializers.Serializer):
 
 
 class UpdateOperationStatusSerializer(serializers.Serializer):
-    status = serializers.PrimaryKeyRelatedField(queryset=OperationStatus.objects.all(),
-                                                pk_field=serializers.UUIDField())
+    status = serializers.PrimaryKeyRelatedField(
+        queryset=OperationStatus.objects.all(),
+        pk_field=serializers.UUIDField(),
+    )

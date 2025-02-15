@@ -123,11 +123,11 @@ class OrdersTest(BaseTestCase):
         product2_id = "8186b733-ff3f-4e28-8361-9701cb63e5e5"
 
         test_data = {
-            "products": [
+            "products_discounts_data": [
                 {"id": product1_id, "discount": 12},
                 {"id": product2_id, "discount": 6},
             ],
-            "order": {"id": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", "discount": 10},
+            "order_discount_data": {"id": "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", "discount": 10},
         }
 
         response = self.client.post(self.url + f"/confirm-order/", data=test_data, format="json")

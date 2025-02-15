@@ -1,4 +1,4 @@
-# System for accounting, tracking and analyzing the performance of operations by dental technicians
+# The system of accounting and planning of order fulfillment in the dental laboratory
 
 ## Table of contents
 * [Introduction](#introduction)
@@ -26,27 +26,25 @@ There are 3 roles in the system:
   - Python 3.13
   - Django 5
   - Django REST Framework
-  - DRF-simplejwt
-  - DRF-spectacular
+  - DRF-spectacular (OpenAPI schema generation)
   - django-pgtrigger, django-pghistory
 * Frontend:
   - TypeScript
   - React 18
   - Axios
   - Mantine
-  - JWT-decode
+  - OpenAPI Generator (for automated TS client generation)
 * Database:
   - PostgreSQL
 
 <a name="tools"></a>
 ## Tools
-* Python interpreter
+* Git
 * Pycharm
 * WebStorm
 * DataGrip
-* Package manager for Node.js - npm
-* Package manager for Python - pip
-* Git
+* Npm
+* Pip
 
 <a name="installation"></a>
 ## Installation
