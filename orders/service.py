@@ -1,6 +1,6 @@
 import calendar
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Type
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -45,11 +45,7 @@ class OrderService:
     def create_order(request) -> Response:
         serializer = DataForOrderCreationSerializer(data=request.data)
 
-        print(f'request.data = {request.data}')
-
         if not serializer.is_valid():
-            print('Serializer is not valid')
-            print(f'errors = {serializer.errors}')
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         order = Order.objects.create(
@@ -58,6 +54,7 @@ class OrderService:
             discount=0,
             customer=serializer.validated_data["customer_id"],
             comment=serializer.validated_data["comment"],
+            deadline=datetime.now() + timedelta(days=5),
         )
         Product.products_from_product_types(request.data["product_types"], order)
 

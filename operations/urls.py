@@ -1,6 +1,5 @@
 from django.urls import path
 
-import orders.views
 from . import views
 
 urlpatterns = [
@@ -10,13 +9,14 @@ urlpatterns = [
     path("operation-statuses/", views.OperationStatusesList.as_view(), name="operation-statuses"),
     path(
         "operations-for-schedule/<str:date_start>/<str:tech_email>",
+        views.get_operations_for_tech_schedule,
+        name="operations-for-tech-schedule",
+    ),
+    path(
+        "operations-for-schedule/<str:date_start>",
         views.get_operations_for_schedule,
         name="operations-for-schedule",
     ),
-    path(
-        "operation-exec-start/<str:operation_id>/<str:exec_start>",
-        views.set_operation_exec_start,
-        name="set-operation-exec-start",
-    ),
+    path("update-operation", views.update_operation, name="update-operation"),
     path("assign-operation", views.assign_operation, name="operation-assignment"),
 ]

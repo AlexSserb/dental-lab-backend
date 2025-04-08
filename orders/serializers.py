@@ -21,7 +21,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer"]
+        fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer", "deadline"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()
@@ -39,7 +39,7 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer"]
+        fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer", "deadline"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()

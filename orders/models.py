@@ -40,6 +40,7 @@ class Order(BaseModel):
     user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE, verbose_name="Заказчик")
     status = models.ForeignKey(OrderStatus, related_name="orders", on_delete=models.CASCADE, verbose_name="Статус")
     order_date = models.DateField(auto_now_add=True, verbose_name="Дата оформления")
+    deadline = models.DateField(verbose_name="Крайний срок выполнения")
     discount = models.IntegerField(default=0, validators=[MaxValueValidator(100), MinValueValidator(0)],
                                    verbose_name="Скидка")
     comment = models.CharField(default="", max_length=512, verbose_name="Комментарий", blank=True)

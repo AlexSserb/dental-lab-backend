@@ -1,3 +1,5 @@
+from typing import Optional
+
 import jwt
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
@@ -129,8 +131,12 @@ class UserService:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @staticmethod
-    def get_technicians_by_group(group_id: int) -> Response:
-        technicians = User.objects.filter(groups__id=group_id)
+    def get_technicians(group_id: Optional[int] = None) -> Response:
+        if group_id:
+            technicians = User.objects.filter(groups__id=group_id)
+        else:
+            tech_group_ids = [2, 3, 4, 5]
+            technicians = User.objects.filter(groups__id__in=tech_group_ids)
         serializer = UserProfileSerializer(technicians, many=True)
         return Response(serializer.data)
 

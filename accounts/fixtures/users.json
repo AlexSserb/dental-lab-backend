@@ -33,6 +33,9 @@
       "is_active": true
     }
   },
+
+
+
   {
     "model": "accounts.user",
     "pk": "4852bf52-dced-4e76-87a0-e8f67462dbc1",
@@ -54,6 +57,8 @@
       ]
     }
   },
+
+
   {
     "model": "accounts.user",
     "pk": "83525595-781c-4c2e-ba82-713f55039cbb",
@@ -154,6 +159,69 @@
       "created_at": "2025-02-09",
       "groups": [
         5
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "f4ae7284-ae01-471c-ac99-ad41ca5b6792",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-08T10:03:48.931Z",
+      "email": "tech5@gmail.com",
+      "first_name": "Артур",
+      "last_name": "Никифоров",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-04",
+      "groups": [
+        2
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "b2859181-5be4-472d-8dab-922228d58054",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-08T10:03:48.931Z",
+      "email": "tech6@gmail.com",
+      "first_name": "Татьяна",
+      "last_name": "Мусагалиева",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-15",
+      "groups": [
+        3
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+    {
+    "model": "accounts.user",
+    "pk": "998ed10d-0572-4615-a4bc-e09ae2a0a0de",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-08T10:03:48.931Z",
+      "email": "tech7@gmail.com",
+      "first_name": "Андрей",
+      "last_name": "Гаврилов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-11",
+      "groups": [
+        4
       ],
       "user_permissions": [],
       "customers": []

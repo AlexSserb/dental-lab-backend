@@ -21,8 +21,8 @@ urlpatterns = [
         name="user-last-name-edit",
     ),
     path(
-        "technicians/<int:group_id>",
-        views.get_technicians_by_group,
+        "technicians",
+        views.get_technicians,
         name="technicians-by-group",
     ),
     path("customers/", views.get_customers, name="get-all-customers"),

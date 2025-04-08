@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.core.handlers.wsgi import WSGIRequest
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -123,20 +125,30 @@ def change_password(request):
 
 
 @extend_schema(
-    operation_id="get_technicians_by_group",
+    operation_id="get_technicians",
+    responses=UserProfileSerializer(many=True),
+)
+@api_view(["GET"])
+@permission_classes([IsLabAdmin])
+def get_technicians_by_group(request):
+    return UserService.get_technicians()
+
+
+@extend_schema(
+    operation_id="get_technicians",
     responses=UserProfileSerializer(many=True),
     parameters=[
         OpenApiParameter(
             name="group_id",
             type=OpenApiTypes.INT,
-            location=OpenApiParameter.PATH,
+            location=OpenApiParameter.QUERY,
         ),
     ],
 )
 @api_view(["GET"])
 @permission_classes([IsLabAdmin])
-def get_technicians_by_group(request, group_id: int):
-    return UserService.get_technicians_by_group(group_id)
+def get_technicians(request, group_id: Optional[int] = None):
+    return UserService.get_technicians(group_id)
 
 
 @extend_schema(

@@ -44,8 +44,8 @@ def get_operations_for_product(request, product_id: str):
 
 
 @extend_schema(
-    operation_id="get_for_schedule",
-    responses=OperationForScheduleSerializer(many=True),
+    operation_id="get_for_tech_schedule",
+    responses=OperationForTechScheduleSerializer(many=True),
     parameters=[
         OpenApiParameter(
             name="date_start",
@@ -61,29 +61,35 @@ def get_operations_for_product(request, product_id: str):
 )
 @api_view(["GET"])
 @permission_classes([IsTech | IsLabAdmin])
-def get_operations_for_schedule(request, date_start: str, tech_email: str):
-    return OperationService().get_for_schedule(date_start, tech_email)
+def get_operations_for_tech_schedule(request, date_start: str, tech_email: str):
+    return OperationService().get_for_tech_schedule(date_start, tech_email)
 
 
 @extend_schema(
-    operation_id="set_operation_exec_start",
+    operation_id="get_for_schedule",
+    responses=OperationForScheduleSerializer(many=True),
     parameters=[
         OpenApiParameter(
-            name="operation_id",
-            type=OpenApiTypes.UUID,
-            location=OpenApiParameter.PATH,
-        ),
-        OpenApiParameter(
-            name="exec_start",
-            type=OpenApiTypes.DATETIME,
+            name="date_start",
+            type=OpenApiTypes.DATE,
             location=OpenApiParameter.PATH,
         ),
     ],
 )
+@api_view(["GET"])
+@permission_classes([IsTech | IsLabAdmin])
+def get_operations_for_schedule(request, date_start: str):
+    return OperationService().get_for_schedule(date_start)
+
+
+@extend_schema(
+    operation_id="update_operation",
+    request=SetOperationDataSerializer,
+)
 @api_view(["PATCH"])
 @permission_classes([IsLabAdmin])
-def set_operation_exec_start(request, operation_id: str, exec_start: str):
-    return OperationService.set_execution_start(operation_id, exec_start)
+def update_operation(request):
+    return OperationService.update_operation(request)
 
 
 @extend_schema(

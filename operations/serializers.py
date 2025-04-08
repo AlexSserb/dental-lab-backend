@@ -41,6 +41,7 @@ class FullOperationSerializer(serializers.ModelSerializer):
             "exec_start",
             "ordinal_number",
             "history",
+            "is_exec_start_editable",
         ]
 
 
@@ -61,6 +62,7 @@ class OperationSerializer(serializers.ModelSerializer):
             "product",
             "exec_start",
             "ordinal_number",
+            "is_exec_start_editable",
         ]
 
 
@@ -68,13 +70,27 @@ class OperationsPaginatedListSerializer(PaginationSerializer):
     results = OperationSerializer(many=True)
 
 
-class OperationForScheduleSerializer(serializers.Serializer):
+class OperationForTechScheduleSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=True)
     start = serializers.DateTimeField(required=True)
     end = serializers.DateTimeField(required=True)
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     product = ProductSerializer(required=True)
+    editable = serializers.BooleanField(required=True)
+
+
+class OperationForScheduleSerializer(OperationForTechScheduleSerializer):
+    resource_id = serializers.UUIDField()
+    error = serializers.BooleanField()
+    error_description = serializers.CharField()
+
+
+class SetOperationDataSerializer(serializers.Serializer):
+    operation_id = serializers.UUIDField()
+    tech_email = serializers.CharField(required=False)
+    exec_start = serializers.DateTimeField(required=False)
+    editable = serializers.BooleanField(required=False)
 
 
 class AssignOperationSerializer(serializers.Serializer):

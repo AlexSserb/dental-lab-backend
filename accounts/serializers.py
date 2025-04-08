@@ -91,16 +91,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     customers = CustomerSerializer(many=True)
     group = serializers.SerializerMethodField()
+    group_id = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "created_at", "customers", "group"]
+        fields = ["email", "first_name", "last_name", "created_at", "customers", "group", "group_id"]
 
     def get_group(self, user):
         group = user.groups.values_list("name", flat=True).first()
         if not group:
             group = "Врач"
         return group
+
+    def get_group_id(self, user) -> int:
+        group_id = user.groups.values_list("id", flat=True).first()
+        if not group_id:
+            group_id = -1
+        return group_id
 
 
 class UserEditProfileSerializer(serializers.ModelSerializer):

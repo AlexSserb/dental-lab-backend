@@ -82,6 +82,7 @@ class Operation(BaseModel):
     created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
     ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер")
     exec_start = models.DateTimeField(null=True, blank=True, verbose_name="Начало выполнения")
+    is_exec_start_editable = models.BooleanField(default=True, verbose_name="Можно ли редактировать время выполнения")
 
     class Meta:
         verbose_name = "Операция"

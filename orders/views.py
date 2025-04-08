@@ -67,7 +67,7 @@ def create_order(request):
 @extend_schema(
     operation_id="confirm_order",
     request=OrderDiscountSetterSerializer,
-    responses=OrderSerializer,
+    responses=OrderWithPhysicianSerializer,
 )
 @api_view(["POST"])
 @permission_classes([IsLabAdmin])
