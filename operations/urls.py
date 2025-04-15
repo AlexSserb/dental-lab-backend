@@ -19,4 +19,6 @@ urlpatterns = [
     ),
     path("update-operation", views.update_operation, name="update-operation"),
     path("assign-operation", views.assign_operation, name="operation-assignment"),
+    path("plan", views.generate_optimized_plan, name="generate-optimized-plan"),
+    path("plan/apply", views.apply_optimized_plan, name="apply-optimized-plan"),
 ]

@@ -104,3 +104,13 @@ class UpdateOperationStatusSerializer(serializers.Serializer):
         queryset=OperationStatus.objects.all(),
         pk_field=serializers.UUIDField(),
     )
+
+
+class ApplyOperationsSerializer(serializers.Serializer):
+    operation_id = serializers.CharField(required=True)
+    tech_email = serializers.CharField(required=True)
+    exec_start = serializers.DateTimeField(required=True)
+
+
+class ApplyOperationsPlanSerializer(serializers.Serializer):
+    operations = ApplyOperationsSerializer(many=True)

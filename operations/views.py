@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from accounts.permissions import IsLabAdmin, IsTech
 from operations.serializers import *
@@ -125,3 +126,23 @@ class OperationStatusesList(ListAPIView):
     queryset = OperationStatus.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = OperationStatusSerializer
+
+
+@extend_schema(
+    operation_id="generate_optimized_plan",
+    responses=OperationForScheduleSerializer(many=True),
+)
+@api_view(["POST"])
+@permission_classes([IsLabAdmin])
+def generate_optimized_plan(request):
+    return OperationService.generate_optimized_plan()
+
+
+@extend_schema(
+    operation_id="apply_optimized_plan",
+    request=ApplyOperationsPlanSerializer,
+)
+@api_view(["POST"])
+@permission_classes([IsLabAdmin])
+def apply_optimized_plan(request):
+    return OperationService.apply_optimized_plan(request)

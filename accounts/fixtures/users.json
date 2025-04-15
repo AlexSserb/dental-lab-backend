@@ -33,9 +33,6 @@
       "is_active": true
     }
   },
-
-
-
   {
     "model": "accounts.user",
     "pk": "4852bf52-dced-4e76-87a0-e8f67462dbc1",
@@ -57,8 +54,6 @@
       ]
     }
   },
-
-
   {
     "model": "accounts.user",
     "pk": "83525595-781c-4c2e-ba82-713f55039cbb",
@@ -206,7 +201,7 @@
       "customers": []
     }
   },
-    {
+  {
     "model": "accounts.user",
     "pk": "998ed10d-0572-4615-a4bc-e09ae2a0a0de",
     "fields": {
@@ -222,6 +217,90 @@
       "created_at": "2025-02-11",
       "groups": [
         4
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "93bc57e2-3cd5-41ff-a4ab-3b5e7668bf60",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-10T10:03:48.931Z",
+      "email": "tech8@gmail.com",
+      "first_name": "Никита",
+      "last_name": "Татищев",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-08",
+      "groups": [
+        2
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "4afa008d-9f53-4d7f-a81c-f021e7769827",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-03-01T18:03:48.931Z",
+      "email": "tech9@gmail.com",
+      "first_name": "Алексей",
+      "last_name": "Задорнов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-03-01",
+      "groups": [
+        3
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "2b7880af-4c0e-4c49-b34b-d79230b1978f",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-15T18:03:48.931Z",
+      "email": "tech10@gmail.com",
+      "first_name": "Карим",
+      "last_name": "Обухов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-09",
+      "groups": [
+        4
+      ],
+      "user_permissions": [],
+      "customers": []
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": "6f3f3dd7-36d2-4e24-a35d-7804a85afc67",
+    "fields": {
+      "password": "pbkdf2_sha256$720000$C8AquH0v1fUGLZFcGRHrAK$E9aNxlSRLVzNFXDgRHzrJhFrrxODlgFtUejwkPSnV7Q=",
+      "last_login": "2025-02-20T18:03:48.931Z",
+      "email": "tech11@gmail.com",
+      "first_name": "Артем",
+      "last_name": "Гаврилов",
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "is_verified": true,
+      "created_at": "2025-02-20",
+      "groups": [
+        5
       ],
       "user_permissions": [],
       "customers": []

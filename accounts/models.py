@@ -1,5 +1,5 @@
-
 import uuid
+from typing import Optional
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -102,6 +102,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.email}"
+
+    def get_tech_group(self) -> Optional[str]:
+        group_names = { 1: None, 2: "MO", 3: "CA", 4: "CE", 5: "DE" }
+        groups = self.groups.values("id")
+        if len(groups) > 0:
+            return group_names[groups[0]["id"]]
+        return
 
 
 # Данные зуботехнической лаборатории

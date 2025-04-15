@@ -131,12 +131,15 @@ class UserService:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @staticmethod
-    def get_technicians(group_id: Optional[int] = None) -> Response:
+    def get_technician_models(group_id: Optional[int] = None) -> list[User]:
         if group_id:
-            technicians = User.objects.filter(groups__id=group_id)
-        else:
-            tech_group_ids = [2, 3, 4, 5]
-            technicians = User.objects.filter(groups__id__in=tech_group_ids)
+            return User.objects.filter(groups__id=group_id)
+        tech_group_ids = [2, 3, 4, 5]
+        return User.objects.filter(groups__id__in=tech_group_ids)
+
+    @staticmethod
+    def get_technicians(group_id: Optional[int] = None) -> Response:
+        technicians = UserService.get_technician_models(group_id)
         serializer = UserProfileSerializer(technicians, many=True)
         return Response(serializer.data)
 
