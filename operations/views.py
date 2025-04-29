@@ -3,7 +3,6 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from accounts.permissions import IsLabAdmin, IsTech
 from operations.serializers import *
@@ -146,3 +145,13 @@ def generate_optimized_plan(request):
 @permission_classes([IsLabAdmin])
 def apply_optimized_plan(request):
     return OperationService.apply_optimized_plan(request)
+
+
+@extend_schema(
+    operation_id="assign_order_operations",
+    request=AssignOrderOperations,
+)
+@api_view(["POST"])
+@permission_classes([IsLabAdmin])
+def assign_order_operations(request):
+    return OperationService.assign_order_operations(request)

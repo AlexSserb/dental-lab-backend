@@ -3,6 +3,7 @@ from rest_framework import serializers
 from accounts.serializers import UserProfileSerializer
 from core.serializers import PaginationSerializer
 from operations.models import OperationType, OperationStatus, Operation, OperationEvent
+from orders.models import Order
 
 
 class OperationTypeSerializer(serializers.ModelSerializer):
@@ -114,3 +115,10 @@ class ApplyOperationsSerializer(serializers.Serializer):
 
 class ApplyOperationsPlanSerializer(serializers.Serializer):
     operations = ApplyOperationsSerializer(many=True)
+
+
+class AssignOrderOperations(serializers.Serializer):
+    order = serializers.PrimaryKeyRelatedField(
+        queryset=Order.objects.all(),
+        pk_field=serializers.UUIDField(),
+    )

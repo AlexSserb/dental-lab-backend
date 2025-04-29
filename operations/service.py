@@ -174,11 +174,12 @@ class OperationService:
         operations = (
             Operation.objects
             .select_related(
-                'product__order'
-            ).order_by(
-                'product__order__deadline',
-                'product_id',
-                'ordinal_number'
+                "product__order",
+            )
+            .order_by(
+                "product__order__deadline",
+                "product_id",
+                "ordinal_number"
             )
         )
         return operations
@@ -218,8 +219,6 @@ class OperationService:
         pause = timedelta(minutes=5)
 
         operations: list[Operation] = OperationService._get_operations_to_distribute()
-        for operation in operations:
-            print(operation.exec_start)
         technicians: list[User] = UserService.get_technician_models()
 
         # Prepare data structures
@@ -325,8 +324,128 @@ class OperationService:
 
         Operation.objects.bulk_update(
             operations_to_update,
-            ['exec_start', 'tech_id'],
+            ["exec_start", "tech_id"],
             batch_size=500,
         )
 
+        return Response(status=status.HTTP_200_OK)
+
+    @staticmethod
+    def _get_operations_for_order(order: Order) -> list[Operation]:
+        operations: list[Operation] = []
+        for product in order.products.all():
+            operations += product.operations.all()
+        return operations
+
+    @staticmethod
+    def _get_operations_with_exclusion(order_to_exclude: Order) -> list[Operation]:
+        today = datetime.now(tz=pytz.UTC)
+        today.replace(hour=0, minute=0, second=0, microsecond=0)
+        operations = (
+            Operation.objects
+            .select_related(
+                "product__order",
+            )
+            .filter(exec_start__gt=today)
+            .order_by(
+                "product__order__deadline",
+                "product_id",
+                "ordinal_number"
+            )
+        )
+        operations = [op for op in operations if op.product.order_id != order_to_exclude.id]
+        return operations
+
+    @staticmethod
+    def assign_order_operations(request) -> Response:
+        serializer = AssignOrderOperations(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        pause = timedelta(minutes=5)
+
+        order = serializer.validated_data["order"]
+        operations: list[Operation] = OperationService._get_operations_for_order(order)
+        technicians: list[User] = UserService.get_technician_models()
+
+        # Prepare data structures
+        operations_by_product: dict[UUID, list[Operation]] = defaultdict(list)
+        for op in operations:
+            operations_by_product[op.product_id].append(op)
+
+        # Initialize tech queues with their current assignments
+        tech_queues: dict[str, list[tuple[datetime, UUID, User]]] = defaultdict(list)
+
+        # First process all non-editable operations to set tech availability
+        non_editable_ops = OperationService._get_operations_with_exclusion(order)
+        for op in non_editable_ops:
+            op_duration = timedelta(
+                minutes=op.operation_type.exec_time.minute,
+                hours=op.operation_type.exec_time.hour,
+            )
+            tech_end_time = op.exec_start + op_duration + pause
+            heapq.heappush(tech_queues[op.tech.get_tech_group()], (tech_end_time, op.tech.id, op.tech))
+
+        # Then add all remaining available techs
+        for tech in technicians:
+            # Only add if not already in queue (from non-editable ops)
+            if not any(t.id == tech.id for queue in tech_queues.values() for (_, _, t) in queue):
+                heapq.heappush(tech_queues[tech.get_tech_group()], (datetime.now(tz=pytz.UTC), tech.id, tech))
+
+        ops_to_update: list[Operation] = []
+
+        for product_id, product_ops in operations_by_product.items():
+            for op in product_ops:
+                # Skip operations that shouldn't be modified
+                if not op.is_exec_start_editable:
+                    continue
+
+                if not tech_queues.get(op.operation_type.group):
+                    raise ValueError(f"No available technician for operation type {op.operation_type.group}")
+
+                available_time, tech_id, tech = heapq.heappop(tech_queues[op.operation_type.group])
+
+                # Calculate start time
+                start_time: datetime = available_time
+
+                # Consider previous operations in product (both editable and non-editable)
+                if op.ordinal_number > 1:
+                    prev_ops = [o for o in operations_by_product[op.product_id]
+                                if o.ordinal_number == op.ordinal_number - 1]
+                    if prev_ops:
+                        prev_op = prev_ops[0]
+                        if prev_op.exec_start:
+                            prev_duration = timedelta(
+                                minutes=prev_op.operation_type.exec_time.minute,
+                                hours=prev_op.operation_type.exec_time.hour,
+                            )
+                            prev_end = prev_op.exec_start + prev_duration + pause
+                            start_time = max(start_time, prev_end)
+
+                op_duration: timedelta = timedelta(
+                    minutes=op.operation_type.exec_time.minute,
+                    hours=op.operation_type.exec_time.hour,
+                )
+
+                start_time, end_time = OperationService._adjust_to_work_hours(start_time, op_duration)
+
+                # Check deadline
+                deadline: date = op.product.order.deadline
+                deadline_as_datetime: datetime = datetime.combine(deadline, datetime.min.time(), tzinfo=pytz.UTC)
+                if start_time + op_duration > deadline_as_datetime:
+                    raise ValueError(f"Operation {op.id} would miss deadline")
+
+                # Prepare for update
+                op.exec_start = start_time
+                op.tech = tech
+                ops_to_update.append(op)
+
+                # Update tech availability
+                new_available_time = start_time + op_duration + pause
+                heapq.heappush(tech_queues[tech.get_tech_group()], (new_available_time, tech.id, tech))
+
+        Operation.objects.bulk_update(
+            operations,
+            ["tech", "exec_start"]
+        )
         return Response(status=status.HTTP_200_OK)

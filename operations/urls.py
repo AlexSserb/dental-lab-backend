@@ -21,4 +21,5 @@ urlpatterns = [
     path("assign-operation", views.assign_operation, name="operation-assignment"),
     path("plan", views.generate_optimized_plan, name="generate-optimized-plan"),
     path("plan/apply", views.apply_optimized_plan, name="apply-optimized-plan"),
+    path("assign-operations/order", views.assign_order_operations, name="assign-operations-order"),
 ]
