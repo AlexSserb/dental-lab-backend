@@ -4,7 +4,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from accounts.permissions import IsLabAdmin
 from orders.reports import AcceptanceReport, InvoiceForPayment, OrderReport
@@ -116,3 +116,23 @@ def get_acceptance_report(request, order_id: str):
 @permission_classes([IsAuthenticated])
 def get_invoice_for_payment(request, order_id: str):
     return OrderService.get_order(order_id, InvoiceForPayment)
+
+
+@extend_schema(
+    operation_id="report_defect",
+    request=ReportDefectSerializer,
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def report_defect(request):
+    return OrderService.report_defect(request)
+
+
+@extend_schema(
+    operation_id="cancel_order",
+    request=CancelOrderSerializer,
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cancel_order(request):
+    return OrderService.cancel_order(request)

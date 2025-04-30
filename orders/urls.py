@@ -23,5 +23,7 @@ urlpatterns = [
         "invoice-for-payment/<str:order_id>/",
         views.get_invoice_for_payment,
         name="invoice-for-payment",
-    )
+    ),
+    path("report-defect", views.report_defect, name="report-defect"),
+    path("cancel-order", views.cancel_order, name="cancel-order"),
 ]

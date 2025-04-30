@@ -21,7 +21,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer", "deadline"]
+        fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer", "deadline",
+                  "comment_after_accept"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()
@@ -39,7 +40,8 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer", "deadline"]
+        fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer", "deadline",
+                  "comment_after_accept"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()
@@ -69,3 +71,14 @@ class DiscountSetterSerializer(serializers.Serializer):
 class OrderDiscountSetterSerializer(serializers.Serializer):
     order_discount_data = DiscountSetterSerializer()
     products_discounts_data = DiscountSetterSerializer(many=True)
+
+
+class ReportDefectSerializer(serializers.Serializer):
+    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), pk_field=serializers.UUIDField())
+    comment_after_accept = serializers.CharField(max_length=500, allow_blank=True, default="")
+    products = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), pk_field=serializers.UUIDField(),
+                                                  many=True)
+
+
+class CancelOrderSerializer(serializers.Serializer):
+    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), pk_field=serializers.UUIDField())

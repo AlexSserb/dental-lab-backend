@@ -1,7 +1,6 @@
 import enum
 from datetime import datetime, timedelta
 
-import pytz
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -209,6 +208,118 @@ class Command(BaseCommand):
             teeth=[41, 42],
         )
         product9.save()
+        # endregion
+
+        # region order 4 DEFECT
+        order4 = Order(
+            user_id=DOCTOR_ID,
+            status_id=OrderStatuses.DEFECT_FOUND,
+            order_date=start - timedelta(days=5),
+            deadline=start + timedelta(days=1),
+            discount=0,
+            comment="",
+            customer_id=CUSTOMER_ID,
+            comment_after_accept="Коронка для зуба 13 выполнена не в том цвете.",
+        )
+        order4.save()
+
+        product10 = Product(
+            product_type_id=ProductTypes.PRODUCT_1,
+            product_status_id=ProductStatuses.DEFECT_FOUND,
+            order_id=order4.id,
+            amount=5,
+            discount=7,
+            teeth=[11, 12, 13, 14, 15],
+        )
+        product10.save()
+
+        product11 = Product(
+            product_type_id=ProductTypes.PRODUCT_2,
+            product_status_id=ProductStatuses.READY,
+            order_id=order4.id,
+            amount=1,
+            discount=7,
+            teeth=[11],
+        )
+        product11.save()
+        # endregion
+
+        # region order 5 COMPLETED
+        order5 = Order(
+            user_id=DOCTOR_ID,
+            status_id=OrderStatuses.READY,
+            order_date=start - timedelta(days=5),
+            deadline=start + timedelta(days=1),
+            discount=4,
+            comment="",
+            customer_id=CUSTOMER_ID,
+            comment_after_accept="",
+        )
+        order5.save()
+
+        product12 = Product(
+            product_type_id=ProductTypes.PRODUCT_3,
+            product_status_id=ProductStatuses.READY,
+            order_id=order5.id,
+            amount=1,
+            discount=7,
+            teeth=[44],
+        )
+        product12.save()
+
+        product13 = Product(
+            product_type_id=ProductTypes.PRODUCT_2,
+            product_status_id=ProductStatuses.READY,
+            order_id=order5.id,
+            amount=2,
+            discount=7,
+            teeth=[11, 12],
+        )
+        product13.save()
+        # endregion
+
+        # region order 6 FRESH
+        order6 = Order(
+            user_id=DOCTOR_ID,
+            status_id=OrderStatuses.SENT_FOR_FORMING,
+            order_date=start - timedelta(days=5),
+            deadline=start + timedelta(days=1),
+            discount=4,
+            comment="",
+            customer_id=CUSTOMER_ID,
+            comment_after_accept="",
+        )
+        order6.save()
+
+        product14 = Product(
+            product_type_id=ProductTypes.PRODUCT_3,
+            product_status_id=ProductStatuses.READY,
+            order_id=order6.id,
+            amount=3,
+            discount=7,
+            teeth=[44, 45, 46],
+        )
+        product14.save()
+
+        product15 = Product(
+            product_type_id=ProductTypes.PRODUCT_2,
+            product_status_id=ProductStatuses.READY,
+            order_id=order6.id,
+            amount=1,
+            discount=7,
+            teeth=[22],
+        )
+        product15.save()
+
+        product16 = Product(
+            product_type_id=ProductTypes.PRODUCT_1,
+            product_status_id=ProductStatuses.READY,
+            order_id=order6.id,
+            amount=3,
+            discount=7,
+            teeth=[35, 36, 37],
+        )
+        product16.save()
         # endregion
 
         # operations

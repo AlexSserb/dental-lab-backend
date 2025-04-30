@@ -31,7 +31,21 @@ class OrderStatus(BaseModel):
     def get_default_status():
         status = OrderStatus.objects.filter(number=1).first()
         if not status:
-            status = OrderStatus.objects.create(name="Default status", number=1)
+            status = OrderStatus.objects.create(name="Отправлено для оформления наряда", number=1)
+        return status
+
+    @staticmethod
+    def get_defect_status():
+        status = OrderStatus.objects.filter(number=5).first()
+        if not status:
+            status = OrderStatus.objects.create(name="Найден дефект", number=5)
+        return status
+
+    @staticmethod
+    def get_canceled_status():
+        status = OrderStatus.objects.filter(number=6).first()
+        if not status:
+            status = OrderStatus.objects.create(name="Отменен", number=6)
         return status
 
 
@@ -46,6 +60,8 @@ class Order(BaseModel):
     comment = models.CharField(default="", max_length=512, verbose_name="Комментарий", blank=True)
     customer = models.ForeignKey("accounts.Customer", related_name="orders", on_delete=models.CASCADE, null=True,
                                  verbose_name="Заказчик")
+    comment_after_accept = models.CharField(max_length=512, verbose_name="Комментарий после выполнения",
+                                            default="", blank=True)
 
     class Meta:
         verbose_name = "Заказ"

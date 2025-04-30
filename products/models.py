@@ -55,6 +55,13 @@ class ProductStatus(BaseModel):
             status = ProductStatus.objects.create(name="Default status", number=1)
         return status
 
+    @staticmethod
+    def get_defect_status():
+        status = ProductStatus.objects.filter(number=4).first()
+        if not status:
+            status = ProductStatus.objects.create(name="Найден дефект", number=4)
+        return status
+
 
 class Product(BaseModel):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
