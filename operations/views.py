@@ -27,11 +27,11 @@ def get_operations_for_tech(request):
 
 
 @extend_schema(
-    operation_id="get_for_product",
+    operation_id="get_for_work",
     responses=FullOperationSerializer(many=True),
     parameters=[
         OpenApiParameter(
-            name="product_id",
+            name="work_id",
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.PATH,
         ),
@@ -39,8 +39,8 @@ def get_operations_for_tech(request):
 )
 @api_view(["GET"])
 @permission_classes([IsLabAdmin])
-def get_operations_for_product(request, product_id: str):
-    return OperationService.get_for_product(product_id)
+def get_operations_for_work(request, work_id: str):
+    return OperationService.get_for_work(work_id)
 
 
 @extend_schema(

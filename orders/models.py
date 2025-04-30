@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from core.models import BaseModel
-from products.models import Product
+from works.models import Work
 
 User = get_user_model()
 
@@ -71,8 +71,8 @@ class Order(BaseModel):
         return f"Заказ для {self.user.last_name} {self.user.first_name}, дата создания: {self.order_date}"
 
     def get_cost(self) -> float:
-        products = Product.objects.filter(order=self).all()
-        cost = sum((product.get_cost() for product in products))
+        works = Work.objects.filter(order=self).all()
+        cost = sum((work.get_cost() for work in works))
         return round(cost, 2)
 
     def get_cost_with_discount(self) -> float:

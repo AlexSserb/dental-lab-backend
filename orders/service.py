@@ -20,7 +20,7 @@ from orders.serializers import (
     OrderDiscountSetterSerializer,
     UpdateOrderStatusSerializer, ReportDefectSerializer, CancelOrderSerializer,
 )
-from products.models import Product, ProductStatus
+from works.models import Work, WorkStatus
 
 
 class OrderService:
@@ -62,7 +62,7 @@ class OrderService:
             comment=serializer.validated_data["comment"],
             deadline=datetime.now() + timedelta(days=5),
         )
-        Product.products_from_product_types(request.data["product_types"], order)
+        Work.works_from_work_types(request.data["work_types"], order)
 
         return Response(status=status.HTTP_200_OK)
 
@@ -78,10 +78,10 @@ class OrderService:
             order.status = OrderStatus.objects.get(number=2)
             order.save()
 
-            for product_validated in serializer.validated_data["products_discounts_data"]:
-                product = Product.objects.get(pk=product_validated["id"])
-                product.discount = product_validated["discount"]
-                product.save()
+            for work_validated in serializer.validated_data["works_discounts_data"]:
+                work = Work.objects.get(pk=work_validated["id"])
+                work.discount = work_validated["discount"]
+                work.save()
 
             order_serializer = OrderWithPhysicianSerializer(order)
             return Response(order_serializer.data, status=status.HTTP_200_OK)
@@ -120,9 +120,9 @@ class OrderService:
         order.status = OrderStatus.get_defect_status()
         order.save()
 
-        for product in serializer.validated_data["products"]:
-            product.product_status = ProductStatus.get_defect_status()
-            product.save()
+        for work in serializer.validated_data["works"]:
+            work.work_status = WorkStatus.get_defect_status()
+            work.save()
 
         return Response(status=status.HTTP_200_OK)
 

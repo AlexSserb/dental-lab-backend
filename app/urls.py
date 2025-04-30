@@ -12,7 +12,7 @@ admin.site.index_title = "Главная"
 urlpatterns = [
     path("api/", include([
         path("orders/", include("orders.urls")),
-        path("products/", include("products.urls")),
+        path("works/", include("works.urls")),
         path("operations/", include("operations.urls")),
         path("accounts/", include("accounts.urls")),
         path("schema/", SpectacularAPIView.as_view(), name="schema"),

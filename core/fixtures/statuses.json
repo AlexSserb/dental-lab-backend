@@ -76,7 +76,7 @@
 
     
     {
-        "model": "products.productstatus",
+        "model": "works.workstatus",
         "pk": "45580d30-0dd4-489d-869f-791bd991b2e5",
         "fields": {
             "number": 1,
@@ -84,7 +84,7 @@
         }
     },
     {
-        "model": "products.productstatus",
+        "model": "works.workstatus",
         "pk": "6cbdb7a5-f7fc-4b7f-96bb-a21caf55045b",
         "fields": {
             "number": 2,
@@ -92,7 +92,7 @@
         }
     },
     {
-        "model": "products.productstatus",
+        "model": "works.workstatus",
         "pk": "caa4c903-ae62-414b-9b27-21dc38f326ce",
         "fields": {
             "number": 3,
@@ -100,7 +100,7 @@
         }
     },
     {
-        "model": "products.productstatus",
+        "model": "works.workstatus",
         "pk": "3710f296-d25e-4833-8a46-6e1321b7844e",
         "fields": {
             "number": 4,

@@ -20,7 +20,7 @@ class BaseTestCase(TestCase):
         "./core/fixtures/test_data/statuses.json",
         "./core/fixtures/test_data/object_types.json",
         "./core/fixtures/test_data/orders.json",
-        "./core/fixtures/test_data/products.json",
+        "./core/fixtures/test_data/works.json",
         "./core/fixtures/test_data/operations.json",
     ]
 

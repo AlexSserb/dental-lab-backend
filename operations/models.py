@@ -5,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 
 from orders.models import User
-from products.models import ProductType, Product
+from works.models import WorkType, Work
 from core.models import BaseModel
 
 
@@ -38,14 +38,14 @@ class OperationType(BaseModel):
         return f"{self.name}, группа: {self.get_group()}"
 
 
-class ProductTypeOperationType(models.Model):
-    product_type = models.ForeignKey(ProductType, on_delete=models.CASCADE, verbose_name="Тип изделия")
+class WorkTypeOperationType(models.Model):
+    work_type = models.ForeignKey(WorkType, on_delete=models.CASCADE, verbose_name="Тип работы")
     operation_type = models.ForeignKey(OperationType, on_delete=models.CASCADE, verbose_name="Тип операции")
     ordinal_number = models.PositiveIntegerField(verbose_name="Порядковый номер выполнения")
 
     class Meta:
         unique_together = (
-            "product_type",
+            "work_type",
             "ordinal_number",
         )
 
@@ -76,7 +76,7 @@ class Operation(BaseModel):
                                        verbose_name="Тип операции")
     operation_status = models.ForeignKey(OperationStatus, related_name="operations", on_delete=models.CASCADE,
                                          null=True, verbose_name="Статус")
-    product = models.ForeignKey(Product, related_name="operations", on_delete=models.CASCADE, verbose_name="Изделие")
+    work = models.ForeignKey(Work, related_name="operations", on_delete=models.CASCADE, verbose_name="Работа")
     tech = models.ForeignKey(User, related_name="operations", null=True, on_delete=models.CASCADE,
                              verbose_name="Техник", blank=True)
     created_at = models.DateTimeField(default=timezone.now, verbose_name="Дата создания")
@@ -88,12 +88,12 @@ class Operation(BaseModel):
         verbose_name = "Операция"
         verbose_name_plural = "Операции"
         unique_together = (
-            "product",
+            "work",
             "ordinal_number",
         )
 
     def __str__(self):
-        return f'Операция "{self.operation_type.name}" для изделия "{self.product.product_type}" от даты {self.product.order.order_date}'
+        return f'Операция "{self.operation_type.name}" для работы "{self.work.work_type}" от даты {self.work.order.order_date}'
 
 
 # История изменения статусов операций

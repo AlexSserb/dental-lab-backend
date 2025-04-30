@@ -47,15 +47,15 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
         return obj.get_cost()
 
 
-class ProductFromUserSerializer(serializers.Serializer):
-    product_type_id = serializers.CharField(required=True)
+class WorkFromUserSerializer(serializers.Serializer):
+    work_type_id = serializers.CharField(required=True)
     amount = serializers.IntegerField(required=True, min_value=1)
     teeth = serializers.ListField(child=serializers.IntegerField(min_value=11, max_value=48), required=True)
 
 
 class DataForOrderCreationSerializer(serializers.Serializer):
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), pk_field=serializers.UUIDField())
-    product_types = ProductFromUserSerializer(many=True)
+    work_types = WorkFromUserSerializer(many=True)
     comment = serializers.CharField(default="", max_length=512, allow_blank=True)
 
 
@@ -70,13 +70,13 @@ class DiscountSetterSerializer(serializers.Serializer):
 
 class OrderDiscountSetterSerializer(serializers.Serializer):
     order_discount_data = DiscountSetterSerializer()
-    products_discounts_data = DiscountSetterSerializer(many=True)
+    works_discounts_data = DiscountSetterSerializer(many=True)
 
 
 class ReportDefectSerializer(serializers.Serializer):
     order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), pk_field=serializers.UUIDField())
     comment_after_accept = serializers.CharField(max_length=500, allow_blank=True, default="")
-    products = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), pk_field=serializers.UUIDField(),
+    works = serializers.PrimaryKeyRelatedField(queryset=Work.objects.all(), pk_field=serializers.UUIDField(),
                                                   many=True)
 
 

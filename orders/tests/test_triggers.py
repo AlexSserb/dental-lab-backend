@@ -3,7 +3,7 @@ from django.test import TestCase
 from accounts.models import User
 from operations.models import OperationStatus, OperationEvent, Operation, OperationType
 from orders.models import *
-from products.models import ProductType, ProductStatus, Product, ProductEvent
+from works.models import WorkType, WorkStatus, Work, WorkEvent
 
 
 class TriggersTest(TestCase):
@@ -24,15 +24,15 @@ class TriggersTest(TestCase):
         cls.order = Order.objects.create(
             user=user, discount=0, status=OrderStatus.get_default_status()
         )
-        cls.product = Product.objects.create(
-            product_status=ProductStatus.get_default_status(),
-            product_type=ProductType.objects.get(name="Изделие 2"),
+        cls.work = Work.objects.create(
+            work_status=WorkStatus.get_default_status(),
+            work_type=WorkType.objects.get(name="Изделие 2"),
             order=cls.order,
             amount=1,
         )
 
         cls.operation = Operation.objects.create(
-            product=cls.product,
+            work=cls.work,
             tech=user,
             ordinal_number=1,
             operation_status=OperationStatus.get_default_status(),
@@ -58,24 +58,24 @@ class TriggersTest(TestCase):
         self.assertEqual(len(order_history), 2)
         self.assertEqual(order_history[1].status.name, "В работе")
 
-    def test_product_history_trigger(self):
-        product_history = ProductEvent.objects.filter(pgh_obj_id=self.product.id).all()
+    def test_work_history_trigger(self):
+        work_history = WorkEvent.objects.filter(pgh_obj_id=self.work.id).all()
 
-        self.assertEqual(len(product_history), 1)
-        self.assertEqual(product_history[0].product_status.name, "Работа не начата")
+        self.assertEqual(len(work_history), 1)
+        self.assertEqual(work_history[0].work_status.name, "Работа не начата")
 
         # Change status
-        self.product.product_status = ProductStatus.objects.get(number=3)
-        self.product.save()
+        self.work.work_status = WorkStatus.objects.get(number=3)
+        self.work.save()
 
         # The order history changes due to a change in the order status
-        product_history = (
-            ProductEvent.objects.filter(pgh_obj_id=self.product.id)
+        work_history = (
+            WorkEvent.objects.filter(pgh_obj_id=self.work.id)
             .order_by("pgh_created_at")
             .all()
         )
-        self.assertEqual(len(product_history), 2)
-        self.assertEqual(product_history[1].product_status.name, "Готово")
+        self.assertEqual(len(work_history), 2)
+        self.assertEqual(work_history[1].work_status.name, "Готово")
 
     def test_operation_history_trigger(self):
         operation_history = OperationEvent.objects.filter(

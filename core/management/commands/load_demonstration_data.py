@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from operations.models import Operation
 from orders.models import Order
-from products.models import Product
+from works.models import Work
 
 
 class OrderStatuses(enum.StrEnum):
@@ -18,7 +18,7 @@ class OrderStatuses(enum.StrEnum):
     IN_PROCESS = "a759097c-91a9-4749-a1e9-93edeb07fc0b"
 
 
-class ProductStatuses(enum.StrEnum):
+class WorkStatuses(enum.StrEnum):
     DEFECT_FOUND = "3710f296-d25e-4833-8a46-6e1321b7844e"
     WAITING = "45580d30-0dd4-489d-869f-791bd991b2e5"
     IN_PROCESS = "6cbdb7a5-f7fc-4b7f-96bb-a21caf55045b"
@@ -38,10 +38,10 @@ class OperationTypes(enum.StrEnum):
     PROTES = "c643d713-ff30-419f-858f-6756a14cfaaa"
 
 
-class ProductTypes(enum.StrEnum):
-    PRODUCT_1 = "a038f028-cfda-4e8b-b971-44cf7d5b84ae"
-    PRODUCT_2 = "6622d6e9-b655-4894-acab-885bf17fa6a7"
-    PRODUCT_3 = "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4"
+class WorkTypes(enum.StrEnum):
+    WORK_1 = "a038f028-cfda-4e8b-b971-44cf7d5b84ae"
+    WORK_2 = "6622d6e9-b655-4894-acab-885bf17fa6a7"
+    WORK_3 = "ce26c7f9-9afb-44cd-87ae-adb1b9f135d4"
 
 
 class Techs(enum.StrEnum):
@@ -63,10 +63,10 @@ CUSTOMER_ID = "a2203146-68ba-411f-ba45-815a52ef7236"
 DOCTOR_ID = "4852bf52-dced-4e76-87a0-e8f67462dbc1"
 
 
-class PRODUCTS(enum.StrEnum):
-    PRODUCT_1 = "2b1fa828-44aa-42d3-bb5c-6802c52097c3"
-    PRODUCT_2 = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
-    PRODUCT_3 = "8186b733-ff3f-4e28-8361-9701cb63e5e5"
+class WORKS(enum.StrEnum):
+    WORK_1 = "2b1fa828-44aa-42d3-bb5c-6802c52097c3"
+    WORK_2 = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
+    WORK_3 = "8186b733-ff3f-4e28-8361-9701cb63e5e5"
 
 
 class Command(BaseCommand):
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         print("Start loading data")
 
         Operation.objects.all().delete()
-        Product.objects.all().delete()
+        Work.objects.all().delete()
         Order.objects.all().delete()
 
         # region order 1
@@ -92,35 +92,35 @@ class Command(BaseCommand):
         )
         order1.save()
 
-        product1 = Product(
-            product_type_id=ProductTypes.PRODUCT_1,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work1 = Work(
+            work_type_id=WorkTypes.WORK_1,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order1.id,
             amount=5,
             discount=0,
             teeth=[21, 24, 25, 26, 27],
         )
-        product1.save()
+        work1.save()
 
-        product2 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work2 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order1.id,
             amount=4,
             discount=0,
             teeth=[44, 45, 46, 47],
         )
-        product2.save()
+        work2.save()
 
-        product3 = Product(
-            product_type_id=ProductTypes.PRODUCT_3,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work3 = Work(
+            work_type_id=WorkTypes.WORK_3,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order1.id,
             amount=2,
             discount=6,
             teeth=[41, 42],
         )
-        product3.save()
+        work3.save()
 
         # endregion order 1
 
@@ -136,35 +136,35 @@ class Command(BaseCommand):
         )
         order2.save()
 
-        product4 = Product(
-            product_type_id=ProductTypes.PRODUCT_1,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work4 = Work(
+            work_type_id=WorkTypes.WORK_1,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order2.id,
             amount=5,
             discount=7,
             teeth=[11, 14, 15, 32, 33],
         )
-        product4.save()
+        work4.save()
 
-        product5 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work5 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order2.id,
             amount=4,
             discount=0,
             teeth=[11, 12, 32, 33],
         )
-        product5.save()
+        work5.save()
 
-        product6 = Product(
-            product_type_id=ProductTypes.PRODUCT_3,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work6 = Work(
+            work_type_id=WorkTypes.WORK_3,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order2.id,
             amount=2,
             discount=6,
             teeth=[41, 42],
         )
-        product6.save()
+        work6.save()
         # endregion
 
         # region order 3
@@ -179,35 +179,35 @@ class Command(BaseCommand):
         )
         order3.save()
 
-        product7 = Product(
-            product_type_id=ProductTypes.PRODUCT_1,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work7 = Work(
+            work_type_id=WorkTypes.WORK_1,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order3.id,
             amount=5,
             discount=7,
             teeth=[11, 14, 15, 32, 33],
         )
-        product7.save()
+        work7.save()
 
-        product8 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work8 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order3.id,
             amount=4,
             discount=0,
             teeth=[11, 12, 32, 33],
         )
-        product8.save()
+        work8.save()
 
-        product9 = Product(
-            product_type_id=ProductTypes.PRODUCT_3,
-            product_status_id=ProductStatuses.IN_PROCESS,
+        work9 = Work(
+            work_type_id=WorkTypes.WORK_3,
+            work_status_id=WorkStatuses.IN_PROCESS,
             order_id=order3.id,
             amount=2,
             discount=6,
             teeth=[41, 42],
         )
-        product9.save()
+        work9.save()
         # endregion
 
         # region order 4 DEFECT
@@ -223,25 +223,25 @@ class Command(BaseCommand):
         )
         order4.save()
 
-        product10 = Product(
-            product_type_id=ProductTypes.PRODUCT_1,
-            product_status_id=ProductStatuses.DEFECT_FOUND,
+        work10 = Work(
+            work_type_id=WorkTypes.WORK_1,
+            work_status_id=WorkStatuses.DEFECT_FOUND,
             order_id=order4.id,
             amount=5,
             discount=7,
             teeth=[11, 12, 13, 14, 15],
         )
-        product10.save()
+        work10.save()
 
-        product11 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.READY,
+        work11 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.READY,
             order_id=order4.id,
             amount=1,
             discount=7,
             teeth=[11],
         )
-        product11.save()
+        work11.save()
         # endregion
 
         # region order 5 COMPLETED
@@ -257,25 +257,25 @@ class Command(BaseCommand):
         )
         order5.save()
 
-        product12 = Product(
-            product_type_id=ProductTypes.PRODUCT_3,
-            product_status_id=ProductStatuses.READY,
+        work12 = Work(
+            work_type_id=WorkTypes.WORK_3,
+            work_status_id=WorkStatuses.READY,
             order_id=order5.id,
             amount=1,
             discount=7,
             teeth=[44],
         )
-        product12.save()
+        work12.save()
 
-        product13 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.READY,
+        work13 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.READY,
             order_id=order5.id,
             amount=2,
             discount=7,
             teeth=[11, 12],
         )
-        product13.save()
+        work13.save()
         # endregion
 
         # region order 6 FRESH
@@ -291,44 +291,44 @@ class Command(BaseCommand):
         )
         order6.save()
 
-        product14 = Product(
-            product_type_id=ProductTypes.PRODUCT_3,
-            product_status_id=ProductStatuses.READY,
+        work14 = Work(
+            work_type_id=WorkTypes.WORK_3,
+            work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=3,
             discount=7,
             teeth=[44, 45, 46],
         )
-        product14.save()
+        work14.save()
 
-        product15 = Product(
-            product_type_id=ProductTypes.PRODUCT_2,
-            product_status_id=ProductStatuses.READY,
+        work15 = Work(
+            work_type_id=WorkTypes.WORK_2,
+            work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=1,
             discount=7,
             teeth=[22],
         )
-        product15.save()
+        work15.save()
 
-        product16 = Product(
-            product_type_id=ProductTypes.PRODUCT_1,
-            product_status_id=ProductStatuses.READY,
+        work16 = Work(
+            work_type_id=WorkTypes.WORK_1,
+            work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=3,
             discount=7,
             teeth=[35, 36, 37],
         )
-        product16.save()
+        work16.save()
         # endregion
 
         # operations
         datas = [
-            # region product 1
+            # region work 1
             Operation(
                 operation_type_id=OperationTypes.MODELS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product1.id,
+                work_id=work1.id,
                 tech_id=Techs.MODELS_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -338,7 +338,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CAD_CAM,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product1.id,
+                work_id=work1.id,
                 tech_id=Techs.CAD_CAM_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -348,7 +348,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product1.id,
+                work_id=work1.id,
                 tech_id=Techs.CERAMICS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
@@ -356,11 +356,11 @@ class Command(BaseCommand):
                 is_exec_start_editable=True,
             ),
             # endregion
-            # region product 2
+            # region work 2
             Operation(
                 operation_type_id=OperationTypes.PROTES,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product2.id,
+                work_id=work2.id,
                 tech_id=Techs.CERAMICS_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -370,7 +370,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product2.id,
+                work_id=work2.id,
                 tech_id=Techs.PROTES_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -378,11 +378,11 @@ class Command(BaseCommand):
                 is_exec_start_editable=True,
             ),
             # endregion
-            # region product 3
+            # region work 3
             Operation(
                 operation_type_id=OperationTypes.MODELS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product3.id,
+                work_id=work3.id,
                 tech_id=Techs.MODELS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -392,7 +392,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product3.id,
+                work_id=work3.id,
                 tech_id=Techs.CERAMICS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -402,7 +402,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.PROTES,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product3.id,
+                work_id=work3.id,
                 tech_id=Techs.PROTES_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
@@ -410,11 +410,11 @@ class Command(BaseCommand):
                 is_exec_start_editable=True,
             ),
             # endregion
-            # region product 4
+            # region work 4
             Operation(
                 operation_type_id=OperationTypes.MODELS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product4.id,
+                work_id=work4.id,
                 tech_id=Techs.MODELS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -424,7 +424,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product4.id,
+                work_id=work4.id,
                 tech_id=Techs.CERAMICS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -434,7 +434,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.PROTES,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product4.id,
+                work_id=work4.id,
                 tech_id=Techs.PROTES_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
@@ -442,11 +442,11 @@ class Command(BaseCommand):
                 is_exec_start_editable=True,
             ),
             # endregion
-            # region product 5
+            # region work 5
             Operation(
                 operation_type_id=OperationTypes.MODELS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product5.id,
+                work_id=work5.id,
                 tech_id=Techs.MODELS_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -456,7 +456,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product5.id,
+                work_id=work5.id,
                 tech_id=Techs.CERAMICS_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -466,7 +466,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CAD_CAM,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product5.id,
+                work_id=work5.id,
                 tech_id=Techs.CAD_CAM_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
@@ -476,7 +476,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.PROTES,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product5.id,
+                work_id=work5.id,
                 tech_id=Techs.PROTES_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=4,
@@ -484,11 +484,11 @@ class Command(BaseCommand):
                 is_exec_start_editable=True,
             ),
             # endregion
-            # region product 6
+            # region work 6
             Operation(
                 operation_type_id=OperationTypes.MODELS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product6.id,
+                work_id=work6.id,
                 tech_id=Techs.MODELS_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
@@ -498,7 +498,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CAD_CAM,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product6.id,
+                work_id=work6.id,
                 tech_id=Techs.CAD_CAM_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
@@ -508,7 +508,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product6.id,
+                work_id=work6.id,
                 tech_id=Techs.CERAMICS_3,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
@@ -518,7 +518,7 @@ class Command(BaseCommand):
             Operation(
                 operation_type_id=OperationTypes.PROTES,
                 operation_status_id=OperationStatuses.NOT_STARTED,
-                product_id=product6.id,
+                work_id=work6.id,
                 tech_id=Techs.PROTES_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=4,

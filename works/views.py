@@ -5,21 +5,21 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsLabAdmin
-from products.models import ProductType
-from .serializers import ProductTypeSerializer, ProductSerializer, ProductAndOperationsSerializer
-from .service import ProductService
+from works.models import WorkType
+from .serializers import WorkTypeSerializer, WorkSerializer, WorkAndOperationsSerializer
+from .service import WorkService
 
 
-@extend_schema(operation_id="get_product_types")
-class ProductTypeList(ListAPIView):
-    queryset = ProductType.objects.order_by("name").all()
-    serializer_class = ProductTypeSerializer
+@extend_schema(operation_id="get_work_types")
+class WorkTypeList(ListAPIView):
+    queryset = WorkType.objects.order_by("name").all()
+    serializer_class = WorkTypeSerializer
     permission_classes = [IsAuthenticated]
 
 
 @extend_schema(
     operation_id="get_for_order",
-    responses=ProductSerializer(many=True),
+    responses=WorkSerializer(many=True),
     parameters=[
         OpenApiParameter(
             name="order_id",
@@ -30,13 +30,13 @@ class ProductTypeList(ListAPIView):
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_products_for_order(request, order_id: str):
-    return ProductService.get_for_order(order_id)
+def get_works_for_order(request, order_id: str):
+    return WorkService.get_for_order(order_id)
 
 
 @extend_schema(
     operation_id="get_with_operations",
-    responses=ProductAndOperationsSerializer(many=True),
+    responses=WorkAndOperationsSerializer(many=True),
     parameters=[
         OpenApiParameter(
             name="order_id",
@@ -47,9 +47,9 @@ def get_products_for_order(request, order_id: str):
 )
 @api_view(["GET"])
 @permission_classes([IsLabAdmin])
-def get_products_with_operations(request, order_id: str):
+def get_works_with_operations(request, order_id: str):
     """
     View is called once during the formation of the order by the administrator.
     An operation list is generated for each item if it has not been generated previously.
     """
-    return ProductService.get_products_with_operations(order_id)
+    return WorkService.get_works_with_operations(order_id)

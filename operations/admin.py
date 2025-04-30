@@ -9,7 +9,7 @@ admin.site.register(OperationType, BaseModelAdmin)
 
 
 class OperationAdmin(BaseModelAdmin):
-    list_display = ["operation_type", "operation_status", "product", "tech"]
+    list_display = ["operation_type", "operation_status", "work", "tech"]
 
 
 admin.site.register(Operation, OperationAdmin)

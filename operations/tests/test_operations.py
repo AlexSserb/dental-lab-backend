@@ -19,7 +19,7 @@ class OperationsTest(BaseTestCase):
         self.assertEqual(len(resp), 1)
         self.assertTrue(resp[0]["operation_status"]["name"] == "В работе")
         self.assertEqual(resp[0]["operation_type"]["name"], "Операция 2")
-        self.assertTrue(resp[0]["product"]["product_type"]["name"] == "Изделие 2")
+        self.assertTrue(resp[0]["work"]["work_type"]["name"] == "Изделие 2")
 
     def test_get_operations_for_tech_incorrect_token(self):
         client = APIClient()
@@ -28,10 +28,10 @@ class OperationsTest(BaseTestCase):
 
         self.assertEqual(response.status_code, 401)
 
-    def test_get_operations_for_product_correct(self):
+    def test_get_operations_for_work_correct(self):
         self.set_up_for_admin()
 
-        response = self.client.get(self.url + f"/operations-for-product/60b5e09a-9d70-486e-a010-64f3504ce0a9/")
+        response = self.client.get(self.url + f"/operations-for-work/60b5e09a-9d70-486e-a010-64f3504ce0a9/")
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)

@@ -13,7 +13,7 @@ from accounts.models import User
 from accounts.services.user_service import UserService
 from core.paginations import StandardResultsSetPagination
 from operations.serializers import *
-from products.models import Product
+from works.models import Work
 
 
 class OperationService:
@@ -27,11 +27,11 @@ class OperationService:
         return paginator.get_paginated_response(serializer.data)
 
     @staticmethod
-    def get_for_product(product_id: str) -> Response:
-        operations = Operation.objects.filter(product=product_id).order_by("operation_status__number")
+    def get_for_work(work_id: str) -> Response:
+        operations = Operation.objects.filter(work=work_id).order_by("operation_status__number")
         serializer = FullOperationSerializer(operations, many=True)
 
-        # get history of operations for a product
+        # get history of operations for a work
         all_operations_history = OperationEvent.objects.select_related("operation_status")
         for operation in serializer.data:
             curr_history = all_operations_history.filter(pgh_obj=operation["id"]).order_by("-pgh_created_at")
@@ -41,7 +41,7 @@ class OperationService:
 
     @staticmethod
     def _preprocess_operation_for_schedule(operation: Operation, with_tech: bool = False) -> dict[
-        str, UUID | datetime | OperationType | OperationStatus | Product | list
+        str, UUID | datetime | OperationType | OperationStatus | Work | list
     ]:
         processed = {}
         exec_time = operation.operation_type.exec_time
@@ -52,9 +52,9 @@ class OperationService:
         processed["end"] = operation.exec_start + delta
         processed["operation_type"] = operation.operation_type
         processed["operation_status"] = operation.operation_status
-        processed["product"] = operation.product
+        processed["work"] = operation.work
         processed["editable"] = operation.is_exec_start_editable
-        processed["deadline"] = operation.product.order.deadline
+        processed["deadline"] = operation.work.order.deadline
         if with_tech:
             processed["resource_id"] = operation.tech.email if operation.tech else None
             processed["group_id"] = operation.operation_type.group
@@ -64,16 +64,16 @@ class OperationService:
         return processed
 
     @staticmethod
-    def _group_operations_by_product(operations: list[dict]) -> list[dict]:
+    def _group_operations_by_work(operations: list[dict]) -> list[dict]:
         operations_order_error = "Порядок операций нарушен"
         deadline_error = "Срок выполнения заказа нарушен"
         no_pause_error = "Между операциями должен быть перерыв 5+ минут"
 
-        product_operations: dict[int, list[dict]] = defaultdict(list)
+        work_operations: dict[int, list[dict]] = defaultdict(list)
         tech_operations: dict[int, list[dict]] = defaultdict(list)
 
         for operation in operations:
-            product_operations[operation["product"].id].append(operation)
+            work_operations[operation["work"].id].append(operation)
             tech_operations[operation["resource_id"]].append(operation)
 
         for tech_email, operations in tech_operations.items():
@@ -86,7 +86,7 @@ class OperationService:
                     sorted_operations[i]["error"] = True
                     sorted_operations[i]["error_description"] = no_pause_error
 
-        for product, operations in product_operations.items():
+        for work, operations in work_operations.items():
             for i in range(1, len(operations)):
                 if operations[i - 1]["end"] >= operations[i]["start"]:
                     operations[i - 1]["error"] = True
@@ -98,7 +98,7 @@ class OperationService:
                     operations[i]["error_description"] = deadline_error
 
         operations = []
-        for operations_row in product_operations.values():
+        for operations_row in work_operations.values():
             operations += operations_row
 
         return operations
@@ -128,7 +128,7 @@ class OperationService:
         operations = [
             self._preprocess_operation_for_schedule(operation, with_tech=True) for operation in operations
         ]
-        operations = self._group_operations_by_product(operations)
+        operations = self._group_operations_by_work(operations)
         serializer = OperationForScheduleSerializer(operations, many=True)
         return Response(serializer.data)
 
@@ -155,7 +155,7 @@ class OperationService:
 
         operation = get_object_or_404(Operation, id=serializer.validated_data["id"])
         operation.tech = get_object_or_404(User, email=serializer.validated_data["tech_email"])
-        operation.exec_start = datetime.strptime(serializer.validated_data["exec_start"], "%d.%m.%Y %H:%M")
+        operation.exec_start = datetime.strptime(serializer.validated_data["exec_start"], "%a, %d %b %Y %H:%M:%S %Z")
         operation.save()
         return Response(status=status.HTTP_200_OK)
 
@@ -174,11 +174,11 @@ class OperationService:
         operations = (
             Operation.objects
             .select_related(
-                "product__order",
+                "work__order",
             )
             .order_by(
-                "product__order__deadline",
-                "product_id",
+                "work__order__deadline",
+                "work_id",
                 "ordinal_number"
             )
         )
@@ -222,9 +222,9 @@ class OperationService:
         technicians: list[User] = UserService.get_technician_models()
 
         # Prepare data structures
-        operations_by_product: dict[UUID, list[Operation]] = defaultdict(list)
+        operations_by_work: dict[UUID, list[Operation]] = defaultdict(list)
         for op in operations:
-            operations_by_product[op.product_id].append(op)
+            operations_by_work[op.work_id].append(op)
 
         # Initialize tech queues with their current assignments
         tech_queues: dict[str, list[tuple[datetime, UUID, User]]] = defaultdict(list)
@@ -247,8 +247,8 @@ class OperationService:
 
         ops_to_update: list[Operation] = []
 
-        for product_id, product_ops in operations_by_product.items():
-            for op in product_ops:
+        for work_id, work_ops in operations_by_work.items():
+            for op in work_ops:
                 # Skip operations that shouldn't be modified
                 if not op.is_exec_start_editable:
                     continue
@@ -261,9 +261,9 @@ class OperationService:
                 # Calculate start time
                 start_time: datetime = available_time
 
-                # Consider previous operations in product (both editable and non-editable)
+                # Consider previous operations in work (both editable and non-editable)
                 if op.ordinal_number > 1:
-                    prev_ops = [o for o in operations_by_product[op.product_id]
+                    prev_ops = [o for o in operations_by_work[op.work_id]
                                 if o.ordinal_number == op.ordinal_number - 1]
                     if prev_ops:
                         prev_op = prev_ops[0]
@@ -282,12 +282,6 @@ class OperationService:
 
                 start_time, end_time = OperationService._adjust_to_work_hours(start_time, op_duration)
 
-                # Check deadline
-                deadline: date = op.product.order.deadline
-                deadline_as_datetime: datetime = datetime.combine(deadline, datetime.min.time(), tzinfo=pytz.UTC)
-                if start_time + op_duration > deadline_as_datetime:
-                    raise ValueError(f"Operation {op.id} would miss deadline")
-
                 # Prepare for update
                 op.exec_start = start_time
                 op.tech = tech
@@ -300,7 +294,7 @@ class OperationService:
         preprocessed_operations = [
             OperationService._preprocess_operation_for_schedule(operation, with_tech=True) for operation in operations
         ]
-        grouped_operations = OperationService._group_operations_by_product(preprocessed_operations)
+        grouped_operations = OperationService._group_operations_by_work(preprocessed_operations)
         serializer = OperationForScheduleSerializer(grouped_operations, many=True)
         return Response(serializer.data)
 
@@ -333,8 +327,8 @@ class OperationService:
     @staticmethod
     def _get_operations_for_order(order: Order) -> list[Operation]:
         operations: list[Operation] = []
-        for product in order.products.all():
-            operations += product.operations.all()
+        for work in order.works.all():
+            operations += work.operations.all()
         return operations
 
     @staticmethod
@@ -344,16 +338,16 @@ class OperationService:
         operations = (
             Operation.objects
             .select_related(
-                "product__order",
+                "work__order",
             )
             .filter(exec_start__gt=today)
             .order_by(
-                "product__order__deadline",
-                "product_id",
+                "work__order__deadline",
+                "work_id",
                 "ordinal_number"
             )
         )
-        operations = [op for op in operations if op.product.order_id != order_to_exclude.id]
+        operations = [op for op in operations if op.work.order_id != order_to_exclude.id]
         return operations
 
     @staticmethod
@@ -369,9 +363,9 @@ class OperationService:
         technicians: list[User] = UserService.get_technician_models()
 
         # Prepare data structures
-        operations_by_product: dict[UUID, list[Operation]] = defaultdict(list)
+        operations_by_work: dict[UUID, list[Operation]] = defaultdict(list)
         for op in operations:
-            operations_by_product[op.product_id].append(op)
+            operations_by_work[op.work_id].append(op)
 
         # Initialize tech queues with their current assignments
         tech_queues: dict[str, list[tuple[datetime, UUID, User]]] = defaultdict(list)
@@ -394,8 +388,8 @@ class OperationService:
 
         ops_to_update: list[Operation] = []
 
-        for product_id, product_ops in operations_by_product.items():
-            for op in product_ops:
+        for work_id, work_ops in operations_by_work.items():
+            for op in work_ops:
                 # Skip operations that shouldn't be modified
                 if not op.is_exec_start_editable:
                     continue
@@ -408,9 +402,9 @@ class OperationService:
                 # Calculate start time
                 start_time: datetime = available_time
 
-                # Consider previous operations in product (both editable and non-editable)
+                # Consider previous operations in work (both editable and non-editable)
                 if op.ordinal_number > 1:
-                    prev_ops = [o for o in operations_by_product[op.product_id]
+                    prev_ops = [o for o in operations_by_work[op.work_id]
                                 if o.ordinal_number == op.ordinal_number - 1]
                     if prev_ops:
                         prev_op = prev_ops[0]
@@ -428,12 +422,6 @@ class OperationService:
                 )
 
                 start_time, end_time = OperationService._adjust_to_work_hours(start_time, op_duration)
-
-                # Check deadline
-                deadline: date = op.product.order.deadline
-                deadline_as_datetime: datetime = datetime.combine(deadline, datetime.min.time(), tzinfo=pytz.UTC)
-                if start_time + op_duration > deadline_as_datetime:
-                    raise ValueError(f"Operation {op.id} would miss deadline")
 
                 # Prepare for update
                 op.exec_start = start_time

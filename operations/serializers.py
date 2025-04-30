@@ -46,13 +46,13 @@ class FullOperationSerializer(serializers.ModelSerializer):
         ]
 
 
-from products.serializers import ProductSerializer
+from works.serializers import WorkSerializer
 
 
 class OperationSerializer(serializers.ModelSerializer):
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
-    product = ProductSerializer()
+    work = WorkSerializer()
 
     class Meta:
         model = Operation
@@ -60,7 +60,7 @@ class OperationSerializer(serializers.ModelSerializer):
             "id",
             "operation_type",
             "operation_status",
-            "product",
+            "work",
             "exec_start",
             "ordinal_number",
             "is_exec_start_editable",
@@ -77,7 +77,7 @@ class OperationForTechScheduleSerializer(serializers.Serializer):
     end = serializers.DateTimeField(required=True)
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
-    product = ProductSerializer(required=True)
+    work = WorkSerializer(required=True)
     editable = serializers.BooleanField(required=True)
 
 
