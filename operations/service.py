@@ -1,6 +1,6 @@
 import heapq
 from collections import defaultdict
-from datetime import datetime, timedelta, date, time
+from datetime import datetime, timedelta, time
 from uuid import UUID
 
 import pytz
@@ -68,6 +68,10 @@ class OperationService:
         operations_order_error = "Порядок операций нарушен"
         deadline_error = "Срок выполнения заказа нарушен"
         no_pause_error = "Между операциями должен быть перерыв 5+ минут"
+        operation_in_break_error = "Операция во время обеденного перерыва"
+
+        break_start = time(hour=8)
+        break_end = time(hour=9)
 
         work_operations: dict[int, list[dict]] = defaultdict(list)
         tech_operations: dict[int, list[dict]] = defaultdict(list)
@@ -85,6 +89,14 @@ class OperationService:
                     sorted_operations[i - 1]["error_description"] = no_pause_error
                     sorted_operations[i]["error"] = True
                     sorted_operations[i]["error_description"] = no_pause_error
+
+            for i in range(len(sorted_operations)):
+                operation = sorted_operations[i]
+                op_start = operation["start"].time()
+                op_end = operation["end"].time()
+                if break_start < op_end and op_start < break_end:
+                    sorted_operations[i]["error"] = True
+                    sorted_operations[i]["error_description"] = operation_in_break_error
 
         for work, operations in work_operations.items():
             for i in range(1, len(operations)):
@@ -187,21 +199,29 @@ class OperationService:
     @staticmethod
     def _adjust_to_work_hours(start_time: datetime, duration: timedelta) -> tuple[datetime, datetime]:
         """
-        Adjusts operation time to fit within work hours (8:00-19:00).
+        Adjusts operation time to fit within work hours (8:00-12:00, 13:00-17:00).
         Returns tuple of (adjusted_start_time, adjusted_end_time)
         """
         if start_time.tzinfo is None:
             start_time = start_time.replace(tzinfo=pytz.UTC)
 
         workday_start = time(4, 0, tzinfo=pytz.UTC)
-        workday_end = time(15, 0, tzinfo=pytz.UTC)
+        break_start = time(8, 0, tzinfo=pytz.UTC)
+        break_end = time(9, 0, tzinfo=pytz.UTC)
+        workday_end = time(13, 0, tzinfo=pytz.UTC)
 
         current_day_start = datetime.combine(start_time.date(), workday_start)
+        current_break_start = datetime.combine(start_time.date(), break_start)
+        current_break_end = datetime.combine(start_time.date(), break_end)
         current_day_end = datetime.combine(start_time.date(), workday_end)
 
         # If operation starts before work hours, move to workday start
+        end_time = start_time + duration
+
         if start_time < current_day_start:
             start_time = current_day_start
+        elif current_break_start < end_time and start_time < current_break_end:
+            start_time = current_break_end + timedelta(minutes=5)
 
         end_time = start_time + duration
 
