@@ -44,7 +44,7 @@ class OperationService:
         str, UUID | datetime | OperationType | OperationStatus | Work | list
     ]:
         processed = {}
-        exec_time = operation.operation_type.exec_time
+        exec_time = operation.get_exec_time()
         delta = timedelta(hours=exec_time.hour, minutes=exec_time.minute, seconds=exec_time.second)
 
         processed["id"] = operation.id
@@ -55,6 +55,7 @@ class OperationService:
         processed["work"] = operation.work
         processed["editable"] = operation.is_exec_start_editable
         processed["deadline"] = operation.work.order.deadline
+        processed["exec_time"] = operation.get_exec_time()
         if with_tech:
             processed["resource_id"] = operation.tech.email if operation.tech else None
             processed["group_id"] = operation.operation_type.group
@@ -252,9 +253,10 @@ class OperationService:
         # First process all non-editable operations to set tech availability
         non_editable_ops = [op for op in operations if not op.is_exec_start_editable and op.exec_start and op.tech]
         for op in non_editable_ops:
+            exec_time = op.get_exec_time()
             op_duration = timedelta(
-                minutes=op.operation_type.exec_time.minute,
-                hours=op.operation_type.exec_time.hour,
+                minutes=exec_time.minute,
+                hours=exec_time.hour,
             )
             tech_end_time = op.exec_start + op_duration + pause
             heapq.heappush(tech_queues[op.tech.get_tech_group()], (tech_end_time, op.tech.id, op.tech))
@@ -288,16 +290,18 @@ class OperationService:
                     if prev_ops:
                         prev_op = prev_ops[0]
                         if prev_op.exec_start:
+                            exec_time = prev_op.get_exec_time()
                             prev_duration = timedelta(
-                                minutes=prev_op.operation_type.exec_time.minute,
-                                hours=prev_op.operation_type.exec_time.hour,
+                                minutes=exec_time.minute,
+                                hours=exec_time.hour,
                             )
                             prev_end = prev_op.exec_start + prev_duration + pause
                             start_time = max(start_time, prev_end)
 
+                exec_time = op.get_exec_time()
                 op_duration: timedelta = timedelta(
-                    minutes=op.operation_type.exec_time.minute,
-                    hours=op.operation_type.exec_time.hour,
+                    minutes=exec_time.minute,
+                    hours=exec_time.hour,
                 )
 
                 start_time, end_time = OperationService._adjust_to_work_hours(start_time, op_duration)
@@ -393,9 +397,10 @@ class OperationService:
         # First process all non-editable operations to set tech availability
         non_editable_ops = OperationService._get_operations_with_exclusion(order)
         for op in non_editable_ops:
+            exec_time = op.get_exec_time()
             op_duration = timedelta(
-                minutes=op.operation_type.exec_time.minute,
-                hours=op.operation_type.exec_time.hour,
+                minutes=exec_time.minute,
+                hours=exec_time.hour,
             )
             tech_end_time = op.exec_start + op_duration + pause
             heapq.heappush(tech_queues[op.tech.get_tech_group()], (tech_end_time, op.tech.id, op.tech))
@@ -429,16 +434,18 @@ class OperationService:
                     if prev_ops:
                         prev_op = prev_ops[0]
                         if prev_op.exec_start:
+                            exec_time = prev_op.get_exec_time()
                             prev_duration = timedelta(
-                                minutes=prev_op.operation_type.exec_time.minute,
-                                hours=prev_op.operation_type.exec_time.hour,
+                                minutes=exec_time.minute,
+                                hours=exec_time.hour,
                             )
                             prev_end = prev_op.exec_start + prev_duration + pause
                             start_time = max(start_time, prev_end)
 
+                exec_time = op.get_exec_time()
                 op_duration: timedelta = timedelta(
-                    minutes=op.operation_type.exec_time.minute,
-                    hours=op.operation_type.exec_time.hour,
+                    minutes=exec_time.minute,
+                    hours=exec_time.hour,
                 )
 
                 start_time, end_time = OperationService._adjust_to_work_hours(start_time, op_duration)

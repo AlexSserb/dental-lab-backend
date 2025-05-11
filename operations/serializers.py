@@ -1,3 +1,5 @@
+from datetime import time
+
 from rest_framework import serializers
 
 from accounts.serializers import UserProfileSerializer
@@ -9,7 +11,7 @@ from orders.models import Order
 class OperationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OperationType
-        fields = ["id", "name", "exec_time", "group"]
+        fields = ["id", "name", "exec_time_per_item", "fixed_exec_time", "group"]
 
 
 class OperationStatusSerializer(serializers.ModelSerializer):
@@ -31,6 +33,7 @@ class FullOperationSerializer(serializers.ModelSerializer):
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     tech = UserProfileSerializer()
+    exec_time = serializers.SerializerMethodField("get_exec_time")
 
     class Meta:
         model = Operation
@@ -43,7 +46,11 @@ class FullOperationSerializer(serializers.ModelSerializer):
             "ordinal_number",
             "history",
             "is_exec_start_editable",
+            "exec_time",
         ]
+
+    def get_exec_time(self, obj: Operation) -> time:
+        return obj.get_exec_time()
 
 
 from works.serializers import WorkSerializer
@@ -53,6 +60,7 @@ class OperationSerializer(serializers.ModelSerializer):
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     work = WorkSerializer()
+    exec_time = serializers.SerializerMethodField("get_exec_time")
 
     class Meta:
         model = Operation
@@ -64,7 +72,11 @@ class OperationSerializer(serializers.ModelSerializer):
             "exec_start",
             "ordinal_number",
             "is_exec_start_editable",
+            "exec_time",
         ]
+
+    def get_exec_time(self, obj: Operation) -> time:
+        return obj.get_exec_time()
 
 
 class OperationsPaginatedListSerializer(PaginationSerializer):
@@ -79,6 +91,7 @@ class OperationForTechScheduleSerializer(serializers.Serializer):
     operation_status = OperationStatusSerializer(required=True)
     work = WorkSerializer(required=True)
     editable = serializers.BooleanField(required=True)
+    exec_time = serializers.TimeField(required=True)
 
 
 class OperationForScheduleSerializer(OperationForTechScheduleSerializer):

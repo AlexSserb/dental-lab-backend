@@ -4,7 +4,8 @@
     "pk": "842cb14e-a654-4081-8334-b87917a62040",
     "fields": {
       "name": "Операция 1",
-      "exec_time": "01:10:00",
+      "fixed_exec_time": "01:10:00",
+      "exec_time_per_item": "00:00:00",
       "group": "MO"
     }
   },
@@ -13,7 +14,8 @@
     "pk": "61e5d3e3-f999-4fd6-be1a-778cc1ce3332",
     "fields": {
       "name": "Операция 2",
-      "exec_time": "01:00:00",
+      "fixed_exec_time": "00:35:00",
+      "exec_time_per_item": "00:10:00",
       "group": "CA"
     }
   },
@@ -22,7 +24,8 @@
     "pk": "b44d904a-9e53-417a-ba1c-9047e302d6a8",
     "fields": {
       "name": "Операция 3",
-      "exec_time": "00:55:00",
+      "fixed_exec_time": "00:30:00",
+      "exec_time_per_item": "00:08:00",
       "group": "CE"
     }
   },
@@ -31,7 +34,8 @@
     "pk": "c643d713-ff30-419f-858f-6756a14cfaaa",
     "fields": {
       "name": "Операция 4",
-      "exec_time": "00:45:00",
+      "fixed_exec_time": "00:45:00",
+      "exec_time_per_item": "00:00:00",
       "group": "DE"
     }
   },

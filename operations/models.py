@@ -1,12 +1,13 @@
+import datetime
 import uuid
 
 import pghistory
 from django.db import models
 from django.utils import timezone
 
+from core.models import BaseModel
 from orders.models import User
 from works.models import WorkType, Work
-from core.models import BaseModel
 
 
 # Create your models here.
@@ -19,7 +20,16 @@ class OperationType(BaseModel):
 
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
     name = models.CharField(max_length=128, verbose_name="Наименование")
-    exec_time = models.TimeField(auto_now=False, auto_now_add=False, verbose_name="Время выполнения")
+    fixed_exec_time = models.TimeField(
+        auto_now=False,
+        auto_now_add=False,
+        verbose_name="Фиксированное время выполнения операции",
+    )
+    exec_time_per_item = models.TimeField(
+        auto_now=False,
+        auto_now_add=False,
+        verbose_name="Время выполнения операции для 1 ед. изделия/работы",
+    )
     group = models.CharField(
         max_length=2,
         choices=OperationGroup.choices,
@@ -94,6 +104,16 @@ class Operation(BaseModel):
 
     def __str__(self):
         return f'Операция "{self.operation_type.name}" для работы "{self.work.work_type}" от даты {self.work.order.order_date}'
+
+    def get_exec_time(self) -> datetime.time:
+        fixed = self.operation_type.fixed_exec_time
+        per_item = self.operation_type.exec_time_per_item
+        minutes = fixed.minute + per_item.minute * self.work.amount
+        hours = fixed.hour + per_item.hour * self.work.amount + minutes // 60
+        return datetime.time(
+            hour=hours,
+            minute=minutes % 60,
+        )
 
 
 # История изменения статусов операций

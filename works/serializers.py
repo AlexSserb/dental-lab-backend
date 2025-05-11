@@ -1,3 +1,5 @@
+from datetime import time
+
 from rest_framework import serializers
 
 from accounts.serializers import UserProfileSerializer
@@ -47,6 +49,7 @@ class OperationForWorkSerializer(serializers.ModelSerializer):
     operation_type = OperationTypeSerializer(required=True)
     operation_status = OperationStatusSerializer(required=True)
     tech = UserProfileSerializer()
+    exec_time = serializers.SerializerMethodField("get_exec_time")
 
     class Meta:
         model = Operation
@@ -57,7 +60,11 @@ class OperationForWorkSerializer(serializers.ModelSerializer):
             "tech",
             "exec_start",
             "ordinal_number",
+            "exec_time",
         ]
+
+    def get_exec_time(self, obj: Operation) -> time:
+        return obj.get_exec_time()
 
 
 class WorkAndOperationsSerializer(WorkSerializer):

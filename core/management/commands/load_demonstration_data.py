@@ -342,7 +342,7 @@ class Command(BaseCommand):
                 tech_id=Techs.CAD_CAM_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
-                exec_start=start + timedelta(hours=0, minutes=50),
+                exec_start=start + timedelta(hours=1, minutes=20),
                 is_exec_start_editable=True,
             ),
             Operation(
@@ -352,7 +352,7 @@ class Command(BaseCommand):
                 tech_id=Techs.CERAMICS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
-                exec_start=start + timedelta(hours=1, minutes=45),
+                exec_start=start + timedelta(hours=2, minutes=25),
                 is_exec_start_editable=True,
             ),
             # endregion
@@ -386,17 +386,17 @@ class Command(BaseCommand):
                 tech_id=Techs.MODELS_2,
                 created_at=start - timedelta(days=1),
                 ordinal_number=1,
-                exec_start=start + timedelta(hours=0, minutes=50),
+                exec_start=start + timedelta(hours=1, minutes=20),
                 is_exec_start_editable=True,
             ),
             Operation(
                 operation_type_id=OperationTypes.CERAMICS,
                 operation_status_id=OperationStatuses.NOT_STARTED,
                 work_id=work3.id,
-                tech_id=Techs.CERAMICS_2,
+                tech_id=Techs.CERAMICS_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=2,
-                exec_start=start + timedelta(hours=0, minutes=30),
+                exec_start=start + timedelta(hours=3, minutes=0),
                 is_exec_start_editable=True,
             ),
             Operation(
@@ -406,7 +406,7 @@ class Command(BaseCommand):
                 tech_id=Techs.PROTES_1,
                 created_at=start - timedelta(days=1),
                 ordinal_number=3,
-                exec_start=start + timedelta(hours=1, minutes=35),
+                exec_start=start + timedelta(hours=5, minutes=5),
                 is_exec_start_editable=True,
             ),
             # endregion
