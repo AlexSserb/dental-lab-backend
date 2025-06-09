@@ -89,6 +89,7 @@ class Command(BaseCommand):
             discount=5,
             comment="",
             customer_id=CUSTOMER_ID,
+            tooth_color="A1",
         )
         order1.save()
 
@@ -133,6 +134,7 @@ class Command(BaseCommand):
             discount=5,
             comment="",
             customer_id=CUSTOMER_ID,
+            tooth_color="C2",
         )
         order2.save()
 
@@ -176,6 +178,7 @@ class Command(BaseCommand):
             discount=5,
             comment="",
             customer_id=CUSTOMER_ID,
+            tooth_color="D2",
         )
         order3.save()
 
@@ -220,6 +223,7 @@ class Command(BaseCommand):
             comment="",
             customer_id=CUSTOMER_ID,
             comment_after_accept="Коронка для зуба 13 выполнена не в том цвете.",
+            tooth_color="A3",
         )
         order4.save()
 
@@ -254,6 +258,7 @@ class Command(BaseCommand):
             comment="",
             customer_id=CUSTOMER_ID,
             comment_after_accept="",
+            tooth_color="B1",
         )
         order5.save()
 
@@ -284,10 +289,11 @@ class Command(BaseCommand):
             status_id=OrderStatuses.SENT_FOR_FORMING,
             order_date=start - timedelta(days=5),
             deadline=start + timedelta(days=1),
-            discount=4,
+            discount=0,
             comment="",
             customer_id=CUSTOMER_ID,
             comment_after_accept="",
+            tooth_color="D4",
         )
         order6.save()
 
@@ -296,7 +302,7 @@ class Command(BaseCommand):
             work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=3,
-            discount=7,
+            discount=0,
             teeth=[44, 45, 46],
         )
         work14.save()
@@ -306,7 +312,7 @@ class Command(BaseCommand):
             work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=1,
-            discount=7,
+            discount=0,
             teeth=[22],
         )
         work15.save()
@@ -316,7 +322,7 @@ class Command(BaseCommand):
             work_status_id=WorkStatuses.READY,
             order_id=order6.id,
             amount=3,
-            discount=7,
+            discount=0,
             teeth=[35, 36, 37],
         )
         work16.save()

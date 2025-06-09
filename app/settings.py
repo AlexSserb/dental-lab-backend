@@ -135,6 +135,8 @@ STATICFILES_DIRS = [
     Path(BASE_DIR) / Path("static/"),
 ]
 
+MEDIA_ROOT = Path(BASE_DIR) / Path("media")
+
 REST_AUTH_SERIALIZERS = {"USER_DETAILS_SERIALIZER": "api.serializers.UserSerializer"}
 
 CORS_ORIGIN_WHITELIST = (

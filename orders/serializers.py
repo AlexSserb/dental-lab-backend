@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework import serializers
 
 from accounts.models import Customer
@@ -14,15 +15,22 @@ class OrderStatusSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OrderFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderFile
+        fields = ["id", "original_name", "size"]
+
+
 class OrderSerializer(serializers.ModelSerializer):
     status = OrderStatusSerializer()
     cost = serializers.SerializerMethodField("get_cost")
     customer = CustomerSerializer()
+    files = OrderFileSerializer(many=True)
 
     class Meta:
         model = Order
         fields = ["id", "status", "order_date", "discount", "cost", "comment", "customer", "deadline",
-                  "comment_after_accept"]
+                  "comment_after_accept", "files"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()
@@ -37,11 +45,12 @@ class OrderWithPhysicianSerializer(serializers.ModelSerializer):
     cost = serializers.SerializerMethodField("get_cost")
     user = UserProfileSerializer()
     customer = CustomerSerializer()
+    files = OrderFileSerializer(many=True)
 
     class Meta:
         model = Order
         fields = ["id", "status", "order_date", "discount", "cost", "user", "comment", "customer", "deadline",
-                  "comment_after_accept"]
+                  "comment_after_accept", "files"]
 
     def get_cost(self, obj: Order) -> float:
         return obj.get_cost()
@@ -57,6 +66,21 @@ class DataForOrderCreationSerializer(serializers.Serializer):
     customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), pk_field=serializers.UUIDField())
     work_types = WorkFromUserSerializer(many=True)
     comment = serializers.CharField(default="", max_length=512, allow_blank=True)
+    tooth_color = serializers.CharField(validators=[MinLengthValidator(2), MaxLengthValidator(4)])
+
+
+class OrderCreationResponseSerializer(serializers.Serializer):
+    order_id = serializers.UUIDField(required=True)
+
+
+class LoadOrderFilesSerializer(serializers.Serializer):
+    files = serializers.ListField(child=serializers.FileField())
+
+
+class GetFileDataSerializer(serializers.Serializer):
+    base64_string = serializers.CharField()
+    filename = serializers.CharField()
+    mime_type = serializers.CharField()
 
 
 class UpdateOrderStatusSerializer(serializers.Serializer):
@@ -77,7 +101,7 @@ class ReportDefectSerializer(serializers.Serializer):
     order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), pk_field=serializers.UUIDField())
     comment_after_accept = serializers.CharField(max_length=500, allow_blank=True, default="")
     works = serializers.PrimaryKeyRelatedField(queryset=Work.objects.all(), pk_field=serializers.UUIDField(),
-                                                  many=True)
+                                               many=True)
 
 
 class CancelOrderSerializer(serializers.Serializer):

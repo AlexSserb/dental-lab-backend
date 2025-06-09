@@ -1,25 +1,22 @@
+import base64
 import calendar
+import mimetypes
+import os
 from datetime import datetime, timedelta
-from typing import Type
+from typing import Type, BinaryIO
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
 from accounts.models import DentalLabData
 from core.paginations import StandardResultsSetPagination
-from orders.models import Order, OrderStatus
 from orders.reports import Report
-from orders.serializers import (
-    OrderSerializer,
-    OrderWithPhysicianSerializer,
-    DataForOrderCreationSerializer,
-    OrderDiscountSetterSerializer,
-    UpdateOrderStatusSerializer, ReportDefectSerializer, CancelOrderSerializer,
-)
+from orders.serializers import *
+from orders.serializers import GetFileDataSerializer
 from works.models import Work, WorkStatus
 
 
@@ -29,7 +26,11 @@ class OrderService:
         order_status_cancelled = OrderStatus.get_canceled_status()
         user = request.user
         paginator = StandardResultsSetPagination()
-        orders = Order.objects.filter(~Q(status_id=order_status_cancelled.id), user=user).order_by("-order_date")
+        orders = (
+            Order.objects
+            .filter(~Q(status_id=order_status_cancelled.id), user=user)
+            .order_by("-order_date", "status__number")
+        )
         page = paginator.paginate_queryset(orders, request)
         serializer = OrderSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -39,11 +40,14 @@ class OrderService:
         order_status_cancelled = OrderStatus.get_canceled_status()
         date_from = datetime(year=year, month=month, day=1)
         date_to = datetime(year=year, month=month, day=calendar.monthrange(year, month)[1])
-        orders = Order.objects.filter(
-            ~Q(status_id=order_status_cancelled.id),
-            is_active=True,
-            order_date__range=(date_from, date_to),
-        ).order_by("-order_date")
+        orders = (
+            Order.objects.filter(
+                ~Q(status_id=order_status_cancelled.id),
+                is_active=True,
+                order_date__range=(date_from, date_to),
+            )
+            .order_by("-order_date", "status__number")
+        )
         serializer = OrderWithPhysicianSerializer(orders, many=True)
         return Response(serializer.data)
 
@@ -61,10 +65,51 @@ class OrderService:
             customer=serializer.validated_data["customer_id"],
             comment=serializer.validated_data["comment"],
             deadline=datetime.now() + timedelta(days=5),
+            tooth_color=serializer.validated_data["tooth_color"],
         )
         Work.works_from_work_types(request.data["work_types"], order)
 
+        serializer = OrderCreationResponseSerializer(instance={"order_id": order.id})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def load_order_files(request, order_id: int) -> Response:
+        files = request.FILES.getlist("files")
+
+        for file in files:
+            OrderFile.objects.create(
+                order_id=order_id,
+                file=file,
+                original_name=file.name,
+                size=file.size
+            )
         return Response(status=status.HTTP_200_OK)
+
+    @staticmethod
+    def download_file(file_id: int) -> Response:
+        try:
+            order_file = OrderFile.objects.get(pk=file_id)
+        except OrderFile.DoesNotExist:
+            raise Http404
+
+        file_path = order_file.file.path
+        if not os.path.exists(file_path):
+            raise Http404
+
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if not mime_type:
+            mime_type = "application/octet-stream"
+
+        file: BinaryIO = open(file_path, "rb")
+        base64_string: str = base64.b64encode(file.read()).decode("utf-8")
+        serializer = GetFileDataSerializer(
+            instance={
+                "base64_string": base64_string,
+                "filename": order_file.original_name,
+                "mime_type": mime_type,
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
     def confirm_order(request) -> Response:

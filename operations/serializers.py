@@ -6,6 +6,7 @@ from accounts.serializers import UserProfileSerializer
 from core.serializers import PaginationSerializer
 from operations.models import OperationType, OperationStatus, Operation, OperationEvent
 from orders.models import Order
+from orders.serializers import OrderFileSerializer
 
 
 class OperationTypeSerializer(serializers.ModelSerializer):
@@ -61,6 +62,8 @@ class OperationSerializer(serializers.ModelSerializer):
     operation_status = OperationStatusSerializer(required=True)
     work = WorkSerializer()
     exec_time = serializers.SerializerMethodField("get_exec_time")
+    files = serializers.SerializerMethodField("get_files")
+    color = serializers.SerializerMethodField("get_color")
 
     class Meta:
         model = Operation
@@ -73,10 +76,20 @@ class OperationSerializer(serializers.ModelSerializer):
             "ordinal_number",
             "is_exec_start_editable",
             "exec_time",
+            "files",
+            "color",
         ]
 
     def get_exec_time(self, obj: Operation) -> time:
         return obj.get_exec_time()
+
+    def get_files(self, obj: Operation) -> OrderFileSerializer(many=True):
+        order = obj.work.order
+        order_files = order.files.all()
+        return OrderFileSerializer(order_files, many=True).data
+
+    def get_color(self, obj: Operation) -> str:
+        return obj.work.order.tooth_color
 
 
 class OperationsPaginatedListSerializer(PaginationSerializer):

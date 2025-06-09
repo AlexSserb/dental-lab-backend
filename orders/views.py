@@ -1,14 +1,12 @@
-from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsLabAdmin
 from orders.reports import AcceptanceReport, InvoiceForPayment, OrderReport
-from core.paginations import *
 from .serializers import *
 from .service import OrderService
 
@@ -62,6 +60,23 @@ def get_orders(request, year: int, month: int):
 @permission_classes([IsAuthenticated])
 def create_order(request):
     return OrderService.create_order(request)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def load_order_files(request, order_id):
+    return OrderService.load_order_files(request, order_id)
+
+
+@extend_schema(
+    operation_id="download_file",
+    responses=GetFileDataSerializer,
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def download_file(request, file_id: int):
+    return OrderService.download_file(file_id)
 
 
 @extend_schema(
