@@ -115,6 +115,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_ATTEMPT_LIMIT   = 5          # max wrong passwords
+LOGIN_LOCKOUT_SECONDS = 5 * 60     # how long the user is locked (5 min)
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -218,4 +221,10 @@ SPECTACULAR_SETTINGS = {
         "drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields",
     ],
     "PARSER_WHITELIST": ["rest_framework.parsers.JSONParser"],
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+    }
 }

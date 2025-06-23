@@ -1,4 +1,7 @@
+from django.conf import settings
+from django.core.cache import cache
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import Token, RefreshToken
 
@@ -20,6 +23,33 @@ def get_tokens_with_payload(token: Token, user: User) -> Token:
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    MAX_ATTEMPTS = getattr(settings, "LOGIN_ATTEMPT_LIMIT", 5)
+    LOCKOUT_TIME = getattr(settings, "LOGIN_LOCKOUT_SECONDS", 300)
+
+    def _key(self, username: str) -> str:
+        return f"failed_login::{username.casefold()}"
+
+    def validate(self, attrs):
+        username = attrs.get(self.username_field)
+
+        # check if the user already locked
+        attempts = cache.get(self._key(username), 0)
+        if attempts >= self.MAX_ATTEMPTS:
+            raise AuthenticationFailed(
+                f"Слишком много попыток входа. "
+                f"Попробуйте снова через {self.LOCKOUT_TIME // 60} минут."
+            )
+
+        try:
+            data = super().validate(attrs)
+        except AuthenticationFailed:
+            attempts += 1
+            cache.set(self._key(username), attempts, self.LOCKOUT_TIME)
+            raise AuthenticationFailed(f"Неверный почтовый адрес или пароль")
+
+        cache.delete(self._key(username))
+        return data
+
     @classmethod
     def get_token(cls, user: User) -> Token:
         token = super().get_token(user)
