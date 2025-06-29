@@ -82,7 +82,7 @@ class Work(BaseModel):
 
     def __str__(self):
         return (
-            f'Изделие "{self.work_type.name}" в кол-ве {self.amount} шт. для заказа от даты {self.order.order_date}'
+            f'Работа "{self.work_type.name}" в кол-ве {self.amount} шт. для заказа от даты {self.order.order_date}'
         )
 
     @staticmethod
