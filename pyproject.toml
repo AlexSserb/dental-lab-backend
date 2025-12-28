@@ -1,3 +1,55 @@
+[project]
+name = "dental-lab"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "asgiref==3.8.1",
+    "attrs==23.2.0",
+    "babel==2.16.0",
+    "black==24.8.0",
+    "click==8.1.7",
+    "colorama==0.4.6",
+    "defusedxml==0.7.1",
+    "Django==5.0.1",
+    "django-cors-headers==4.3.1",
+    "django-pghistory==3.1.0",
+    "django-pgtrigger==4.11.0",
+    "django-rest-auth==0.9.5",
+    "djangorestframework==3.15.2",
+    "djangorestframework-camel-case==1.4.2",
+    "drf-spectacular-sidecar==2024.4.1",
+    "drf-spectacular==0.27.0",
+    "drfpasswordless==1.5.9",
+    "fonttools==4.60.0",
+    "fpdf2==2.7.9",
+    "inflection==0.5.1",
+    "Jinja2==3.1.4",
+    "jsonschema==4.2.0",
+    "jsonschema-specifications==2023.12.1",
+    "MarkupSafe==2.1.5",
+    "mypy-extensions==1.0.0",
+    "packaging==24.1",
+    "pathspec==0.12.1",
+    "pillow==11.3.0",
+    "platformdirs==4.2.2",
+    "psycopg2-binary>=2.9.9",
+    "PyJWT==2.8.0",
+    "python-docx==1.1.2",
+    "python-dotenv==1.0.1",
+    "pytz==2023.3.post1",
+    "PyYAML==6.0.1",
+    "referencing==0.32.1",
+    "rpds-py==0.17.1",
+    "setuptools==73.0.1",
+    "simple-jwt-decode==0.9.0",
+    "six==1.16.0",
+    "sqlparse==0.5.0",
+    "typing_extensions==4.9.0",
+    "tzdata==2023.4",
+    "uritemplate==4.1.1",
+    "djangorestframework-simplejwt>=5.5.1",
+]
+
 [tool.black]
 line-length = 120
 target-version = ['py311']
