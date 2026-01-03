@@ -1,4 +1,4 @@
-from black import datetime
+from datetime import datetime
 
 from accounts.models import DentalLabData
 from orders.reports.report import Report

@@ -11,6 +11,8 @@ load_dotenv()
 DATABASE_NAME = os.getenv("DATABASE_NAME")
 DATABASE_USER = os.getenv("DATABASE_USER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DATABASE_PORT = os.getenv("DATABASE_PORT")
+DATABASE_HOST = os.getenv("DATABASE_HOST")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -18,7 +20,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -92,8 +94,8 @@ DATABASES = {
         "NAME": DATABASE_NAME,
         "USER": DATABASE_USER,
         "PASSWORD": DATABASE_PASSWORD,
-        "HOST": "127.0.0.1",
-        "PORT": "5432",
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
     }
 }
 
@@ -115,8 +117,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LOGIN_ATTEMPT_LIMIT   = 5          # max wrong passwords
-LOGIN_LOCKOUT_SECONDS = 5 * 60     # how long the user is locked (5 min)
+LOGIN_ATTEMPT_LIMIT = 5  # max wrong passwords
+LOGIN_LOCKOUT_SECONDS = 5 * 60  # how long the user is locked (5 min)
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -133,6 +135,7 @@ USE_I18N = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_DIRS = [
     Path(BASE_DIR) / Path("static/"),
