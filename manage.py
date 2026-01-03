@@ -31,7 +31,7 @@ def main():
                 if total > 0.5:
                     print("nt033[91m%.3fst%s033[0m" % ( \
                         total, self._testMethodName))
-                
+
             test.TestCase.setUp = setUp
             test.TestCase.tearDown = tearDown
 
