@@ -16,6 +16,8 @@ def main():
             settings.DEBUG = False
             settings.PASSWORD_HASHERS = [
                 'django.contrib.auth.hashers.MD5PasswordHasher',
+                # test fixtures contain pbkdf2 hashes, so it must stay verifiable
+                'django.contrib.auth.hashers.PBKDF2PasswordHasher',
             ]
 
         if 'test' in sys.argv and '--time' in sys.argv:

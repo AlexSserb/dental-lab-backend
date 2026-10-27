@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.test import TestCase
 
 from accounts.models import User
@@ -22,7 +24,8 @@ class TriggersTest(TestCase):
         user.save()
 
         cls.order = Order.objects.create(
-            user=user, discount=0, status=OrderStatus.get_default_status()
+            user=user, discount=0, status=OrderStatus.get_default_status(),
+            deadline=date(2025, 1, 30), tooth_color="A2",
         )
         cls.work = Work.objects.create(
             work_status=WorkStatus.get_default_status(),

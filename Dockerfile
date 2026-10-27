@@ -20,12 +20,12 @@ ENV PYTHONUNBUFFERED=1
 ENV UV_SYSTEM_PYTHON=1
 
 # Install uv (ultra-fast Python package installer)
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip uv
 
 # Copy the requirements file first (better caching)
 COPY pyproject.toml /app/
 
-RUN pip install .
+RUN uv pip install --system -r pyproject.toml
 
 # Stage 2: Production stage
 FROM python:3.13-slim
@@ -63,4 +63,4 @@ EXPOSE 8000
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Start the application using Gunicorn
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

@@ -5,7 +5,8 @@
     "fields": {
         "is_active": true,
         "name": "Операция 3",
-        "exec_time": "00:50:00",
+        "fixed_exec_time": "00:50:00",
+        "exec_time_per_item": "00:00:00",
         "group": "CE"
     }
 },
@@ -15,7 +16,8 @@
     "fields": {
         "is_active": true,
         "name": "Операция 2",
-        "exec_time": "00:45:00",
+        "fixed_exec_time": "00:45:00",
+        "exec_time_per_item": "00:00:00",
         "group": "CA"
     }
 },
@@ -25,12 +27,13 @@
     "fields": {
         "is_active": true,
         "name": "Операция 1",
-        "exec_time": "01:10:00",
+        "fixed_exec_time": "01:10:00",
+        "exec_time_per_item": "00:00:00",
         "group": "MO"
     }
 },
 {
-    "model": "products.producttype",
+    "model": "works.worktype",
     "pk": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
     "fields": {
         "is_active": true,
@@ -39,7 +42,7 @@
     }
 },
 {
-    "model": "products.producttype",
+    "model": "works.worktype",
     "pk": "d4e1e752-5c18-490d-99d4-0b606e50c938",
     "fields": {
         "is_active": true,
@@ -48,7 +51,7 @@
     }
 },
 {
-    "model": "products.producttype",
+    "model": "works.worktype",
     "pk": "e830ae5d-07cb-4955-96a1-0b7668c90851",
     "fields": {
         "is_active": true,
