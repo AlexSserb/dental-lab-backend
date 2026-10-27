@@ -16,11 +16,17 @@ DATABASE_HOST = os.getenv("DATABASE_HOST")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+
+def env_list(name: str, default: str = "") -> list[str]:
+    """Reads a comma-separated environment variable as a list of non-empty strings."""
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
+
+
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -55,6 +61,7 @@ SITE_ID = 1
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -145,10 +152,9 @@ MEDIA_ROOT = Path(BASE_DIR) / Path("media")
 
 REST_AUTH_SERIALIZERS = {"USER_DETAILS_SERIALIZER": "api.serializers.UserSerializer"}
 
-CORS_ORIGIN_WHITELIST = (
-    "http://localhost:5173",  # react dev local
-    "http://localhost",  # react prod
-)
+# react dev local (5173) and react prod (80) by default
+CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost")
+CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://localhost")
 
 CSRF_COOKIE_NAME = "csrftoken"
 

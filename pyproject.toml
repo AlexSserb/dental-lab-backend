@@ -8,6 +8,7 @@ dependencies = [
     # Core
     "Django==5.0.1",
     "gunicorn>=22,<24",
+    "whitenoise>=6.6,<7.0",
 
     # Django REST
     "djangorestframework>=3.15,<4.0",
