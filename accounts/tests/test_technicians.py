@@ -16,7 +16,7 @@ class TechniciansTest(BaseAccountsTestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Bearer " + self.token)
 
     def test_get_technicians_by_id(self):
-        response = self.client.get(self.URL + "/technicians/5")
+        response = self.client.get(self.URL + "/technicians?group_id=5")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)

@@ -39,6 +39,7 @@ class OrdersTest(BaseTestCase):
         self.set_up_for_physician()
         data = {
             "customer_id": "a2203146-68ba-411f-ba45-815a52ef7236",
+            "tooth_color": "A2",
             "work_types": [
                 {
                     "work_type_id": "00be8d3f-a127-4de3-a1b7-1c5d093c2ae7",
@@ -55,7 +56,7 @@ class OrdersTest(BaseTestCase):
 
         response = self.client.post(self.url + "/create-order/", data=data, format="json")
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         user = User.objects.get(email=self.physician_email)
         order = Order.objects.filter(user=user).latest("order_date")

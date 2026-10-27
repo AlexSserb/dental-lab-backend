@@ -100,7 +100,7 @@ class ProfileTest(BaseAccountsTestCase):
         self.assertEqual(response.data["new_password"][0].code, "min_length")
 
     def test_get_technicians(self):
-        response = self.client.get(self.URL + "/technicians/2", follow=True)
+        response = self.client.get(self.URL + "/technicians?group_id=2")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)

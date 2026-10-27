@@ -80,7 +80,7 @@ class OperationsTest(BaseTestCase):
     def test_get_operations_for_schedule_correct(self):
         self.set_up_for_tech()
 
-        response = self.client.get(self.url + f"/operations-for-schedule/2024-03-25/tech2@mail.com")
+        response = self.client.get(self.url + f"/operations-for-schedule/25.03.2024/tech2@mail.com")
         resp: list = response.data
 
         self.assertEqual(response.status_code, 200)
@@ -111,7 +111,7 @@ class OperationsTest(BaseTestCase):
 
         test_data = {
             "id": operation_id,
-            "execStart": "2024-04-02T16:08:00.000Z",
+            "execStart": "Tue, 02 Apr 2024 16:08:00 GMT",
             "techEmail": tech_email,
         }
 

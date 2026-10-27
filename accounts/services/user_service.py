@@ -47,7 +47,7 @@ class UserService:
 
         Util.send_email(data=data)
 
-        return Response(MessageSerializer(message="Сообщение для подтверждения почты отправлено"))
+        return Response(MessageSerializer({"message": "Сообщение для подтверждения почты отправлено"}).data)
 
     @staticmethod
     def register(request: WSGIRequest) -> Response:
@@ -62,7 +62,7 @@ class UserService:
             refresh = CustomTokenObtainPairSerializer.get_token(user)
             UserService.send_email_verification(request, user)
 
-            return Response(TokenPairSerializer(refresh=str(refresh), access=str(refresh.access_token)))
+            return Response(TokenPairSerializer({"refresh": str(refresh), "access": str(refresh.access_token)}).data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

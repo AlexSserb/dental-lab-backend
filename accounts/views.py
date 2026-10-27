@@ -1,4 +1,3 @@
-from typing import Optional
 
 from django.core.handlers.wsgi import WSGIRequest
 from drf_spectacular.types import OpenApiTypes
@@ -147,8 +146,9 @@ def get_technicians_by_group(request):
 )
 @api_view(["GET"])
 @permission_classes([IsLabAdmin])
-def get_technicians(request, group_id: Optional[int] = None):
-    return UserService.get_technicians(group_id)
+def get_technicians(request):
+    group_id = request.query_params.get("group_id")
+    return UserService.get_technicians(int(group_id) if group_id and group_id.isdigit() else None)
 
 
 @extend_schema(
