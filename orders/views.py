@@ -1,9 +1,10 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes, throttle_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.throttling import UserRateThrottle
 
 from accounts.permissions import IsLabAdmin
 from orders.reports import AcceptanceReport, InvoiceForPayment, OrderReport
@@ -11,6 +12,10 @@ from .serializers import *
 from .service import OrderService
 
 User = get_user_model()
+
+
+class OrderDraftThrottle(UserRateThrottle):
+    scope = "order_draft"
 
 
 @extend_schema(
@@ -60,6 +65,18 @@ def get_orders(request, year: int, month: int):
 @permission_classes([IsAuthenticated])
 def create_order(request):
     return OrderService.create_order(request)
+
+
+@extend_schema(
+    operation_id="draft_order_from_text",
+    request=DraftFromTextRequestSerializer,
+    responses={200: OrderDraftResponseSerializer},
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@throttle_classes([OrderDraftThrottle])
+def draft_order_from_text(request):
+    return OrderService.draft_from_text(request)
 
 
 @api_view(["POST"])

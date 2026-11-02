@@ -1,3 +1,4 @@
+from datetime import date
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework import serializers
 
@@ -67,6 +68,31 @@ class DataForOrderCreationSerializer(serializers.Serializer):
     work_types = WorkFromUserSerializer(many=True)
     comment = serializers.CharField(default="", max_length=512, allow_blank=True)
     tooth_color = serializers.CharField(validators=[MinLengthValidator(2), MaxLengthValidator(4)])
+    deadline = serializers.DateField(required=False)
+
+    def validate_deadline(self, value):
+        if value < date.today():
+            raise serializers.ValidationError("Крайний срок не может быть в прошлом")
+        return value
+
+
+class DraftFromTextRequestSerializer(serializers.Serializer):
+    text = serializers.CharField(max_length=1000, trim_whitespace=True)
+
+
+class DraftWorkSerializer(serializers.Serializer):
+    work_type_id = serializers.UUIDField()
+    work_type_name = serializers.CharField()
+    teeth = serializers.ListField(child=serializers.IntegerField())
+    amount = serializers.IntegerField()
+
+
+class OrderDraftResponseSerializer(serializers.Serializer):
+    works = DraftWorkSerializer(many=True)
+    tooth_color = serializers.CharField(allow_null=True)
+    deadline = serializers.DateField(allow_null=True)
+    comment = serializers.CharField(allow_null=True)
+    warnings = serializers.ListField(child=serializers.CharField())
 
 
 class OrderCreationResponseSerializer(serializers.Serializer):

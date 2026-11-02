@@ -14,6 +14,8 @@ from rest_framework.response import Response
 
 from accounts.models import DentalLabData
 from core.paginations import StandardResultsSetPagination
+from llm.exceptions import LlmError, LlmValidationFailed
+from orders.drafting.service import draft_order_from_text
 from orders.reports import Report
 from orders.serializers import *
 from orders.serializers import GetFileDataSerializer
@@ -64,13 +66,29 @@ class OrderService:
             discount=0,
             customer=serializer.validated_data["customer_id"],
             comment=serializer.validated_data["comment"],
-            deadline=datetime.now() + timedelta(days=5),
+            deadline=serializer.validated_data.get("deadline") or datetime.now() + timedelta(days=5),
             tooth_color=serializer.validated_data["tooth_color"],
         )
         Work.works_from_work_types(request.data["work_types"], order)
 
         serializer = OrderCreationResponseSerializer(instance={"order_id": order.id})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def draft_from_text(request) -> Response:
+        serializer = DraftFromTextRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            draft = draft_order_from_text(serializer.validated_data["text"], user=request.user)
+        except LlmValidationFailed:
+            return Response({"detail": "Не удалось разобрать текст. Заполните форму вручную."},
+                            status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        except LlmError:  # not configured, timeout, provider down
+            return Response({"detail": "Автозаполнение сейчас недоступно. Заполните форму вручную."},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        return Response(OrderDraftResponseSerializer(draft).data)
 
     @staticmethod
     def load_order_files(request, order_id: int) -> Response:

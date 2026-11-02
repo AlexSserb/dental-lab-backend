@@ -6,6 +6,7 @@ urlpatterns = [
     path("orders-for-physician/", views.get_orders_for_physician, name="orders-for-physician"),
     path("orders/<int:year>/<int:month>/", views.get_orders, name="orders"),
     path("create-order/", views.create_order, name="create-order"),
+    path("draft-from-text/", views.draft_order_from_text, name="draft-from-text"),
     path("load-files/<str:order_id>", views.load_order_files, name="load-files"),
     path("download-file/<str:file_id>", views.download_file, name="download-file"),
     path("confirm-order/", views.confirm_order, name="confirm-order"),

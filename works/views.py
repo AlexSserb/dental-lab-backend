@@ -12,7 +12,7 @@ from .service import WorkService
 
 @extend_schema(operation_id="get_work_types")
 class WorkTypeList(ListAPIView):
-    queryset = WorkType.objects.order_by("name").all()
+    queryset = WorkType.objects.filter(is_active=True).order_by("name")
     serializer_class = WorkTypeSerializer
     permission_classes = [IsAuthenticated]
 
