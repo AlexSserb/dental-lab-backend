@@ -1,9 +1,13 @@
 from datetime import date, timedelta
 
+from django.conf import settings
+from django.db.models import Count
+
 from llm.service import call_structured
 from works.models import WorkType
 
-from .prompts import build_system_prompt
+from .prompts import build_system_prompt, build_user_message
+from .retrieval import Candidate, select_candidates
 from .schemas import OrderDraft
 
 FEATURE = "order_draft"
@@ -15,8 +19,7 @@ def draft_order_from_text(text: str, user=None, today: date | None = None) -> di
     who confirms it through the regular create-order endpoint.
     """
     today = today or date.today()
-    # Same ordering as WorkTypeList so numbers in the prompt are stable between calls
-    work_types = list(WorkType.objects.order_by("name"))
+    work_types = _pick_candidates(text)
 
     def check_business_rules(draft: OrderDraft) -> None:
         for work in draft.works:
@@ -27,8 +30,8 @@ def draft_order_from_text(text: str, user=None, today: date | None = None) -> di
 
     draft = call_structured(
         feature=FEATURE,
-        system=build_system_prompt([wt.name for wt in work_types], today),
-        user_text=text,
+        system=build_system_prompt(),
+        user_text=build_user_message([wt.name for wt in work_types], today, text),
         schema=OrderDraft,
         validator=check_business_rules,
         user=user,
@@ -36,7 +39,16 @@ def draft_order_from_text(text: str, user=None, today: date | None = None) -> di
     return _to_response(draft, work_types, today)
 
 
-def _to_response(draft: OrderDraft, work_types: list[WorkType], today: date) -> dict:
+def _pick_candidates(text: str) -> list[Candidate]:
+    """Active work types only (same set the UI offers), narrowed to the ones relevant to `text`."""
+    catalog = [
+        Candidate(id=wt.id, name=wt.name, usage=wt.usage)
+        for wt in WorkType.objects.filter(is_active=True).annotate(usage=Count("works"))
+    ]
+    return select_candidates(text, catalog, settings.AI_MAX_CANDIDATES)
+
+
+def _to_response(draft: OrderDraft, work_types: list[Candidate], today: date) -> dict:
     warnings: list[str] = []
     works = []
     for w in draft.works:

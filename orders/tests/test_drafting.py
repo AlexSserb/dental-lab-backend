@@ -1,3 +1,4 @@
+import logging
 from datetime import date, timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -68,11 +69,51 @@ class DraftFromTextTest(BaseTestCase):
         self.assertEqual(data["warnings"], [])
         self.assertEqual(LlmCallLog.objects.get().feature, "order_draft")
 
-    def test_prompt_contains_real_work_types(self):
+    def test_prompt_contains_real_work_types_in_user_message(self):
         client, _ = self.post([completion(draft())])
-        system = client.chat.completions.parse.call_args.kwargs["messages"][0]["content"]
+        system, user = client.chat.completions.parse.call_args.kwargs["messages"][:2]
         for wt in self.work_types:
-            self.assertIn(wt.name, system)
+            self.assertIn(wt.name, user["content"])
+            self.assertNotIn(wt.name, system["content"])  # system prompt must stay static to be cacheable
+        self.assertIn("Request: Циркониевая коронка", user["content"])
+
+    def test_system_prompt_identical_for_different_requests(self):
+        c1, _ = self.post([completion(draft())], text="коронка на 11")
+        c2, _ = self.post([completion(draft())], text="мост на 34-36")
+        first = c1.chat.completions.parse.call_args.kwargs["messages"][0]
+        second = c2.chat.completions.parse.call_args.kwargs["messages"][0]
+        self.assertEqual(first, second)
+
+    def test_inactive_work_types_are_not_offered(self):
+        hidden = self.work_types[0]
+        WorkType.objects.filter(id=hidden.id).update(is_active=False)
+        client, _ = self.post([completion(draft())])
+        user = client.chat.completions.parse.call_args.kwargs["messages"][1]["content"]
+        self.assertNotIn(hidden.name, user)
+
+    @override_settings(AI_MAX_CANDIDATES=5)
+    def test_large_catalog_is_narrowed_and_numbers_map_to_candidates(self):
+        for i in range(30):
+            WorkType.objects.create(name=f"Вкладка тип {i:02d}")
+        zirconia = WorkType.objects.create(name="Циркониевая коронка эстетическая")
+
+        client, res = self.post([completion(draft(number=1))])  # candidates are sorted by name
+        user = client.chat.completions.parse.call_args.kwargs["messages"][1]["content"]
+        listed = [line for line in user.split("\n") if line[:2].rstrip(".").isdigit()]
+        self.assertEqual(len(listed), 5)
+        self.assertIn("Циркониевая коронка эстетическая", user)  # matched lexically
+        names = [line.split(". ", 1)[1] for line in listed]
+        self.assertEqual(res.json()["works"][0]["workTypeName"], names[0])
+        self.assertIn(zirconia.name, names)
+
+    @override_settings(AI_CONTEXT_TOKENS=600)
+    def test_warns_when_prompt_nearly_fills_context(self):
+        # manage.py calls logging.disable(CRITICAL) for `test`; lift it for this assertion
+        logging.disable(logging.NOTSET)
+        self.addCleanup(logging.disable, logging.CRITICAL)
+        with self.assertLogs("llm.service", level="WARNING") as logs:
+            self.post([completion(draft())])  # 500 prompt tokens > 80% of 600
+        self.assertIn("context", logs.output[0])
 
     def test_out_of_range_number_is_retried_with_feedback(self):
         client, res = self.post([completion(draft(number=99)), completion(draft(number=1))])

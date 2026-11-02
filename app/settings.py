@@ -21,6 +21,10 @@ AI_API_KEY = os.getenv("AI_API_KEY", "")
 AI_MODEL = os.getenv("AI_MODEL", "")
 AI_TIMEOUT_S = float(os.getenv("AI_TIMEOUT_S") or 60)
 AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES") or 2)
+# Max work types shown to the model per draft request (the catalog is narrowed down when larger)
+AI_MAX_CANDIDATES = int(os.getenv("AI_MAX_CANDIDATES") or 20)
+# Context window of the model in tokens; a warning is logged when a prompt uses >80% of it (0 = off)
+AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 # USD per 1M tokens, used for cost estimates (0 for local models)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"

@@ -65,6 +65,7 @@ def call_structured(
             if completion.usage:
                 prompt_tokens += completion.usage.prompt_tokens
                 completion_tokens += completion.usage.completion_tokens
+                _warn_if_context_nearly_full(feature, completion.usage.prompt_tokens)
 
             message = completion.choices[0].message
             if message.refusal or message.parsed is None:
@@ -104,6 +105,13 @@ def call_structured(
         logger.info("llm feature=%s model=%s attempts=%s latency=%.2fs tokens=%s+%s cost=$%s ok=%s",
                     feature, settings.AI_MODEL, attempts, latency, prompt_tokens, completion_tokens, cost,
                     result is not None)
+
+
+def _warn_if_context_nearly_full(feature: str, prompt_tokens: int) -> None:
+    limit = settings.AI_CONTEXT_TOKENS
+    if limit and prompt_tokens > 0.8 * limit:
+        logger.warning("llm feature=%s prompt uses %s of %s context tokens; the provider may truncate it",
+                       feature, prompt_tokens, limit)
 
 
 def _append_feedback(messages: list[dict], previous: str, error: str) -> None:
