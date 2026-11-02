@@ -16,6 +16,15 @@ DATABASE_HOST = os.getenv("DATABASE_HOST")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+AI_BASE_URL = os.getenv("AI_BASE_URL") or None  # None -> https://api.openai.com/v1
+AI_API_KEY = os.getenv("AI_API_KEY", "")
+AI_MODEL = os.getenv("AI_MODEL", "")
+AI_TIMEOUT_S = float(os.getenv("AI_TIMEOUT_S") or 60)
+AI_MAX_RETRIES = int(os.getenv("AI_MAX_RETRIES") or 2)
+# USD per 1M tokens, used for cost estimates (0 for local models)
+AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
+AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
+
 
 def env_list(name: str, default: str = "") -> list[str]:
     """Reads a comma-separated environment variable as a list of non-empty strings."""
@@ -49,6 +58,7 @@ INSTALLED_APPS = [
     "orders",
     "works",
     "operations",
+    "llm",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -194,6 +204,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "COERCE_DECIMAL_TO_STRING": False,
+    "DEFAULT_THROTTLE_RATES": {"order_draft": os.getenv("AI_DRAFT_RATE", "20/hour")},
 }
 
 SIMPLE_JWT = {

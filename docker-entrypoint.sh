@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Generating migrations for model changes (if any)..."
+python manage.py makemigrations --noinput
+
 echo "Applying database migrations..."
 python manage.py migrate --noinput
 

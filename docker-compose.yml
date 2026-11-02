@@ -31,6 +31,9 @@ services:
     environment:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
+      AI_BASE_URL: ${AI_BASE_URL_DOCKER:-http://host.docker.internal:11434/v1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   postgres_data:
