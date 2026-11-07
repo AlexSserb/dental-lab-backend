@@ -84,3 +84,42 @@ class IngestServiceTests(TestCase):
         (self.root / "bad.md").write_text("## x\ntext", encoding="utf-8")
         with self.assertRaisesMessage(ValueError, "missing frontmatter fields"):
             IngestService.ingest(self.root)
+
+
+class EvalServiceTests(SimpleTestCase):
+    @staticmethod
+    def _searcher(mapping):
+        from types import SimpleNamespace
+
+        from knowledge.services.retrieval_service import RetrievedChunk
+
+        def search(question, k):
+            return [
+                RetrievedChunk(chunk=SimpleNamespace(document=SimpleNamespace(path=path)), distance=0.1 * (i + 1))
+                for i, path in enumerate(mapping[question])
+            ]
+
+        return search
+
+    def test_metrics(self):
+        from knowledge.services.eval_service import EvalService
+
+        questions = [
+            {"question": "q1", "expected": ["a.md"]},
+            {"question": "q2", "expected": ["b.md"]},
+            {"question": "q3", "expected": ["c.md"]},
+            {"question": "q4", "expected": []},
+        ]
+        mapping = {
+            "q1": ["a.md", "x.md"],              # rank 1
+            "q2": ["x.md", "x.md", "b.md"],      # rank 2 (duplicates collapse to one document)
+            "q3": ["x.md", "y.md"],              # miss
+            "q4": ["x.md"],
+        }
+        report = EvalService.run(questions, searcher=self._searcher(mapping))
+
+        self.assertEqual(len(report.answerable), 3)
+        self.assertAlmostEqual(report.hit_rate(1), 1 / 3)
+        self.assertAlmostEqual(report.hit_rate(3), 2 / 3)
+        self.assertAlmostEqual(report.mrr, (1 + 0.5 + 0) / 3)
+        self.assertEqual([c.question for c in report.failures(3)], ["q3"])
