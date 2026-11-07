@@ -29,6 +29,8 @@ AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
+
 
 def env_list(name: str, default: str = "") -> list[str]:
     """Reads a comma-separated environment variable as a list of non-empty strings."""
@@ -63,6 +65,7 @@ INSTALLED_APPS = [
     "works",
     "operations",
     "llm",
+    "knowledge",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -176,7 +179,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 # For more information, please refer to:
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # SMTP SETTINGS
 EMAIL_HOST = "smtp.yandex.ru"

@@ -1,7 +1,7 @@
 services:
   db:
     container_name: dental-lab-db
-    image: postgres:17
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USER}
