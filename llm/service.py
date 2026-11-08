@@ -92,19 +92,56 @@ def call_structured(
         error = str(exc)
         raise
     finally:
-        latency = time.monotonic() - started
-        cost = estimate_cost(prompt_tokens, completion_tokens)
+        _record_call(feature, user, started, prompt_tokens, completion_tokens, attempts, result is not None, error)
+
+
+def call_text(*, feature: str, system: str, user_text: str, user=None) -> str:
+    """Ask the model for a free-text answer (no schema, no retries beyond the SDK's transport retries)."""
+    client = get_client()
+    started = time.monotonic()
+    prompt_tokens = completion_tokens = 0
+    error = ""
+    answer: str | None = None
+
+    try:
         try:
-            LlmCallLog.objects.create(
-                feature=feature, model=settings.AI_MODEL, user=user if getattr(user, "pk", None) else None,
-                prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, attempts=attempts,
-                latency=round(latency, 3), cost=cost, success=result is not None, error=error[:512],
+            completion = client.chat.completions.create(
+                model=settings.AI_MODEL,
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user_text}],
+                temperature=0,
             )
-        except Exception:
-            logger.exception("Failed to write LlmCallLog")
-        logger.info("llm feature=%s model=%s attempts=%s latency=%.2fs tokens=%s+%s cost=$%s ok=%s",
-                    feature, settings.AI_MODEL, attempts, latency, prompt_tokens, completion_tokens, cost,
-                    result is not None)
+        except (openai.APIConnectionError, openai.APITimeoutError, openai.APIStatusError) as exc:
+            raise LlmUnavailable(f"{type(exc).__name__}: {exc}") from exc
+
+        if completion.usage:
+            prompt_tokens = completion.usage.prompt_tokens
+            completion_tokens = completion.usage.completion_tokens
+            _warn_if_context_nearly_full(feature, prompt_tokens)
+
+        answer = (completion.choices[0].message.content or "").strip()
+        if not answer:
+            raise LlmUnavailable("Empty response from the model")
+        return answer
+    except LlmError as exc:
+        error = str(exc)
+        raise
+    finally:
+        _record_call(feature, user, started, prompt_tokens, completion_tokens, 1, answer is not None, error)
+
+
+def _record_call(feature, user, started, prompt_tokens, completion_tokens, attempts, success, error) -> None:
+    latency = time.monotonic() - started
+    cost = estimate_cost(prompt_tokens, completion_tokens)
+    try:
+        LlmCallLog.objects.create(
+            feature=feature, model=settings.AI_MODEL, user=user if getattr(user, "pk", None) else None,
+            prompt_tokens=prompt_tokens, completion_tokens=completion_tokens, attempts=attempts,
+            latency=round(latency, 3), cost=cost, success=success, error=error[:512],
+        )
+    except Exception:
+        logger.exception("Failed to write LlmCallLog")
+    logger.info("llm feature=%s model=%s attempts=%s latency=%.2fs tokens=%s+%s cost=$%s ok=%s",
+                feature, settings.AI_MODEL, attempts, latency, prompt_tokens, completion_tokens, cost, success)
 
 
 def _warn_if_context_nearly_full(feature: str, prompt_tokens: int) -> None:
@@ -128,4 +165,4 @@ def _short(exc: Exception) -> str:
 
 
 __all__ = ["call_structured", "estimate_cost", "LlmError", "LlmNotConfigured", "LlmUnavailable",
-           "LlmValidationFailed"]
+           "LlmValidationFailed", "call_text"]

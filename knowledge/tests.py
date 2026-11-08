@@ -1,12 +1,17 @@
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import SimpleTestCase, TestCase
+from django.core.cache import cache
+from django.test import SimpleTestCase, TestCase, override_settings
 
+from core.tests.base_testcase import BaseTestCase
 from knowledge.models import Chunk, Document
 from knowledge.services.chunking_service import ChunkingService
 from knowledge.services.ingest_service import IngestService
+from knowledge.services.retrieval_service import RetrievedChunk
+from llm.exceptions import LlmUnavailable
 
 SAMPLE = """---
 title: Скол керамики
@@ -123,3 +128,66 @@ class EvalServiceTests(SimpleTestCase):
         self.assertAlmostEqual(report.hit_rate(3), 2 / 3)
         self.assertAlmostEqual(report.mrr, (1 + 0.5 + 0) / 3)
         self.assertEqual([c.question for c in report.failures(3)], ["q3"])
+
+
+def retrieved(text, distance, path="defects/a.md", title="Скол керамики"):
+    document = SimpleNamespace(path=path, title=title, doc_type="defect", operation_type="Керамика")
+    return RetrievedChunk(chunk=SimpleNamespace(text=text, document=document), distance=distance)
+
+
+@override_settings(KNOWLEDGE_TOP_K=4, KNOWLEDGE_MAX_DISTANCE=0.55)
+class AskKnowledgeBaseTests(BaseTestCase):
+    url = "/api/knowledge/ask/"
+
+    def setUp(self):
+        cache.clear()  # throttle counters live in the cache
+
+    def ask(self, search_result=None, answer="Охлаждайте медленно [1].", llm_error=None, **payload):
+        payload.setdefault("question", "Что делать, если скол керамики?")
+        with patch("knowledge.services.answer_service.RetrievalService.search", return_value=search_result or []) as search, \
+                patch("knowledge.services.answer_service.call_text", return_value=answer, side_effect=llm_error) as llm:
+            response = self.client.post(self.url, payload, format="json")
+        return response, search, llm
+
+    def test_physician_is_forbidden(self):
+        self.set_up_for_physician()
+        response, _, _ = self.ask([retrieved("t", 0.2)])
+        self.assertEqual(response.status_code, 403)
+
+    def test_tech_gets_answer_with_sources_and_citation_flags(self):
+        self.set_up_for_tech()
+        items = [retrieved("Причины: быстрое охлаждение", 0.2), retrieved("Решение: корректировочная масса", 0.3)]
+        response, _, llm = self.ask(items, answer="Причина — быстрое охлаждение [1].")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["answered"])
+        self.assertEqual([(s["number"], s["cited"]) for s in data["sources"]], [(1, True), (2, False)])
+        self.assertEqual(data["sources"][0]["documentTitle"], "Скол керамики")
+        prompt = llm.call_args.kwargs["user_text"]
+        self.assertIn("[1] Причины: быстрое охлаждение", prompt)
+        self.assertIn("Вопрос: Что делать, если скол керамики?", prompt)
+
+    def test_far_fragments_are_dropped_and_llm_is_not_called(self):
+        self.set_up_for_admin()
+        response, _, llm = self.ask([retrieved("unrelated", 0.7)])
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["answered"])
+        self.assertEqual(response.json()["sources"], [])
+        llm.assert_not_called()
+
+    def test_operation_type_filter_is_passed_to_retrieval(self):
+        self.set_up_for_admin()
+        _, search, _ = self.ask([retrieved("t", 0.2)], operation_type="Керамика")
+        self.assertEqual(search.call_args.args[2], "Керамика")
+
+    def test_validation(self):
+        self.set_up_for_admin()
+        self.assertEqual(self.ask(question="")[0].status_code, 400)
+        self.assertEqual(self.ask(question="x" * 501)[0].status_code, 400)
+        self.assertEqual(self.ask(operation_type="Бухгалтерия")[0].status_code, 400)
+
+    def test_llm_failure_is_503(self):
+        self.set_up_for_admin()
+        response, _, _ = self.ask([retrieved("t", 0.2)], llm_error=LlmUnavailable("down"))
+        self.assertEqual(response.status_code, 503)

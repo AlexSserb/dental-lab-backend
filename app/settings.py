@@ -30,6 +30,10 @@ AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
+# Knowledge base (RAG): fragments passed to the LLM and the cosine-distance cutoff above which a fragment is
+# considered unrelated (calibrate with `manage.py eval_retrieval`, see README).
+KNOWLEDGE_TOP_K = int(os.getenv("KNOWLEDGE_TOP_K") or 4)
+KNOWLEDGE_MAX_DISTANCE = float(os.getenv("KNOWLEDGE_MAX_DISTANCE") or 0.55)
 
 
 def env_list(name: str, default: str = "") -> list[str]:
@@ -211,7 +215,10 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "COERCE_DECIMAL_TO_STRING": False,
-    "DEFAULT_THROTTLE_RATES": {"order_draft": os.getenv("AI_DRAFT_RATE", "20/hour")},
+    "DEFAULT_THROTTLE_RATES": {
+        "order_draft": os.getenv("AI_DRAFT_RATE", "20/hour"),
+        "knowledge_ask": os.getenv("KNOWLEDGE_ASK_RATE", "60/hour"),
+    },
 }
 
 SIMPLE_JWT = {
