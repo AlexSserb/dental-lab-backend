@@ -10,6 +10,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--questions", default=str(DEFAULT_QUESTIONS), help="Path to a JSON file with cases")
+        parser.add_argument("--mode", choices=["dense", "keyword", "hybrid"], default="hybrid",
+                            help="Search to evaluate (default: hybrid = vector + keyword merged with RRF)")
+        parser.add_argument("--compare", action="store_true", help="Evaluate dense, keyword and hybrid side by side")
         parser.add_argument("--verbose", action="store_true", help="Show every question, not only failures")
 
     def handle(self, *args, **options):
@@ -17,9 +20,14 @@ class Command(BaseCommand):
         if not path.is_file():
             raise CommandError(f"Questions file not found: {path}")
 
-        report = EvalService.run(EvalService.load_questions(path))
+        questions = EvalService.load_questions(path)
+        if options["compare"]:
+            return self.compare(questions)
+
+        report = EvalService.run(questions, mode=options["mode"])
         if not report.answerable:
             raise CommandError("No answerable cases in the questions file")
+        self.stdout.write(f"Mode: {options['mode']}\n")
 
         for case in report.cases:
             if case.expected and not options["verbose"] and case.rank == 1:
@@ -45,3 +53,16 @@ class Command(BaseCommand):
                 f"Best distance for unanswerable questions: {distances} "
                 f"(answerable: min {min(answerable):.3f}, max {max(answerable):.3f})"
             )
+
+    def compare(self, questions):
+        reports = {mode: EvalService.run(questions, mode=mode) for mode in ("dense", "keyword", "hybrid")}
+        if not reports["dense"].answerable:
+            raise CommandError("No answerable cases in the questions file")
+
+        self.stdout.write(f"{'mode':9} {'hit@1':>6} {'hit@3':>6} {'hit@5':>6} {'MRR':>7}")
+        for mode, report in reports.items():
+            self.stdout.write(
+                f"{mode:9} {report.hit_rate(1):>6.0%} {report.hit_rate(3):>6.0%} "
+                f"{report.hit_rate(5):>6.0%} {report.mrr:>7.3f}"
+            )
+        self.stdout.write(f"\nAnswerable questions: {len(reports['dense'].answerable)}")

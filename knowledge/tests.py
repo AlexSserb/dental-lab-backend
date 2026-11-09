@@ -3,6 +3,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from django.contrib.postgres.search import SearchVector
 from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
 
@@ -10,7 +11,9 @@ from core.tests.base_testcase import BaseTestCase
 from knowledge.models import Chunk, Document
 from knowledge.services.chunking_service import ChunkingService
 from knowledge.services.ingest_service import IngestService
-from knowledge.services.retrieval_service import RetrievedChunk
+from knowledge.services.retrieval_service import (
+    RetrievalService, RetrievedChunk, build_keyword_query, reciprocal_rank_fusion,
+)
 from llm.exceptions import LlmUnavailable
 
 SAMPLE = """---
@@ -96,7 +99,9 @@ class EvalServiceTests(SimpleTestCase):
     def _searcher(mapping):
         from types import SimpleNamespace
 
-        from knowledge.services.retrieval_service import RetrievedChunk
+        from knowledge.services.retrieval_service import (
+    RetrievalService, RetrievedChunk, build_keyword_query, reciprocal_rank_fusion,
+)
 
         def search(question, k):
             return [
@@ -191,3 +196,71 @@ class AskKnowledgeBaseTests(BaseTestCase):
         self.set_up_for_admin()
         response, _, _ = self.ask([retrieved("t", 0.2)], llm_error=LlmUnavailable("down"))
         self.assertEqual(response.status_code, 503)
+
+
+class ReciprocalRankFusionTests(SimpleTestCase):
+    def test_item_found_by_both_searches_wins(self):
+        fused = reciprocal_rank_fusion([["a", "b", "c"], ["b", "d"]])
+        self.assertEqual([item for item, _ in fused], ["b", "a", "d", "c"])
+
+    def test_scores_use_rank_positions_only(self):
+        fused = dict(reciprocal_rank_fusion([["a", "b"], ["b"]], k=60))
+        self.assertAlmostEqual(fused["a"], 1 / 61)
+        self.assertAlmostEqual(fused["b"], 1 / 62 + 1 / 61)
+
+    def test_empty_and_single_list(self):
+        self.assertEqual(reciprocal_rank_fusion([]), [])
+        self.assertEqual([item for item, _ in reciprocal_rank_fusion([["x", "y"], []])], ["x", "y"])
+
+    def test_keyword_query(self):
+        self.assertIsNone(build_keyword_query("? ! a"))
+        self.assertIsNotNone(build_keyword_query("Как прессовать e.max?"))
+
+
+def unit_vector(index):
+    vector = [0.0] * 1024
+    vector[index] = 1.0
+    return vector
+
+
+class HybridSearchTests(TestCase):
+    """Vectors are hand-made: the question points at chunk A, but only chunk B contains the rare word."""
+
+    def setUp(self):
+        document = Document.objects.create(
+            path="d.md", title="Док", doc_type="procedure", operation_type="Модели", content_hash="h",
+        )
+        self.a = Chunk.objects.create(document=document, position=0, text="Общее описание процесса", embedding=unit_vector(0))
+        self.b = Chunk.objects.create(document=document, position=1, text="Штифты Пиндекса ставят параллельно", embedding=unit_vector(1))
+        self.c = Chunk.objects.create(document=document, position=2, text="Другое", embedding=unit_vector(2))
+        Chunk.objects.update(search_vector=SearchVector("text", config="russian"))
+        patcher = patch("knowledge.services.retrieval_service.EmbeddingService.embed", return_value=[unit_vector(0)])
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def ids(self, mode, k=3):
+        return [item.chunk.id for item in RetrievalService.search("Пиндекса", k, mode=mode)]
+
+    def test_dense_ranks_by_vector_only(self):
+        self.assertEqual(self.ids("dense")[0], self.a.id)
+
+    def test_keyword_finds_the_rare_word_that_vectors_miss(self):
+        self.assertEqual(self.ids("keyword"), [self.b.id])
+
+    def test_hybrid_contains_both_and_reports_who_found_what(self):
+        items = RetrievalService.search("Пиндекса", 3, mode="hybrid")
+        by_id = {item.chunk.id: item for item in items}
+        self.assertIn(self.b.id, by_id)  # keyword rescued it
+        self.assertEqual(by_id[self.a.id].found_by, ["vector"])
+        self.assertEqual(sorted(by_id[self.b.id].found_by), ["keyword", "vector"])
+        self.assertAlmostEqual(by_id[self.a.id].distance, 0.0)
+        self.assertTrue(all(item.score for item in items))
+
+    def test_operation_type_filter_applies_to_both_searches(self):
+        other = Document.objects.create(path="o.md", title="О", doc_type="x", operation_type="Керамика", content_hash="h2")
+        Chunk.objects.create(document=other, position=0, text="Пиндекса", embedding=unit_vector(0),
+                             search_vector=None)
+        Chunk.objects.filter(document=other).update(search_vector=SearchVector("text", config="russian"))
+        items = RetrievalService.search("Пиндекса", 10, operation_type="Модели", mode="hybrid")
+        self.assertTrue(items)
+        self.assertTrue(all(item.chunk.document.operation_type == "Модели" for item in items))

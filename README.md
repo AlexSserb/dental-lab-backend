@@ -118,7 +118,7 @@ INGEST (offline, `manage.py ingest_knowledge`)
 
 ASK (online, POST /api/knowledge/ask/)
   question --embed (bge-m3)--> vector
-     -> pgvector: top-k nearest chunks by cosine distance (optionally filtered by department)
+     -> hybrid search: pgvector nearest chunks + Postgres full-text matches, merged with RRF (see below)
      -> drop chunks farther than KNOWLEDGE_MAX_DISTANCE  (nothing left -> "no information", LLM is NOT called)
      -> prompt = rules + numbered fragments [1]..[k] + question (plain TEXT, never vectors)
      -> chat model (qwen2.5:3b-instruct) writes the answer and cites fragments as [1], [2]
@@ -128,6 +128,16 @@ ASK (online, POST /api/knowledge/ask/)
 Two different models are involved: the **embedding model** (`bge-m3`) turns text into vectors for *finding*
 fragments, the **chat model** (`AI_MODEL`) reads the found text and *writes* the answer. Vectors of different
 embedding models are not comparable, so the same model must be used for ingest and for questions.
+
+### Hybrid search
+
+Search runs two ways and merges the results. **Vector search** finds chunks by meaning (good for paraphrases and
+typos), **keyword search** (Postgres full-text, Russian stemming) finds chunks by the actual words (good for exact
+terms like `e.max`, `Пиндекса`, `КТР`). The two ranked lists are merged with **Reciprocal Rank Fusion**: every chunk
+gets `1 / (60 + rank)` from each list it appears in, the scores are summed, and the best sums win. RRF uses only
+positions, so the incomparable scores (cosine distance vs. text rank) never need to be normalised. A chunk found by
+both searches rises to the top. The `KNOWLEDGE_MAX_DISTANCE` cutoff still uses the vector distance, which is
+computed for every candidate.
 
 ### Corpus
 
@@ -201,6 +211,8 @@ document is among the top results. Run it after every change to chunking, the em
 python manage.py eval_retrieval                      # failures + summary
 python manage.py eval_retrieval --verbose            # every question
 python manage.py eval_retrieval --questions my.json  # another question set
+python manage.py eval_retrieval --mode dense         # dense | keyword | hybrid (default)
+python manage.py eval_retrieval --compare            # dense, keyword and hybrid side by side
 ```
 
 Example output:

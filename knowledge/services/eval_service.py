@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from knowledge.services.retrieval_service import RetrievalService, RetrievedChunk
+from knowledge.services.retrieval_service import Mode, RetrievalService, RetrievedChunk
 
 DEFAULT_QUESTIONS = Path(__file__).resolve().parent.parent / "evals" / "retrieval_questions.json"
 RETRIEVAL_DEPTH = 30  # chunks fetched per question, then collapsed to distinct documents
@@ -51,8 +51,9 @@ class EvalService:
         return json.loads(path.read_text(encoding="utf-8"))
 
     @staticmethod
-    def run(questions: list[dict], searcher: Searcher = lambda q, k: RetrievalService.search(q, k)) -> EvalReport:
+    def run(questions: list[dict], searcher: Searcher | None = None, mode: Mode = "hybrid") -> EvalReport:
         """Retrieval-only evaluation. A hit means any expected document is among the top-k *distinct documents*."""
+        searcher = searcher or (lambda question, k: RetrievalService.search(question, k, mode=mode))
         report = EvalReport()
         for case in questions:
             retrieved = searcher(case["question"], RETRIEVAL_DEPTH)
@@ -66,7 +67,7 @@ class EvalService:
                 question=case["question"],
                 expected=case["expected"],
                 ranked_documents=ranked,
-                best_distance=retrieved[0].distance if retrieved else None,
+                best_distance=min((item.distance for item in retrieved), default=None),
                 rank=rank,
             ))
         return report
