@@ -44,6 +44,9 @@ WORKDIR /app
 # Copy application code
 COPY --chown=appuser:appuser . .
 
+# Reranker model cache (mounted as a volume so the model is downloaded only once)
+RUN mkdir -p /app/.cache/fastembed && chown -R appuser:appuser /app/.cache
+
 # Copy entrypoint script and set permissions
 COPY docker-entrypoint.sh /app/
 RUN chmod +x /app/docker-entrypoint.sh && \

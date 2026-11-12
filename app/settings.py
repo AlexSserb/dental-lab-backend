@@ -29,6 +29,21 @@ AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
+# Knowledge base (RAG): fragments passed to the LLM and the cosine-distance cutoff above which a fragment is
+# considered unrelated (calibrate with `manage.py eval_retrieval`, see README).
+KNOWLEDGE_TOP_K = int(os.getenv("KNOWLEDGE_TOP_K") or 4)
+KNOWLEDGE_MAX_DISTANCE = float(os.getenv("KNOWLEDGE_MAX_DISTANCE") or 0.55)
+# Reranking: a cross-encoder re-scores the hybrid-search candidates and keeps the best KNOWLEDGE_TOP_K.
+# The model runs inside the backend process (CPU, ONNX) and is downloaded once into RERANK_CACHE_DIR.
+RERANK_ENABLED = (os.getenv("RERANK_ENABLED") or "true").lower() in ("1", "true", "yes")
+RERANK_MODEL = os.getenv("RERANK_MODEL") or "BAAI/bge-reranker-v2-m3-int8"
+RERANK_CANDIDATES = int(os.getenv("RERANK_CANDIDATES") or 20)
+# With reranking on, a fragment is kept only if its cross-encoder score (a raw logit: roughly > 0 relevant,
+# about -11 for off-topic text) is at least this; it replaces the vector-distance cutoff. Calibrate with eval_retrieval.
+KNOWLEDGE_MIN_RERANK_SCORE = float(os.getenv("KNOWLEDGE_MIN_RERANK_SCORE") or -5.0)
+RERANK_CACHE_DIR = os.getenv("RERANK_CACHE_DIR") or os.path.join(BASE_DIR, ".cache", "fastembed")
+
 
 def env_list(name: str, default: str = "") -> list[str]:
     """Reads a comma-separated environment variable as a list of non-empty strings."""
@@ -63,6 +78,7 @@ INSTALLED_APPS = [
     "works",
     "operations",
     "llm",
+    "knowledge",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -176,7 +192,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 # For more information, please refer to:
 # EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 # SMTP SETTINGS
 EMAIL_HOST = "smtp.yandex.ru"
@@ -208,7 +224,10 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "COERCE_DECIMAL_TO_STRING": False,
-    "DEFAULT_THROTTLE_RATES": {"order_draft": os.getenv("AI_DRAFT_RATE", "20/hour")},
+    "DEFAULT_THROTTLE_RATES": {
+        "order_draft": os.getenv("AI_DRAFT_RATE", "20/hour"),
+        "knowledge_ask": os.getenv("KNOWLEDGE_ASK_RATE", "60/hour"),
+    },
 }
 
 SIMPLE_JWT = {
