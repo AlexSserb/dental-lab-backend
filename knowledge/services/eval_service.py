@@ -17,6 +17,7 @@ class CaseResult:
     ranked_documents: list[str]  # distinct document paths, best first
     best_distance: float | None
     rank: int | None  # 1-based rank of the first expected document, None if not found
+    best_rerank_score: float | None = None  # highest cross-encoder score among the results (rerank mode only)
 
 
 @dataclass
@@ -69,5 +70,6 @@ class EvalService:
                 ranked_documents=ranked,
                 best_distance=min((item.distance for item in retrieved), default=None),
                 rank=rank,
+                best_rerank_score=max((i.rerank_score for i in retrieved if i.rerank_score is not None), default=None),
             ))
         return report

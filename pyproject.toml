@@ -34,6 +34,7 @@ dependencies = [
     "pytz>=2024.2",
     "openai>=3.42.0",
     "pgvector>=0.5.1",
+    "fastembed>=0.9.1",
 ]
 
 [dependency-groups]

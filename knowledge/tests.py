@@ -11,6 +11,7 @@ from core.tests.base_testcase import BaseTestCase
 from knowledge.models import Chunk, Document
 from knowledge.services.chunking_service import ChunkingService
 from knowledge.services.ingest_service import IngestService
+from knowledge.services.rerank_service import RerankService
 from knowledge.services.retrieval_service import (
     RetrievalService, RetrievedChunk, build_keyword_query, reciprocal_rank_fusion,
 )
@@ -97,12 +98,6 @@ class IngestServiceTests(TestCase):
 class EvalServiceTests(SimpleTestCase):
     @staticmethod
     def _searcher(mapping):
-        from types import SimpleNamespace
-
-        from knowledge.services.retrieval_service import (
-    RetrievalService, RetrievedChunk, build_keyword_query, reciprocal_rank_fusion,
-)
-
         def search(question, k):
             return [
                 RetrievedChunk(chunk=SimpleNamespace(document=SimpleNamespace(path=path)), distance=0.1 * (i + 1))
@@ -135,9 +130,10 @@ class EvalServiceTests(SimpleTestCase):
         self.assertEqual([c.question for c in report.failures(3)], ["q3"])
 
 
-def retrieved(text, distance, path="defects/a.md", title="Скол керамики"):
+def retrieved(text, distance, path="defects/a.md", title="Скол керамики", rerank_score=None):
     document = SimpleNamespace(path=path, title=title, doc_type="defect", operation_type="Керамика")
-    return RetrievedChunk(chunk=SimpleNamespace(text=text, document=document), distance=distance)
+    return RetrievedChunk(chunk=SimpleNamespace(text=text, document=document), distance=distance,
+                          rerank_score=rerank_score)
 
 
 @override_settings(KNOWLEDGE_TOP_K=4, KNOWLEDGE_MAX_DISTANCE=0.55)
@@ -264,3 +260,53 @@ class HybridSearchTests(TestCase):
         items = RetrievalService.search("Пиндекса", 10, operation_type="Модели", mode="hybrid")
         self.assertTrue(items)
         self.assertTrue(all(item.chunk.document.operation_type == "Модели" for item in items))
+
+
+class RerankServiceTests(SimpleTestCase):
+    def test_reorders_by_cross_encoder_score_and_keeps_top_n(self):
+        items = [retrieved("a", 0.1), retrieved("b", 0.2), retrieved("c", 0.3)]
+        fake_model = SimpleNamespace(rerank=lambda query, docs: [-3.0, 2.5, -9.0])
+        with patch("knowledge.services.rerank_service.get_reranker", return_value=fake_model):
+            result = RerankService.rerank("q", items, top_n=2)
+        self.assertEqual([i.chunk.text for i in result], ["b", "a"])
+        self.assertEqual([i.rerank_score for i in result], [2.5, -3.0])
+
+    def test_empty_candidates_do_not_load_the_model(self):
+        with patch("knowledge.services.rerank_service.get_reranker") as get_model:
+            self.assertEqual(RerankService.rerank("q", [], top_n=4), [])
+        get_model.assert_not_called()
+
+
+@override_settings(RERANK_ENABLED=True, KNOWLEDGE_MIN_RERANK_SCORE=-5.0, KNOWLEDGE_MAX_DISTANCE=0.55)
+class AskWithRerankTests(BaseTestCase):
+    url = "/api/knowledge/ask/"
+
+    def setUp(self):
+        cache.clear()
+        self.set_up_for_admin()
+
+    def ask(self, items):
+        with patch("knowledge.services.answer_service.RetrievalService.search", return_value=items) as search, \
+                patch("knowledge.services.answer_service.call_text", return_value="Ответ [1]") as llm:
+            response = self.client.post(self.url, {"question": "вопрос"}, format="json")
+        return response, search, llm
+
+    def test_uses_rerank_mode_and_filters_by_rerank_score_not_distance(self):
+        items = [
+            retrieved("good", distance=0.9, rerank_score=1.0),    # far by vectors, but the reranker likes it
+            retrieved("weak", distance=0.1, rerank_score=-7.0),   # close by vectors, but the reranker rejects it
+        ]
+        response, search, _ = self.ask(items)
+        self.assertEqual(search.call_args.kwargs["mode"], "rerank")
+        self.assertEqual([s["fragment"] for s in response.json()["sources"]], ["good"])
+
+    def test_nothing_above_threshold_means_no_llm_call(self):
+        response, _, llm = self.ask([retrieved("x", 0.2, rerank_score=-11.0)])
+        self.assertFalse(response.json()["answered"])
+        llm.assert_not_called()
+
+    @override_settings(RERANK_ENABLED=False)
+    def test_disabled_falls_back_to_hybrid_and_distance(self):
+        response, search, _ = self.ask([retrieved("near", 0.2), retrieved("far", 0.8)])
+        self.assertEqual(search.call_args.kwargs["mode"], "hybrid")
+        self.assertEqual([s["fragment"] for s in response.json()["sources"]], ["near"])

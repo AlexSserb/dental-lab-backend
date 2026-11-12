@@ -24,12 +24,14 @@ class AnswerService:
     @staticmethod
     def ask(question: str, operation_type: str | None = None, user=None) -> dict:
         """
-        RAG: retrieve the closest fragments, drop the ones that are too far to be relevant, and let the LLM answer
-        from them. If nothing relevant is found the LLM is not called at all.
+        RAG: retrieve candidates (hybrid search, then cross-encoder reranking when enabled), drop the fragments that
+        are not relevant enough, and let the LLM answer from the rest. If nothing relevant is left the LLM is not
+        called at all.
         """
+        mode = "rerank" if settings.RERANK_ENABLED else "hybrid"
         retrieved = [
-            item for item in RetrievalService.search(question, settings.KNOWLEDGE_TOP_K, operation_type)
-            if item.distance <= settings.KNOWLEDGE_MAX_DISTANCE
+            item for item in RetrievalService.search(question, settings.KNOWLEDGE_TOP_K, operation_type, mode=mode)
+            if AnswerService._is_relevant(item)
         ]
         if not retrieved:
             return {"answered": False, "answer": NO_ANSWER, "sources": []}
@@ -55,6 +57,13 @@ class AnswerService:
             for number, item in enumerate(retrieved, 1)
         ]
         return {"answered": True, "answer": answer, "sources": sources}
+
+    @staticmethod
+    def _is_relevant(item: RetrievedChunk) -> bool:
+        """The cross-encoder score is the better signal when present; otherwise fall back to vector distance."""
+        if item.rerank_score is not None:
+            return item.rerank_score >= settings.KNOWLEDGE_MIN_RERANK_SCORE
+        return item.distance <= settings.KNOWLEDGE_MAX_DISTANCE
 
     @staticmethod
     def _build_user_message(question: str, retrieved: list[RetrievedChunk]) -> str:

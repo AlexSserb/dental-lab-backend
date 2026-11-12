@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Hashable, Literal
 
+from django.conf import settings
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F
 from pgvector.django import CosineDistance
@@ -8,7 +9,7 @@ from pgvector.django import CosineDistance
 from knowledge.models import Chunk
 from knowledge.services.embedding_service import EmbeddingService
 
-Mode = Literal["dense", "keyword", "hybrid"]
+Mode = Literal["dense", "keyword", "hybrid", "rerank"]
 SEARCH_CONFIG = "russian"  # same text-search configuration that ingest uses to fill Chunk.search_vector
 RRF_K = 60  # standard RRF constant: damps the advantage of rank 1 over rank 2
 MIN_TOKEN_LENGTH = 2
@@ -22,6 +23,7 @@ class RetrievedChunk:
     distance: float  # cosine distance to the question: 0 = identical, 2 = opposite (always computed, any mode)
     score: float | None = None  # RRF score (hybrid mode only), higher is better
     found_by: list[str] = field(default_factory=list)  # which searches returned it: "vector" and/or "keyword"
+    rerank_score: float | None = None  # cross-encoder score (rerank mode only), higher is better
 
 
 def reciprocal_rank_fusion(rankings: list[list[Hashable]], k: int = RRF_K) -> list[tuple[Hashable, float]]:
@@ -62,8 +64,16 @@ class RetrievalService:
         Top `k` chunks for `query`.
           dense   - nearest by meaning (pgvector, cosine distance)
           keyword - best word matches (Postgres full-text search)
-          hybrid  - both searches merged with Reciprocal Rank Fusion (default)
+          hybrid  - both searches merged with Reciprocal Rank Fusion
+          rerank  - hybrid candidates re-scored by a cross-encoder (at most RERANK_CANDIDATES of them are
+                    considered, so `k` above that returns fewer results)
         """
+        if mode == "rerank":
+            from knowledge.services.rerank_service import RerankService  # imported here: it imports this module
+
+            candidates = RetrievalService.search(query, settings.RERANK_CANDIDATES, operation_type, mode="hybrid")
+            return RerankService.rerank(query, candidates, k)
+
         pool = max(k * 4, 20)  # candidates taken from each search before merging
         vector = EmbeddingService.embed([query])[0]
 

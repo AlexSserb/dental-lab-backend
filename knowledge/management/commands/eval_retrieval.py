@@ -10,9 +10,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--questions", default=str(DEFAULT_QUESTIONS), help="Path to a JSON file with cases")
-        parser.add_argument("--mode", choices=["dense", "keyword", "hybrid"], default="hybrid",
-                            help="Search to evaluate (default: hybrid = vector + keyword merged with RRF)")
-        parser.add_argument("--compare", action="store_true", help="Evaluate dense, keyword and hybrid side by side")
+        parser.add_argument("--mode", choices=["dense", "keyword", "hybrid", "rerank"], default="hybrid",
+                            help="Search to evaluate (default: hybrid = vector + keyword merged with RRF; rerank = hybrid + cross-encoder)")
+        parser.add_argument("--compare", action="store_true", help="Evaluate every mode side by side")
         parser.add_argument("--verbose", action="store_true", help="Show every question, not only failures")
 
     def handle(self, *args, **options):
@@ -53,9 +53,16 @@ class Command(BaseCommand):
                 f"Best distance for unanswerable questions: {distances} "
                 f"(answerable: min {min(answerable):.3f}, max {max(answerable):.3f})"
             )
+            off_topic = [c.best_rerank_score for c in report.unanswerable if c.best_rerank_score is not None]
+            real = [c.best_rerank_score for c in report.answerable if c.best_rerank_score is not None]
+            if off_topic and real:
+                self.stdout.write(
+                    f"Best rerank score for unanswerable questions: {', '.join(f'{x:.2f}' for x in off_topic)} "
+                    f"(answerable: min {min(real):.2f}, max {max(real):.2f})"
+                )
 
     def compare(self, questions):
-        reports = {mode: EvalService.run(questions, mode=mode) for mode in ("dense", "keyword", "hybrid")}
+        reports = {mode: EvalService.run(questions, mode=mode) for mode in ("dense", "keyword", "hybrid", "rerank")}
         if not reports["dense"].answerable:
             raise CommandError("No answerable cases in the questions file")
 

@@ -34,6 +34,15 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
 # considered unrelated (calibrate with `manage.py eval_retrieval`, see README).
 KNOWLEDGE_TOP_K = int(os.getenv("KNOWLEDGE_TOP_K") or 4)
 KNOWLEDGE_MAX_DISTANCE = float(os.getenv("KNOWLEDGE_MAX_DISTANCE") or 0.55)
+# Reranking: a cross-encoder re-scores the hybrid-search candidates and keeps the best KNOWLEDGE_TOP_K.
+# The model runs inside the backend process (CPU, ONNX) and is downloaded once into RERANK_CACHE_DIR.
+RERANK_ENABLED = (os.getenv("RERANK_ENABLED") or "true").lower() in ("1", "true", "yes")
+RERANK_MODEL = os.getenv("RERANK_MODEL") or "BAAI/bge-reranker-v2-m3-int8"
+RERANK_CANDIDATES = int(os.getenv("RERANK_CANDIDATES") or 20)
+# With reranking on, a fragment is kept only if its cross-encoder score (a raw logit: roughly > 0 relevant,
+# about -11 for off-topic text) is at least this; it replaces the vector-distance cutoff. Calibrate with eval_retrieval.
+KNOWLEDGE_MIN_RERANK_SCORE = float(os.getenv("KNOWLEDGE_MIN_RERANK_SCORE") or -5.0)
+RERANK_CACHE_DIR = os.getenv("RERANK_CACHE_DIR") or os.path.join(BASE_DIR, ".cache", "fastembed")
 
 
 def env_list(name: str, default: str = "") -> list[str]:

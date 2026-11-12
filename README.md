@@ -118,8 +118,9 @@ INGEST (offline, `manage.py ingest_knowledge`)
 
 ASK (online, POST /api/knowledge/ask/)
   question --embed (bge-m3)--> vector
-     -> hybrid search: pgvector nearest chunks + Postgres full-text matches, merged with RRF (see below)
-     -> drop chunks farther than KNOWLEDGE_MAX_DISTANCE  (nothing left -> "no information", LLM is NOT called)
+     -> hybrid search: pgvector nearest chunks + Postgres full-text matches, merged with RRF  (~20 candidates)
+     -> rerank: a cross-encoder re-scores the ~20 candidates, the best KNOWLEDGE_TOP_K are kept
+     -> drop fragments scoring below KNOWLEDGE_MIN_RERANK_SCORE  (nothing left -> "no information", LLM is NOT called)
      -> prompt = rules + numbered fragments [1]..[k] + question (plain TEXT, never vectors)
      -> chat model (qwen2.5:3b-instruct) writes the answer and cites fragments as [1], [2]
      -> response = answer + sources (fragment text, document, `cited` flag)
@@ -138,6 +139,20 @@ gets `1 / (60 + rank)` from each list it appears in, the scores are summed, and 
 positions, so the incomparable scores (cosine distance vs. text rank) never need to be normalised. A chunk found by
 both searches rises to the top. The `KNOWLEDGE_MAX_DISTANCE` cutoff still uses the vector distance, which is
 computed for every candidate.
+
+### Reranking
+
+Hybrid search is fast because it compares precomputed vectors and word indexes, but it never reads the question
+and a chunk *together*. A **cross-encoder** does: it takes the pair (question, chunk) and outputs a relevance score,
+which is more accurate but far too slow to run over the whole corpus. So it only re-orders the ~20 candidates from
+hybrid search and keeps the best `KNOWLEDGE_TOP_K`. Ollama cannot serve cross-encoders, so the model
+(`BAAI/bge-reranker-v2-m3-int8`, multilingual, about 0.6 GB) runs in-process through `fastembed` on the CPU and is
+downloaded on first use into `.cache/fastembed` (a Docker volume in `docker-compose.yml`).
+
+The score is a raw logit: roughly `> 0` for a relevant fragment and about `-11` for unrelated text, so it is also a
+better relevance gate than vector distance: `KNOWLEDGE_MIN_RERANK_SCORE` replaces `KNOWLEDGE_MAX_DISTANCE` while
+reranking is on. The price is latency (a few seconds per question on a CPU, about 1 GB RAM per gunicorn worker).
+Turn it off with `RERANK_ENABLED=false`.
 
 ### Corpus
 
@@ -175,7 +190,11 @@ The current corpus is synthetic (study project) and must not be used as real cli
    | `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL` | | chat model endpoint (shared with the order-draft feature) |
    | `EMBEDDING_MODEL` | `bge-m3` | embedding model; its output size must equal `Chunk.embedding` dimensions (1024) |
    | `KNOWLEDGE_TOP_K` | `4` | fragments given to the LLM |
-   | `KNOWLEDGE_MAX_DISTANCE` | `0.55` | cosine distance above which a fragment is considered unrelated |
+   | `KNOWLEDGE_MAX_DISTANCE` | `0.55` | cosine distance above which a fragment is considered unrelated (used when reranking is off) |
+   | `RERANK_ENABLED` | `true` | rerank hybrid-search candidates with a cross-encoder |
+   | `RERANK_MODEL` | `BAAI/bge-reranker-v2-m3-int8` | multilingual model supported by fastembed's `TextCrossEncoder` |
+   | `RERANK_CANDIDATES` | `20` | candidates given to the reranker; more = better recall, slower |
+   | `KNOWLEDGE_MIN_RERANK_SCORE` | `-5.0` | rerank score below which a fragment is dropped |
    | `KNOWLEDGE_ASK_RATE` | `60/hour` | per-user throttle of the ask endpoint |
 
 4. Apply migrations and load the corpus:
@@ -211,8 +230,8 @@ document is among the top results. Run it after every change to chunking, the em
 python manage.py eval_retrieval                      # failures + summary
 python manage.py eval_retrieval --verbose            # every question
 python manage.py eval_retrieval --questions my.json  # another question set
-python manage.py eval_retrieval --mode dense         # dense | keyword | hybrid (default)
-python manage.py eval_retrieval --compare            # dense, keyword and hybrid side by side
+python manage.py eval_retrieval --mode dense         # dense | keyword | hybrid (default) | rerank
+python manage.py eval_retrieval --compare            # all four modes side by side (rerank is slow on a CPU)
 ```
 
 Example output:
@@ -224,6 +243,7 @@ hit rate @3: 100%
 hit rate @5: 100%
 MRR:          1.000
 Best distance for unanswerable questions: 0.634, 0.581 (answerable: min 0.209, max 0.489)
+Best rerank score for unanswerable questions: -11.00, -10.93 (answerable: min -0.90, max 6.94)   # rerank mode only
 ```
 
 * **hit rate @k** - share of questions whose expected document is among the top k *distinct documents*.
@@ -231,7 +251,7 @@ Best distance for unanswerable questions: 0.634, 0.581 (answerable: min 0.209, m
 * Per-question status: `OK` (rank 1), `#n` (found at rank n), `MISS` (not found), `N/A` (unanswerable on purpose).
 * **Unanswerable questions** (`"expected": []`) are excluded from the metrics. Their best distance is printed next
   to the range of real questions, which is how `KNOWLEDGE_MAX_DISTANCE` is calibrated: it should sit in the gap
-  between the two.
+  between the two. In `rerank` mode the same is printed for the rerank score (`KNOWLEDGE_MIN_RERANK_SCORE`).
 
 Add a case by appending to the JSON file:
 

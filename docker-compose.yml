@@ -34,6 +34,9 @@ services:
       AI_BASE_URL: ${AI_BASE_URL_DOCKER:-http://host.docker.internal:11434/v1}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - fastembed_cache:/app/.cache/fastembed
 
 volumes:
   postgres_data:
+  fastembed_cache:
