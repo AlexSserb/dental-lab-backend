@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "operations",
     "llm",
     "knowledge",
+    "defects",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
