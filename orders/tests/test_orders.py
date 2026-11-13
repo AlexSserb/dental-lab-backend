@@ -1,3 +1,5 @@
+from rest_framework.test import APIClient
+
 from accounts.models import User
 from orders.models import *
 from core.tests import BaseTestCase
@@ -143,3 +145,87 @@ class OrdersTest(BaseTestCase):
         self.assertTrue(work2.discount == 6)
         self.assertTrue(work1.work_status.name == work2.work_status.name)
         self.assertTrue(work2.work_status.name, "Готово")
+
+
+class ReportDefectTest(BaseTestCase):
+    url = "/api/orders/report-defect"
+
+    own_order_id = "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9"
+    own_work_id = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
+    other_order_work_id = "2b1fa828-44aa-42d3-bb5c-6802c52097c3"
+
+    def _payload(self, order_id=None, work_ids=None):
+        return {
+            "order": order_id or self.own_order_id,
+            "comment_after_accept": "Коронка не садится",
+            "works": work_ids or [self.own_work_id],
+        }
+
+    def _set_up_for_another_physician(self):
+        other = User.objects.create(email="doctor2@mail.com", first_name="Other", last_name="Doctor")
+        self.client = APIClient()
+        self.client.force_authenticate(user=other)
+
+    def test_physician_reports_defect_on_own_order(self):
+        self.set_up_for_physician()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 200)
+        order = Order.objects.get(id=self.own_order_id)
+        self.assertEqual(order.status.number, 5)
+        self.assertEqual(order.comment_after_accept, "Коронка не садится")
+        self.assertEqual(Work.objects.get(id=self.own_work_id).work_status.number, 4)
+
+    def test_admin_reports_defect_on_any_order(self):
+        self.set_up_for_admin()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Order.objects.get(id=self.own_order_id).status.number, 5)
+
+    def test_physician_cannot_report_defect_on_foreign_order(self):
+        self._set_up_for_another_physician()
+        before = Order.objects.get(id=self.own_order_id).status_id
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("order", response.data)
+        order = Order.objects.get(id=self.own_order_id)
+        self.assertEqual(order.status_id, before)
+        self.assertNotEqual(Work.objects.get(id=self.own_work_id).work_status.number, 4)
+
+    def test_foreign_order_error_is_same_as_missing_order(self):
+        self._set_up_for_another_physician()
+        foreign = self.client.post(self.url, data=self._payload(), format="json")
+        missing = self.client.post(
+            self.url, data=self._payload(order_id="00000000-0000-0000-0000-000000000001"), format="json"
+        )
+
+        self.assertEqual(foreign.status_code, missing.status_code)
+        self.assertEqual(
+            [str(e).replace(self.own_order_id, "X") for e in foreign.data["order"]],
+            [str(e).replace("00000000-0000-0000-0000-000000000001", "X") for e in missing.data["order"]],
+        )
+
+    def test_technician_cannot_report_defect(self):
+        self.set_up_for_tech()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertNotEqual(Order.objects.get(id=self.own_order_id).status.number, 5)
+
+    def test_works_must_belong_to_the_order(self):
+        self.set_up_for_physician()
+        response = self.client.post(
+            self.url, data=self._payload(work_ids=[self.own_work_id, self.other_order_work_id]), format="json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("works", response.data)
+        self.assertNotEqual(Order.objects.get(id=self.own_order_id).status.number, 5)
+        self.assertNotEqual(Work.objects.get(id=self.own_work_id).work_status.number, 4)
+
+    def test_anonymous_cannot_report_defect(self):
+        response = APIClient().post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 401)

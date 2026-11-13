@@ -3,6 +3,7 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework import serializers
 
 from accounts.models import Customer
+from accounts.permissions import LAB_ADMIN_GROUP_ID
 from accounts.serializers import UserProfileSerializer, CustomerSerializer
 from core.serializers import PaginationSerializer
 from .models import *
@@ -123,11 +124,33 @@ class OrderDiscountSetterSerializer(serializers.Serializer):
     works_discounts_data = DiscountSetterSerializer(many=True)
 
 
+class ReportableOrderField(serializers.PrimaryKeyRelatedField):
+    """
+    Orders the current user may report a defect for: a physician - only their own, a laboratory administrator -
+    any. A foreign order gets the same "does not exist" error as a missing one, so ids cannot be probed.
+    """
+
+    def get_queryset(self):
+        queryset = Order.objects.all()
+        request = self.context.get("request")
+        if request is None:  # schema generation
+            return queryset
+        if request.user.groups.filter(id=LAB_ADMIN_GROUP_ID).exists():
+            return queryset
+        return queryset.filter(user=request.user)
+
+
 class ReportDefectSerializer(serializers.Serializer):
-    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all(), pk_field=serializers.UUIDField())
+    order = ReportableOrderField(pk_field=serializers.UUIDField())
     comment_after_accept = serializers.CharField(max_length=500, allow_blank=True, default="")
     works = serializers.PrimaryKeyRelatedField(queryset=Work.objects.all(), pk_field=serializers.UUIDField(),
                                                many=True)
+
+    def validate(self, attrs):
+        foreign = [str(work.id) for work in attrs["works"] if work.order_id != attrs["order"].id]
+        if foreign:
+            raise serializers.ValidationError({"works": f"Работы не относятся к заказу: {', '.join(foreign)}"})
+        return attrs
 
 
 class CancelOrderSerializer(serializers.Serializer):
