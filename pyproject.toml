@@ -35,6 +35,9 @@ dependencies = [
     "openai>=3.42.0",
     "pgvector>=0.5.1",
     "fastembed>=0.9.1",
+    "langgraph>=1.2.20",
+    "langgraph-checkpoint-postgres>=3.2.0",
+    "psycopg[binary,pool]>=3.3.9",
 ]
 
 [dependency-groups]
