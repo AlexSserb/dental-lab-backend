@@ -91,11 +91,12 @@ def retrieve_node(state: TriageState) -> TriageState:
 
 def propose_node(state: TriageState) -> TriageState:
     triage = _triage(state)
+    if state.get("revisions", 0) >= MAX_REVISIONS:
+        # The revision budget is spent: no new proposal, the administrator decides by hand.
+        return {"manual": True, "proposal": None, "error": "revision limit reached"}
     feedback = ""
     decision = state.get("decision")
     if decision and decision.get("action") == DefectTriage.Decision.REJECT:
-        if state.get("revisions", 0) >= MAX_REVISIONS:
-            return {"manual": True, "proposal": None, "error": "revision limit reached"}
         triage.revisions += 1
         triage.save(update_fields=["revisions", "updated_at"])
         feedback = decision.get("note", "")
@@ -178,17 +179,21 @@ def notify_node(state: TriageState) -> TriageState:
     """After the decision is final: mark the notification and store the closed case as a precedent."""
     triage = _triage(state)
     if triage.state == DefectTriage.State.APPLIED and not DefectCase.objects.filter(triage=triage).exists():
-        try:
-            add_case(
-                defect_type=triage.final.get("defect_type", state.get("classification", {}).get("defect_type")),
-                severity=triage.final.get("severity", state.get("classification", {}).get("severity")),
-                description=triage.final.get("description", state.get("classification", {}).get("description")),
-                cause=triage.final.get("likely_cause", ""),
-                resolution=triage.final.get("recommendation", ""),
-                triage=triage,
-            )
-        except Exception:
-            logger.exception("failed to store the closed case as a precedent (triage %s)", triage.id)
+        classification = state.get("classification") or {}
+        case = {
+            "defect_type": triage.final.get("defect_type") or classification.get("defect_type"),
+            "severity": triage.final.get("severity") or classification.get("severity"),
+            "description": triage.final.get("description") or classification.get("description"),
+            "cause": triage.final.get("likely_cause", ""),
+            "resolution": triage.final.get("recommendation", ""),
+            "triage": triage,
+        }
+        if all(case[key] for key in ("defect_type", "severity", "description")):
+            # A manual review with no classification cannot become a precedent.
+            try:
+                add_case(**case)
+            except Exception:
+                logger.exception("failed to store the closed case as a precedent (triage %s)", triage.id)
     triage.notified_at = timezone.now()
     triage.save(update_fields=["notified_at", "updated_at"])
     return {"notified": True}
