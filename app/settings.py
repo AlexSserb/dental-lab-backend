@@ -29,6 +29,11 @@ AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
+PROMPT_SOURCE = (os.getenv("PROMPT_SOURCE") or "local").lower()
+PROMPT_TAG = os.getenv("PROMPT_TAG") or "production"
+PROMPT_CACHE_TTL_S = float(os.getenv("PROMPT_CACHE_TTL_S") or 300)
+PROMPT_FAILURE_BACKOFF_S = float(os.getenv("PROMPT_FAILURE_BACKOFF_S") or 60)
+
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
 # Knowledge base (RAG): fragments passed to the LLM and the cosine-distance cutoff above which a fragment is
 # considered unrelated (calibrate with `manage.py eval_retrieval`, see README).
