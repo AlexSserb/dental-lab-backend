@@ -26,7 +26,8 @@ class Candidate:
 
 
 def propose_redo(
-    works, description: str, defect_type: str, severity: str, feedback: str = "", user=None,
+    works, description: str, defect_type: str, severity: str, feedback: str = "",
+    precedents: list[str] | None = None, user=None,
 ) -> RedoDecision:
     """
     Propose which production operation caused the defect and must be repeated. The candidates are the operations
@@ -34,7 +35,8 @@ def propose_redo(
     rejects any number outside it (same trick as work_type_number in order drafting) - we map the number back to
     an Operation id ourselves, so nothing outside the real operations can be proposed. `feedback` is the
     administrator's comment from a rejected proposal; like the doctor's comment it is untrusted text and the
-    prompt keeps it inside <feedback></feedback> tags. `user` goes into the LLM call log.
+    prompt keeps it inside <feedback></feedback> tags. `precedents` lets a caller that has already run retrieval
+    pass the texts in instead of fetching them again. `user` goes into the LLM call log.
     """
     candidates = _candidates(works)
 
@@ -50,7 +52,7 @@ def propose_redo(
         user_text=build_propose_message(
             description, defect_type, severity,
             [candidate.line for candidate in candidates],
-            get_precedents(description),
+            precedents if precedents is not None else get_precedents(description),
             feedback,
         ),
         schema=RedoProposal,
