@@ -58,7 +58,7 @@ class OperationsTest(BaseTestCase):
         self.set_up_for_tech()
 
         response = self.client.patch(
-            self.url + f"/operation/6acfbcb5-66eb-460b-a9c9-52a26b1b3461/",
+            self.url + f"/operation/6acfbcb5-66eb-460b-a9c9-52a26b1b3461",
             data={"status": "efee01cc-e81b-4936-8580-33e778ae0f67"},
             follow=True,
         )

@@ -6,7 +6,7 @@ class WorksTest(BaseTestCase):
 
     def test_get_works_for_order_correct(self):
         self.set_up_for_admin()
-        response = self.client.get(self.url + f"/c5f7d483-347b-4cbb-93b2-f9de7cd03cc9", follow=True)
+        response = self.client.get(self.url + f"/c5f7d483-347b-4cbb-93b2-f9de7cd03cc9/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)

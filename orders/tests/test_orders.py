@@ -11,7 +11,7 @@ class OrdersTest(BaseTestCase):
 
     def test_get_orders_correct(self):
         self.set_up_for_admin()
-        response = self.client.get(self.url + f"/orders/2025/1", follow=True)
+        response = self.client.get(self.url + f"/orders/2025/1/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
@@ -28,7 +28,7 @@ class OrdersTest(BaseTestCase):
 
     def test_get_orders_for_physician_correct(self):
         self.set_up_for_physician()
-        response = self.client.get(self.url + "/orders-for-physician", follow=True)
+        response = self.client.get(self.url + "/orders-for-physician/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 2)
