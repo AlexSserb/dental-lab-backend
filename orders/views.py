@@ -1,5 +1,5 @@
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework.decorators import api_view, permission_classes, parser_classes, throttle_classes
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -153,6 +153,12 @@ def get_invoice_for_payment(request, order_id: str):
 @extend_schema(
     operation_id="report_defect",
     request=ReportDefectSerializer,
+    responses={
+        202: OpenApiResponse(description="Defect triage created (SUBMITTED); the worker will process it"),
+        400: OpenApiResponse(description="Validation error"),
+        409: OpenApiResponse(description="An unfinished triage already exists for this order"),
+    },
+    summary="Report a defect: creates a triage and returns 202 with its id (does not change any statuses)",
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])

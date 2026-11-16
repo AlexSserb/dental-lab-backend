@@ -12,6 +12,7 @@ admin.site.index_title = "Главная"
 urlpatterns = [
     path("api/", include([
         path("orders/", include("orders.urls")),
+        path("defects/", include("defects.urls")),
         path("knowledge/", include("knowledge.urls")),
         path("works/", include("works.urls")),
         path("operations/", include("operations.urls")),

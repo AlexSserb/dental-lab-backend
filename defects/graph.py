@@ -115,6 +115,7 @@ def propose_node(state: TriageState) -> TriageState:
         return {"manual": True, "proposal": None, "error": f"proposal failed: {exc}"}
 
     proposal = {
+        **state["classification"],  # description, defect_type, severity - shown in review, reused by the detail API
         "operation_id": str(redo.operation.id),
         "operation_name": redo.operation.operation_type.name,
         "likely_cause": redo.proposal.likely_cause,

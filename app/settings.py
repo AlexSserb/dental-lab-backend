@@ -233,6 +233,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "order_draft": os.getenv("AI_DRAFT_RATE", "20/hour"),
         "knowledge_ask": os.getenv("KNOWLEDGE_ASK_RATE", "60/hour"),
+        "defect_decision": os.getenv("DEFECT_DECISION_RATE", "60/hour"),
     },
 }
 
