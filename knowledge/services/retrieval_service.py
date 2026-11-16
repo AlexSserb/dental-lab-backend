@@ -59,6 +59,7 @@ class RetrievalService:
     @staticmethod
     def search(
         query: str, k: int = 5, operation_type: str | None = None, mode: Mode = "hybrid",
+        doc_type: str | None = None,
     ) -> list[RetrievedChunk]:
         """
         Top `k` chunks for `query`.
@@ -67,45 +68,52 @@ class RetrievalService:
           hybrid  - both searches merged with Reciprocal Rank Fusion
           rerank  - hybrid candidates re-scored by a cross-encoder (at most RERANK_CANDIDATES of them are
                     considered, so `k` above that returns fewer results)
+        `operation_type` and `doc_type` narrow the search to documents of one kind (e.g. doc_type="defect" for
+        the triage precedents).
         """
         if mode == "rerank":
             from knowledge.services.rerank_service import RerankService  # imported here: it imports this module
 
-            candidates = RetrievalService.search(query, settings.RERANK_CANDIDATES, operation_type, mode="hybrid")
+            candidates = RetrievalService.search(
+                query, settings.RERANK_CANDIDATES, operation_type, mode="hybrid", doc_type=doc_type,
+            )
             return RerankService.rerank(query, candidates, k)
 
         pool = max(k * 4, 20)  # candidates taken from each search before merging
         vector = EmbeddingService.embed([query])[0]
 
-        dense = RetrievalService._dense(vector, pool, operation_type)
+        dense = RetrievalService._dense(vector, pool, operation_type, doc_type)
         if mode == "dense":
             return dense[:k]
 
-        keyword = RetrievalService._keyword(query, vector, pool, operation_type)
+        keyword = RetrievalService._keyword(query, vector, pool, operation_type, doc_type)
         if mode == "keyword":
             return keyword[:k]
 
         return RetrievalService._fuse(dense, keyword)[:k]
 
     @staticmethod
-    def _base_queryset(vector: list[float], operation_type: str | None):
+    def _base_queryset(vector: list[float], operation_type: str | None, doc_type: str | None = None):
         queryset = Chunk.objects.select_related("document").annotate(distance=CosineDistance("embedding", vector))
         if operation_type:
             queryset = queryset.filter(document__operation_type=operation_type)
+        if doc_type:
+            queryset = queryset.filter(document__doc_type=doc_type)
         return queryset
 
     @staticmethod
-    def _dense(vector: list[float], limit: int, operation_type: str | None) -> list[RetrievedChunk]:
-        rows = RetrievalService._base_queryset(vector, operation_type).order_by("distance")[:limit]
+    def _dense(vector: list[float], limit: int, operation_type: str | None, doc_type: str | None = None) -> list[RetrievedChunk]:
+        rows = RetrievalService._base_queryset(vector, operation_type, doc_type).order_by("distance")[:limit]
         return [RetrievedChunk(chunk=row, distance=row.distance, found_by=["vector"]) for row in rows]
 
     @staticmethod
-    def _keyword(query: str, vector: list[float], limit: int, operation_type: str | None) -> list[RetrievedChunk]:
+    def _keyword(query: str, vector: list[float], limit: int, operation_type: str | None,
+                 doc_type: str | None = None) -> list[RetrievedChunk]:
         search_query = build_keyword_query(query)
         if search_query is None:
             return []
         rows = (
-            RetrievalService._base_queryset(vector, operation_type)
+            RetrievalService._base_queryset(vector, operation_type, doc_type)
             .filter(search_vector=search_query)
             .annotate(rank=SearchRank(F("search_vector"), search_query))
             .order_by("-rank", "distance")[:limit]
