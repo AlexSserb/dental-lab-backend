@@ -12,8 +12,8 @@ from rest_framework.throttling import ScopedRateThrottle
 
 from accounts.permissions import IsLabAdmin
 from defects.models import DefectTriage
+from defects.review import similar_cases
 from defects.serializers import TriageDecisionSerializer, TriageDetailSerializer, TriageListItemSerializer
-from defects.triage import case_service
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def triage_detail(request, triage_id: str):
     data = TriageDetailSerializer(triage).data
     data["works"] = [{"id": str(work.id), "name": work.work_type.name} for work in
                      triage.works.select_related("work_type")]
-    data["similar_cases"] = _similar_cases(triage)
+    data["similar_cases"] = similar_cases(triage)
     return Response(data)
 
 
@@ -70,52 +70,12 @@ def triage_detail(request, triage_id: str):
 @permission_classes([IsLabAdmin])
 @throttle_classes([DefectDecisionThrottle])
 def triage_decision(request, triage_id: str):
-    triage = get_object_or_404(DefectTriage, id=triage_id)
-    # Double decision and wrong state are rejected before validation: 409, not a payload error.
-    if triage.state != DefectTriage.State.AWAITING_REVIEW:
-        return Response(
-            {"detail": f"Разбор не ждёт решения (состояние: {triage.get_state_display()})."},
-            status=status.HTTP_409_CONFLICT,
-        )
+    from defects.review import DecisionRejected, decide
 
-    serializer = TriageDecisionSerializer(data=request.data, context={"triage": triage})
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # Re-checked under a lock: two administrators clicking at the same moment must not both write.
-    with transaction.atomic():
-        locked = DefectTriage.objects.select_for_update().get(id=triage.id)
-        if locked.state != DefectTriage.State.AWAITING_REVIEW:
-            return Response({"detail": "Решение уже принято."}, status=status.HTTP_409_CONFLICT)
-        locked.decision = serializer.validated_data["action"]
-        locked.decision_note = serializer.validated_data.get("note", "")
-        locked.final = serializer.validated_data.get("final", {})
-        locked.decided_by = request.user
-        locked.decided_at = timezone.now()
-        locked.state = DefectTriage.State.DECIDED
-        locked.save()
+    try:
+        decide(triage_id, request.user, request.data)
+    except DecisionRejected as rejected:
+        body = rejected.errors or {"detail": rejected.detail}
+        return Response(body, status=rejected.status)
     return Response({"status": "accepted"}, status=status.HTTP_202_ACCEPTED)
 
-
-def _similar_cases(triage: DefectTriage) -> list[dict]:
-    """Closed cases similar to the classified defect; empty rather than broken when embeddings are down."""
-    query = (triage.proposal or {}).get("description") or triage.comment
-    if not query.strip():
-        return []
-    try:
-        cases = case_service.find_similar(query, k=3)
-    except Exception:
-        logger.exception("similar case lookup failed for triage %s", triage.id)
-        return []
-    return [
-        {
-            "id": str(case.id),
-            "defect_type": case.defect_type,
-            "severity": case.severity,
-            "description": case.description,
-            "cause": case.cause,
-            "resolution": case.resolution,
-            "distance": round(case.distance, 4),
-        }
-        for case in cases
-    ]

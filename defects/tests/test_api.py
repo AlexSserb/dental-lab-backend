@@ -98,7 +98,7 @@ class TriageDetailTest(ReviewApiTestBase):
 
     def test_similar_case_lookup_failure_returns_empty_list(self):
         self.pause_at_review()
-        with patch("defects.views.case_service.find_similar", side_effect=RuntimeError("embeddings down")):
+        with patch("defects.triage.case_service.find_similar", side_effect=RuntimeError("embeddings down")):
             self.set_up_for_admin()
             response = self.client.get(self.url(), format="json")
 

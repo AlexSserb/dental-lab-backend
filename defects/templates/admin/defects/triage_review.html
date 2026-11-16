@@ -1,0 +1,114 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+
+<div style="max-width: 900px;">
+
+  <p>
+    <b>Заказ:</b> {{ triage.order_id }} &nbsp; <b>Состояние:</b> {{ triage.get_state_display }}
+    &nbsp; <b>Пересмотров:</b> {{ triage.revisions }}
+    {% if triage.error %}<br><b style="color: #ba2121;">Ошибка:</b> {{ triage.error }}{% endif %}
+  </p>
+  <p><b>Комментарий врача:</b><br>{{ triage.comment|default:"(не указан)" }}</p>
+  <p><b>Работы с дефектом:</b>
+    {% for work in works %}<li>{{ work.work_type.name }} ({{ work.id }})</li>{% endfor %}
+  </p>
+
+  <fieldset style="margin-top: 16px;">
+    <legend><b>Классификация</b></legend>
+    <p>{{ classification.description|default:"— (разбор не классифицирован, ручной режим)" }}</p>
+    <p>
+      Тип: <b>{{ classification.defect_type|default:"—" }}</b> &nbsp;
+      Серьёзность: <b>{{ classification.severity|default:"—" }}</b>
+    </p>
+  </fieldset>
+
+  <fieldset style="margin-top: 16px;">
+    <legend><b>Предложение</b></legend>
+    {% if proposal.operation_id %}
+      <p>
+        Повторить операцию: <b>{{ proposal.operation_name }}</b>
+        <br>Вероятная причина: {{ proposal.likely_cause }}
+        <br>Рекомендация: {{ proposal.recommendation }}
+      </p>
+    {% else %}
+      <p>Предложения нет — разбор ждёт ручного решения.</p>
+    {% endif %}
+  </fieldset>
+
+  <fieldset style="margin-top: 16px;">
+    <legend><b>Похожие закрытые случаи</b></legend>
+    {% for case in similar %}
+      <p style="margin-bottom: 4px;">
+        [{{ case.defect_type }}/{{ case.severity }}] {{ case.description }}<br>
+        Причина: {{ case.cause }} &nbsp; Решение: {{ case.resolution }} &nbsp;
+        <i>(близость: {{ case.distance }})</i>
+      </p>
+    {% empty %}
+      <p>Похожих случаев нет.</p>
+    {% endfor %}
+  </fieldset>
+
+  {% if awaiting_review %}
+    <fieldset style="margin-top: 16px;">
+      <legend><b>Решение</b></legend>
+
+      <form method="post" style="margin-bottom: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve">
+        <button type="submit">Утвердить как есть</button>
+      </form>
+
+      <form method="post" style="margin-bottom: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit">
+        <b>Утвердить с правками:</b>
+        <p>
+          <label>Операция для повтора:<br>
+            <select name="operation_id">
+              {% for op_id, op_name in operations %}
+                <option value="{{ op_id }}" {% if op_id == proposal.operation_id %}selected{% endif %}>{{ op_name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </p>
+        <p><label>Описание дефекта:<br><textarea name="description" rows="2" style="width: 100%;">{{ classification.description }}</textarea></label></p>
+        <p>
+          <label>Тип: <select name="defect_type">
+            <option value="{{ classification.defect_type }}" selected>{{ classification.defect_type|default:"—" }}</option>
+            {% for value, label in defect_types %}{% if value != classification.defect_type %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}
+          </select></label>
+          &nbsp;
+          <label>Серьёзность: <select name="severity">
+            <option value="{{ classification.severity }}" selected>{{ classification.severity|default:"—" }}</option>
+            {% for value, label in severities %}{% if value != classification.severity %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}
+          </select></label>
+        </p>
+        <p><label>Причина:<br><textarea name="likely_cause" rows="2" style="width: 100%;">{{ proposal.likely_cause }}</textarea></label></p>
+        <p><label>Рекомендация:<br><textarea name="recommendation" rows="2" style="width: 100%;">{{ proposal.recommendation }}</textarea></label></p>
+        <button type="submit">Сохранить правки и утвердить</button>
+      </form>
+
+      <form method="post" style="margin-bottom: 12px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reject">
+        <b>Отклонить и попросить заново:</b>
+        <p><label>Что именно не так:<br><textarea name="note" rows="2" style="width: 100%;"></textarea></label></p>
+        <button type="submit">Отправить на пересмотр</button>
+      </form>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="dismiss">
+        <button type="submit">Закрыть без изменений</button>
+      </form>
+    </fieldset>
+  {% else %}
+    <p style="margin-top: 16px;"><i>Решение уже принято или разбор не на этапе проверки — действия недоступны.</i></p>
+    {% if triage.decision %}
+      <p><b>Решение:</b> {{ triage.get_decision_display }} &nbsp; <b>Кто:</b> {{ triage.decided_by }} &nbsp; <b>Когда:</b> {{ triage.decided_at }}</p>
+      {% if triage.decision_note %}<p><b>Комментарий:</b> {{ triage.decision_note }}</p>{% endif %}
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}
