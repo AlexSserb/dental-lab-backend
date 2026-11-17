@@ -46,6 +46,11 @@ PROMPT_TAG = os.getenv("PROMPT_TAG") or "production"
 PROMPT_CACHE_TTL_S = float(os.getenv("PROMPT_CACHE_TTL_S") or 300)
 PROMPT_FAILURE_BACKOFF_S = float(os.getenv("PROMPT_FAILURE_BACKOFF_S") or 60)
 
+LANGSMITH_TRACING = (os.getenv("LANGSMITH_TRACING") or "").lower() in ("1", "true", "yes")
+LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT") or "dental-lab"
+# The SDK reads the project name from the environment, so the default must be visible there too.
+os.environ.setdefault("LANGSMITH_PROJECT", LANGSMITH_PROJECT)
+
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
 # Knowledge base (RAG): fragments passed to the LLM and the cosine-distance cutoff above which a fragment is
 # considered unrelated (calibrate with `manage.py eval_retrieval`, see README).

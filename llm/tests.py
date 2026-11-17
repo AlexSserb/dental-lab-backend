@@ -84,3 +84,27 @@ class CallStructuredTest(TestCase):
 
     def test_estimate_cost(self):
         self.assertEqual(estimate_cost(1_000_000, 1_000_000), Decimal(3))
+
+
+class ClientTracingTest(TestCase):
+    """The raw OpenAI client is wrapped for LangSmith only when tracing is enabled."""
+
+    def _client(self):
+        from .client import get_client
+        get_client.cache_clear()
+        try:
+            return get_client()
+        finally:
+            get_client.cache_clear()
+
+    def _is_wrapped(self, client) -> bool:
+        # wrap_openai patches chat.completions.parse with a wrapper that keeps the original via __wrapped__.
+        return getattr(client.chat.completions.parse, "__wrapped__", None) is not None
+
+    @override_settings(AI_MODEL="m", AI_API_KEY="k", LANGSMITH_TRACING=False)
+    def test_tracing_off_leaves_the_client_plain(self):
+        self.assertFalse(self._is_wrapped(self._client()))
+
+    @override_settings(AI_MODEL="m", AI_API_KEY="k", LANGSMITH_TRACING=True)
+    def test_tracing_on_wraps_the_client(self):
+        self.assertTrue(self._is_wrapped(self._client()))

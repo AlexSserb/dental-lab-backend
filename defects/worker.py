@@ -27,6 +27,16 @@ logger = logging.getLogger(__name__)
 ERROR_TEXT_LIMIT = 2000
 
 
+def _trace_context(triage: DefectTriage, resume: bool) -> dict:
+    """LangSmith run name/tags/metadata for the graph invocation, so traces are searchable in the UI:
+    by workflow name, by triage/order id (metadata filters) and by what happened (tags)."""
+    return {
+        "run_name": "defect-triage",
+        "tags": ["defect-triage", "resume" if resume else "initial", triage.state],
+        "metadata": {"triage_id": str(triage.id), "order_id": str(triage.order_id), "state": triage.state},
+    }
+
+
 def checkpointer_dsn() -> str:
     """The Postgres connection string for the checkpointer, built from the default database settings."""
     db = settings.DATABASES["default"]
@@ -77,7 +87,7 @@ class DefectWorker:
             return row
 
     def _run(self, triage: DefectTriage, resume: bool) -> None:
-        config = {"configurable": {"thread_id": triage.thread_id}}
+        config = {"configurable": {"thread_id": triage.thread_id}, **_trace_context(triage, resume)}
         try:
             if resume:
                 self.graph.invoke(Command(resume=self._resume_value(triage)), config=config)

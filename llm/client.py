@@ -15,9 +15,16 @@ def get_client() -> OpenAI:
     """Single OpenAI-compatible client; transport-level retries (429/5xx/network) are done by the SDK."""
     if not is_configured():
         raise LlmNotConfigured("LLM is not configured: set AI_MODEL and AI_API_KEY (and AI_BASE_URL if not OpenAI)")
-    return OpenAI(
+    client = OpenAI(
         base_url=settings.AI_BASE_URL,
         api_key=settings.AI_API_KEY or "not-needed",
         timeout=settings.AI_TIMEOUT_S,
         max_retries=1,
     )
+    if settings.LANGSMITH_TRACING:
+        # Plain OpenAI SDK calls are not auto-traced (unlike LangGraph runs): wrap so every structured
+        # LLM call becomes a LangSmith run nested under the workflow trace that made it.
+        from langsmith.wrappers import wrap_openai
+
+        client = wrap_openai(client)
+    return client

@@ -303,3 +303,31 @@ The workflow is tuned with env variables (see `.env.example`):
 Changing `DEFECT_MAX_REVISIONS` or `DEFECT_MIN_CONFIDENCE` affects only new graph runs - a triage already
 paused at review keeps the budget it was started with. To justify the model choice, run
 `manage.py eval_triage` (see above) before and after a change.
+
+## LangSmith tracing
+
+With `LANGSMITH_TRACING=true` (and `LANGSMITH_API_KEY` set) the app sends full traces to LangSmith:
+
+* every **LangGraph run** — the whole triage graph with each node as a child run (inputs, outputs, latency);
+* every **structured LLM call** (`classify`, `propose`, drafting) — nested under the workflow that made it,
+  with the exact prompts, retries and token counts;
+* `manage.py eval_triage` — one parent run `eval_triage` with every case nested under it.
+
+Traces are grouped under `LANGSMITH_PROJECT` (default `dental-lab`). The worker tags each run with
+`defect-triage`, `initial`/`resume` and the triage state, and attaches `triage_id`/`order_id` as metadata,
+so a trace can be found from a triage row and vice versa.
+
+### Where to look in the LangSmith web UI
+
+1. Open https://smith.langchain.com and pick your **project** (`LANGSMITH_PROJECT`, default `dental-lab`) in
+   the Projects list.
+2. **Traces** shows one row per workflow run — the triage graph runs appear as `defect-triage` (the
+   resume of a paused graph is a separate trace, tagged `resume`). Use the metadata filters
+   (`triage_id`, `order_id`, `state`) or tags to narrow down.
+3. Click a trace: the tree shows `load_context → classify → retrieve → propose → review → apply → notify`,
+   with the LLM calls nested inside the nodes. Each LLM run has the exact prompt sent, the raw completion,
+   the schema-constrained output, retries and per-call token/cost figures.
+4. The **dashboard** tab over the same project shows error rate, latency and cost aggregates — useful to
+   spot a degraded local model without reading application logs.
+
+Tracing is off by default; the test suite never sends traces (no real LLM is called in tests).
