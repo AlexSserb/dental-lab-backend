@@ -41,6 +41,10 @@ DEFECT_WORKER_POLL_S = float(os.getenv("DEFECT_WORKER_POLL_S") or 2)
 # mailbox or a staging environment with fake doctor addresses).
 DEFECT_NOTIFY_EMAIL = os.getenv("DEFECT_NOTIFY_EMAIL") or ""
 
+# LangSmith alert rules POST to /api/ops/alerts/ with this token in the X-Alert-Token header; the email
+# with the alert goes to EMAIL_ADMIN. Empty token disables the endpoint.
+ALERT_WEBHOOK_TOKEN = os.getenv("ALERT_WEBHOOK_TOKEN") or ""
+
 PROMPT_SOURCE = (os.getenv("PROMPT_SOURCE") or "local").lower()
 PROMPT_TAG = os.getenv("PROMPT_TAG") or "production"
 PROMPT_CACHE_TTL_S = float(os.getenv("PROMPT_CACHE_TTL_S") or 300)
@@ -102,6 +106,7 @@ INSTALLED_APPS = [
     "llm",
     "knowledge",
     "defects",
+    "ops",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -251,6 +256,7 @@ REST_FRAMEWORK = {
         "order_draft": os.getenv("AI_DRAFT_RATE", "20/hour"),
         "knowledge_ask": os.getenv("KNOWLEDGE_ASK_RATE", "60/hour"),
         "defect_decision": os.getenv("DEFECT_DECISION_RATE", "60/hour"),
+        "alert_webhook": os.getenv("ALERT_WEBHOOK_RATE", "30/hour"),
     },
 }
 

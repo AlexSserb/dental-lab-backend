@@ -17,6 +17,7 @@ urlpatterns = [
         path("works/", include("works.urls")),
         path("operations/", include("operations.urls")),
         path("accounts/", include("accounts.urls")),
+        path("ops/", include("ops.urls")),
         path("schema/", SpectacularAPIView.as_view(), name="schema"),
         path("docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     ])),

@@ -331,3 +331,35 @@ so a trace can be found from a triage row and vice versa.
    spot a degraded local model without reading application logs.
 
 Tracing is off by default; the test suite never sends traces (no real LLM is called in tests).
+
+## Monitoring and alerts
+
+### Self-hosted digest (works without LangSmith)
+
+`manage.py monitoring_digest` prints the health of the AI workflow: per-feature LLM call counts, success
+rate, p50/p95 latency, tokens and cost for the last N hours (`--hours`, default 24), plus defect-triage
+state counts, the triage that has waited longest for a review, and the recent processing failures.
+`--email` also sends it to `EMAIL_ADMIN` — suitable for a daily cron:
+
+```
+0 8 * * * python manage.py monitoring_digest --email
+```
+
+### LangSmith dashboards and alerts (needs tracing on)
+
+The project **Dashboard** in the LangSmith UI shows error rate, latency and cost over the traces (see the
+tracing section above). LangSmith **alert rules** are configured in the UI: project → **Alerts** → create a
+rule (e.g. *error rate over 10% for 30 minutes*, or *p95 latency above N seconds*) and choose a delivery.
+
+For email delivery through our backend, point the rule's **webhook** at:
+
+```
+POST /api/ops/alerts/        header: X-Alert-Token: <ALERT_WEBHOOK_TOKEN>
+```
+
+The endpoint accepts any JSON payload shape, formats what it recognizes (type, message, project, metric,
+threshold, run link) and emails it to `EMAIL_ADMIN`. Auth is a shared secret (`ALERT_WEBHOOK_TOKEN`,
+compared in constant time) because LangSmith cannot present our JWTs — with an empty token the endpoint is
+disabled. A mail failure answers 503 so LangSmith retries instead of dropping the alert; the webhook is
+rate-limited by `ALERT_WEBHOOK_RATE`. For Slack/other channels, configure the delivery in LangSmith
+directly — the UI supports it without extra backend code.
