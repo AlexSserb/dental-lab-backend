@@ -29,6 +29,32 @@ AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
+# Defect triage workflow
+# How many times the administrator may send a proposal back before the workflow goes to manual review.
+DEFECT_MAX_REVISIONS = int(os.getenv("DEFECT_MAX_REVISIONS") or 2)
+# Propose step runs only when the classification confidence is at least this (low < medium < high); anything
+# below goes to manual review. "medium" means the model's "low" answers never reach propose automatically.
+DEFECT_MIN_CONFIDENCE = os.getenv("DEFECT_MIN_CONFIDENCE") or "medium"
+# Poll interval of `manage.py run_defect_worker` when there is nothing to do.
+DEFECT_WORKER_POLL_S = float(os.getenv("DEFECT_WORKER_POLL_S") or 2)
+# When set, the "defect found" email goes to this address instead of the ordering doctor (e.g. for a demo
+# mailbox or a staging environment with fake doctor addresses).
+DEFECT_NOTIFY_EMAIL = os.getenv("DEFECT_NOTIFY_EMAIL") or ""
+
+# LangSmith alert rules POST to /api/ops/alerts/ with this token in the X-Alert-Token header; the email
+# with the alert goes to EMAIL_ADMIN. Empty token disables the endpoint.
+ALERT_WEBHOOK_TOKEN = os.getenv("ALERT_WEBHOOK_TOKEN") or ""
+
+PROMPT_SOURCE = (os.getenv("PROMPT_SOURCE") or "local").lower()
+PROMPT_TAG = os.getenv("PROMPT_TAG") or "production"
+PROMPT_CACHE_TTL_S = float(os.getenv("PROMPT_CACHE_TTL_S") or 300)
+PROMPT_FAILURE_BACKOFF_S = float(os.getenv("PROMPT_FAILURE_BACKOFF_S") or 60)
+
+LANGSMITH_TRACING = (os.getenv("LANGSMITH_TRACING") or "").lower() in ("1", "true", "yes")
+LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT") or "dental-lab"
+# The SDK reads the project name from the environment, so the default must be visible there too.
+os.environ.setdefault("LANGSMITH_PROJECT", LANGSMITH_PROJECT)
+
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3")
 # Knowledge base (RAG): fragments passed to the LLM and the cosine-distance cutoff above which a fragment is
 # considered unrelated (calibrate with `manage.py eval_retrieval`, see README).
@@ -79,6 +105,8 @@ INSTALLED_APPS = [
     "operations",
     "llm",
     "knowledge",
+    "defects",
+    "ops",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -227,6 +255,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "order_draft": os.getenv("AI_DRAFT_RATE", "20/hour"),
         "knowledge_ask": os.getenv("KNOWLEDGE_ASK_RATE", "60/hour"),
+        "defect_decision": os.getenv("DEFECT_DECISION_RATE", "60/hour"),
+        "alert_webhook": os.getenv("ALERT_WEBHOOK_RATE", "30/hour"),
     },
 }
 

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import Type, BinaryIO
 
 from django.core.handlers.wsgi import WSGIRequest
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
@@ -14,6 +15,7 @@ from rest_framework.response import Response
 
 from accounts.models import DentalLabData
 from core.paginations import StandardResultsSetPagination
+from defects.models import DefectTriage
 from llm.exceptions import LlmError, LlmValidationFailed
 from orders.drafting.service import draft_order_from_text
 from orders.reports import Report
@@ -174,20 +176,29 @@ class OrderService:
 
     @staticmethod
     def report_defect(request) -> Response:
-        serializer = ReportDefectSerializer(data=request.data)
+        """
+        Register a defect report as a DefectTriage in the SUBMITTED state; the background worker picks it up
+        and runs the triage graph. Statuses of the order and its works are no longer touched here (contract
+        change: the caller gets 202 with the triage id instead of a bare 200).
+        """
+        serializer = ReportDefectSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        order = serializer.validated_data["order"]
-        order.comment_after_accept = serializer.validated_data["comment_after_accept"]
-        order.status = OrderStatus.get_defect_status()
-        order.save()
-
-        for work in serializer.validated_data["works"]:
-            work.work_status = WorkStatus.get_defect_status()
-            work.save()
-
-        return Response(status=status.HTTP_200_OK)
+        data = serializer.validated_data
+        try:
+            with transaction.atomic():
+                triage = DefectTriage.objects.create(
+                    order=data["order"], comment=data["comment_after_accept"], reported_by=request.user,
+                )
+                triage.works.set(data["works"])
+        except IntegrityError:
+            # One unfinished triage per order (unique_open_defect_triage_per_order).
+            return Response(
+                {"detail": "По этому заказу уже есть незавершённый разбор дефекта."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response({"triage_id": str(triage.id)}, status=status.HTTP_202_ACCEPTED)
 
     @staticmethod
     def cancel_order(request) -> Response:

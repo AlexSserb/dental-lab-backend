@@ -264,3 +264,102 @@ colloquial wording, near-duplicate topics); an easy set scores 100% and cannot s
 
 Run the commands in Docker with `docker compose exec backend python manage.py <command>`. The image copies the
 code and `documents/` at build time, so rebuild (`docker compose up -d --build`) after changing them.
+
+## Defect triage eval
+
+`defects/evals/triage_cases.json` holds labeled cases: the doctor's report (works + comment), the expected
+`defect_type`/`severity`, and the operation list with the 1-based number of the operation that must be redone.
+Run:
+
+```
+python manage.py eval_triage                                  # the configured AI_MODEL
+python manage.py eval_triage --model qwen2.5:7b-instruct --base-url http://localhost:11434/v1
+```
+
+Every case goes through the same production machinery as the real workflow (`classify_defect`, then the propose
+prompt with the same schema and range validator, without the database), so the score measures the prompts plus
+the model, not a mock. A failed LLM call counts as a miss. The report shows:
+
+* **defect type / severity / both** - classification accuracy against the labels;
+* **operation choice** - share of cases where the model picked the labeled operation (scored with the labeled
+  type/severity, so it does not absorb classification mistakes).
+
+`--limit N` runs a smoke subset, `--verbose` prints every case instead of only the misses. Add a case by
+appending to the JSON file; keep all defect types covered, or the eval cannot catch a bias towards one label.
+Requires a reachable OpenAI-compatible endpoint (local ollama works) - never run in tests.
+
+## Defect triage configuration
+
+The workflow is tuned with env variables (see `.env.example`):
+
+* `DEFECT_MAX_REVISIONS` - how many times the administrator may send a proposal back before the workflow
+  stops proposing and waits for a fully manual decision (default 2).
+* `DEFECT_MIN_CONFIDENCE` - the propose step runs only when the classification confidence is at least this
+  (`low` < `medium` < `high`; default `medium`), otherwise the report goes to manual review.
+* `DEFECT_WORKER_POLL_S` - poll interval of `manage.py run_defect_worker` when there is nothing to do.
+* `DEFECT_NOTIFY_EMAIL` - when set, the "defect found" email goes to this address instead of the ordering
+  doctor (demo mailbox, staging with fake doctor addresses).
+
+Changing `DEFECT_MAX_REVISIONS` or `DEFECT_MIN_CONFIDENCE` affects only new graph runs - a triage already
+paused at review keeps the budget it was started with. To justify the model choice, run
+`manage.py eval_triage` (see above) before and after a change.
+
+## LangSmith tracing
+
+With `LANGSMITH_TRACING=true` (and `LANGSMITH_API_KEY` set) the app sends full traces to LangSmith:
+
+* every **LangGraph run** — the whole triage graph with each node as a child run (inputs, outputs, latency);
+* every **structured LLM call** (`classify`, `propose`, drafting) — nested under the workflow that made it,
+  with the exact prompts, retries and token counts;
+* `manage.py eval_triage` — one parent run `eval_triage` with every case nested under it.
+
+Traces are grouped under `LANGSMITH_PROJECT` (default `dental-lab`). The worker tags each run with
+`defect-triage`, `initial`/`resume` and the triage state, and attaches `triage_id`/`order_id` as metadata,
+so a trace can be found from a triage row and vice versa.
+
+### Where to look in the LangSmith web UI
+
+1. Open https://smith.langchain.com and pick your **project** (`LANGSMITH_PROJECT`, default `dental-lab`) in
+   the Projects list.
+2. **Traces** shows one row per workflow run — the triage graph runs appear as `defect-triage` (the
+   resume of a paused graph is a separate trace, tagged `resume`). Use the metadata filters
+   (`triage_id`, `order_id`, `state`) or tags to narrow down.
+3. Click a trace: the tree shows `load_context → classify → retrieve → propose → review → apply → notify`,
+   with the LLM calls nested inside the nodes. Each LLM run has the exact prompt sent, the raw completion,
+   the schema-constrained output, retries and per-call token/cost figures.
+4. The **dashboard** tab over the same project shows error rate, latency and cost aggregates — useful to
+   spot a degraded local model without reading application logs.
+
+Tracing is off by default; the test suite never sends traces (no real LLM is called in tests).
+
+## Monitoring and alerts
+
+### Self-hosted digest (works without LangSmith)
+
+`manage.py monitoring_digest` prints the health of the AI workflow: per-feature LLM call counts, success
+rate, p50/p95 latency, tokens and cost for the last N hours (`--hours`, default 24), plus defect-triage
+state counts, the triage that has waited longest for a review, and the recent processing failures.
+`--email` also sends it to `EMAIL_ADMIN` — suitable for a daily cron:
+
+```
+0 8 * * * python manage.py monitoring_digest --email
+```
+
+### LangSmith dashboards and alerts (needs tracing on)
+
+The project **Dashboard** in the LangSmith UI shows error rate, latency and cost over the traces (see the
+tracing section above). LangSmith **alert rules** are configured in the UI: project → **Alerts** → create a
+rule (e.g. *error rate over 10% for 30 minutes*, or *p95 latency above N seconds*) and choose a delivery.
+
+For email delivery through our backend, point the rule's **webhook** at:
+
+```
+POST /api/ops/alerts/        header: X-Alert-Token: <ALERT_WEBHOOK_TOKEN>
+```
+
+The endpoint accepts any JSON payload shape, formats what it recognizes (type, message, project, metric,
+threshold, run link) and emails it to `EMAIL_ADMIN`. Auth is a shared secret (`ALERT_WEBHOOK_TOKEN`,
+compared in constant time) because LangSmith cannot present our JWTs — with an empty token the endpoint is
+disabled. A mail failure answers 503 so LangSmith retries instead of dropping the alert; the webhook is
+rate-limited by `ALERT_WEBHOOK_RATE`. For Slack/other channels, configure the delivery in LangSmith
+directly — the UI supports it without extra backend code.

@@ -15,6 +15,13 @@ env:
   EMAIL_HOST_USER: "mock@gmail.com"
   EMAIL_HOST_PASSWORD: "111"
   CLIENT_URL: "https://mock.com"
+  # Defect triage workflow: defaults, set explicitly so a change of defaults cannot silently break CI.
+  # CI has no Ollama and needs none: every test fakes the LLM/embeddings at the client boundary.
+  DEFECT_MAX_REVISIONS: "2"
+  DEFECT_MIN_CONFIDENCE: "medium"
+  DEFECT_WORKER_POLL_S: "2"
+  DEFECT_NOTIFY_EMAIL: ""
+  DEFECT_DECISION_RATE: "60/hour"
 
 jobs:
   test:

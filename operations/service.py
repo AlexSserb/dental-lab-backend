@@ -28,7 +28,7 @@ class OperationService:
 
     @staticmethod
     def get_for_work(work_id: str) -> Response:
-        operations = Operation.objects.filter(work=work_id).order_by("operation_status__number")
+        operations = Operation.objects.filter(work=work_id).order_by("operation_status__number", "ordinal_number")
         serializer = FullOperationSerializer(operations, many=True)
 
         # get history of operations for a work

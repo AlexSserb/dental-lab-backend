@@ -1,7 +1,12 @@
+from rest_framework.test import APIClient
+
 from accounts.models import User
+from defects.models import DefectTriage
 from orders.models import *
 from core.tests import BaseTestCase
 from works.models import WorkStatus, Work
+
+import uuid
 
 
 class OrdersTest(BaseTestCase):
@@ -9,7 +14,7 @@ class OrdersTest(BaseTestCase):
 
     def test_get_orders_correct(self):
         self.set_up_for_admin()
-        response = self.client.get(self.url + f"/orders/2025/1", follow=True)
+        response = self.client.get(self.url + f"/orders/2025/1/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
@@ -26,7 +31,7 @@ class OrdersTest(BaseTestCase):
 
     def test_get_orders_for_physician_correct(self):
         self.set_up_for_physician()
-        response = self.client.get(self.url + "/orders-for-physician", follow=True)
+        response = self.client.get(self.url + "/orders-for-physician/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 2)
@@ -143,3 +148,100 @@ class OrdersTest(BaseTestCase):
         self.assertTrue(work2.discount == 6)
         self.assertTrue(work1.work_status.name == work2.work_status.name)
         self.assertTrue(work2.work_status.name, "Готово")
+
+
+class ReportDefectTest(BaseTestCase):
+    url = "/api/orders/report-defect"
+
+    own_order_id = "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9"
+    own_work_id = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
+    other_order_work_id = "2b1fa828-44aa-42d3-bb5c-6802c52097c3"
+
+    def _payload(self, order_id=None, work_ids=None):
+        return {
+            "order": order_id or self.own_order_id,
+            "comment_after_accept": "Коронка не садится",
+            "works": work_ids or [self.own_work_id],
+        }
+
+    def _set_up_for_another_physician(self):
+        other = User.objects.create(email="doctor2@mail.com", first_name="Other", last_name="Doctor")
+        self.client = APIClient()
+        self.client.force_authenticate(user=other)
+
+    def test_physician_reports_defect_on_own_order(self):
+        self.set_up_for_physician()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        # 202 Accepted: the triage is created, the worker will process it; statuses are no longer touched
+        self.assertEqual(response.status_code, 202)
+        triage = DefectTriage.objects.get(id=response.json()["triageId"])
+        self.assertEqual(triage.state, DefectTriage.State.SUBMITTED)
+        self.assertEqual(triage.comment, "Коронка не садится")
+        self.assertEqual(triage.reported_by.email, self.physician_email)
+        self.assertEqual(list(triage.works.values_list("id", flat=True)), [uuid.UUID(self.own_work_id)])
+        # the contract no longer changes order/work statuses
+        self.assertNotEqual(Order.objects.get(id=self.own_order_id).status.number, 5)
+        self.assertNotEqual(Work.objects.get(id=self.own_work_id).work_status.number, 4)
+
+    def test_admin_reports_defect_on_any_order(self):
+        self.set_up_for_admin()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 202)
+        triage = DefectTriage.objects.get(id=response.json()["triageId"])
+        self.assertEqual(triage.order_id, uuid.UUID(self.own_order_id))
+
+    def test_second_open_triage_for_the_same_order_is_rejected(self):
+        self.set_up_for_physician()
+        self.client.post(self.url, data=self._payload(), format="json")
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(DefectTriage.objects.count(), 1)
+
+    def test_physician_cannot_report_defect_on_foreign_order(self):
+        self._set_up_for_another_physician()
+        before = Order.objects.get(id=self.own_order_id).status_id
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("order", response.data)
+        order = Order.objects.get(id=self.own_order_id)
+        self.assertEqual(order.status_id, before)
+        self.assertNotEqual(Work.objects.get(id=self.own_work_id).work_status.number, 4)
+
+    def test_foreign_order_error_is_same_as_missing_order(self):
+        self._set_up_for_another_physician()
+        foreign = self.client.post(self.url, data=self._payload(), format="json")
+        missing = self.client.post(
+            self.url, data=self._payload(order_id="00000000-0000-0000-0000-000000000001"), format="json"
+        )
+
+        self.assertEqual(foreign.status_code, missing.status_code)
+        self.assertEqual(
+            [str(e).replace(self.own_order_id, "X") for e in foreign.data["order"]],
+            [str(e).replace("00000000-0000-0000-0000-000000000001", "X") for e in missing.data["order"]],
+        )
+
+    def test_technician_cannot_report_defect(self):
+        self.set_up_for_tech()
+        response = self.client.post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(DefectTriage.objects.exists())
+
+    def test_works_must_belong_to_the_order(self):
+        self.set_up_for_physician()
+        response = self.client.post(
+            self.url, data=self._payload(work_ids=[self.own_work_id, self.other_order_work_id]), format="json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("works", response.data)
+        self.assertFalse(DefectTriage.objects.exists())
+
+    def test_anonymous_cannot_report_defect(self):
+        response = APIClient().post(self.url, data=self._payload(), format="json")
+
+        self.assertEqual(response.status_code, 401)

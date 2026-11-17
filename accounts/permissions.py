@@ -4,13 +4,15 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+LAB_ADMIN_GROUP_ID = 1
+
 
 class IsLabAdmin(permissions.BasePermission):
     """
         Permission class for laboratory administrator.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.groups.filter(id=1)
+        return request.user and request.user.groups.filter(id=LAB_ADMIN_GROUP_ID)
 
 
 class IsTech(permissions.BasePermission):
