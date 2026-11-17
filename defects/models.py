@@ -76,6 +76,8 @@ class DefectTriage(BaseModel):
     decided_at = models.DateTimeField(null=True, blank=True, verbose_name="Решение принято")
     applied_at = models.DateTimeField(null=True, blank=True, verbose_name="Применено")
     notified_at = models.DateTimeField(null=True, blank=True, verbose_name="Уведомление отправлено")
+    # Why the doctor could not be notified; recorded, never raised - a mail outage must not undo the apply.
+    notify_error = models.TextField(blank=True, default="", verbose_name="Ошибка уведомления")
 
     error = models.TextField(blank=True, default="", verbose_name="Ошибка")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="Создано")

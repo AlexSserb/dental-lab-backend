@@ -12,6 +12,8 @@ import logging
 from enum import StrEnum
 from typing import TypedDict
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 from langgraph.graph import END, START, StateGraph
@@ -22,7 +24,9 @@ from defects.triage.case_service import add_case, get_precedents
 from defects.triage.classify import classify_defect
 from defects.triage.propose import propose_redo
 from llm.exceptions import LlmError
-from operations.models import Operation, OperationStatus
+from operations.models import Operation, OperationStatus, OperationType
+from orders.models import Order, OrderStatus
+from works.models import WorkStatus
 
 logger = logging.getLogger(__name__)
 
@@ -147,6 +151,8 @@ def apply_node(state: TriageState) -> TriageState:
     """
     Write the administrator's decision. One transaction, idempotent: if the triage is already applied (or
     closed) the node returns without touching anything, so a replayed graph run cannot reset the operation twice.
+    Everything the decision changes - the operation, the order and work statuses, the doctor-visible comment and
+    the precedent case - commits together or not at all.
     """
     decision = state["decision"]
     with transaction.atomic():
@@ -167,7 +173,7 @@ def apply_node(state: TriageState) -> TriageState:
                 # Manual review with nothing to apply: closing without changes is the only safe outcome.
                 triage.state = DefectTriage.State.REJECTED
             else:
-                _reset_operation(operation_id)
+                _apply_defect(triage, state.get("classification") or {})
                 triage.state = DefectTriage.State.APPLIED
                 triage.applied_at = timezone.now()
         else:  # dismiss (and reject that reached the limit is routed back to review as manual, never here)
@@ -176,28 +182,86 @@ def apply_node(state: TriageState) -> TriageState:
     return {}
 
 
+def _apply_defect(triage: DefectTriage, classification: dict) -> None:
+    """Everything an approved defect means in production data: redo the operation, mark the order and works,
+    leave the doctor a comment and remember the closed case as a precedent."""
+    _reset_operation(triage.final["operation_id"])
+    _mark_defect(triage)
+    _store_case(triage, classification)
+
+
+def _mark_defect(triage: DefectTriage) -> None:
+    """Order and defective works go to the defect status; the comment after acceptance carries the note."""
+    order = Order.objects.select_for_update().get(id=triage.order_id)
+    order.status = OrderStatus.get_defect_status()
+    order.comment_after_accept = triage.decision_note[:512]
+    order.save(update_fields=["status", "comment_after_accept"])
+    defect_work_status = WorkStatus.get_defect_status()
+    for work in triage.works.all().select_for_update():
+        work.work_status = defect_work_status
+        work.save(update_fields=["work_status"])
+
+
+def _store_case(triage: DefectTriage, classification: dict) -> None:
+    """Remember the closed defect as a precedent from the admin-approved values (classification fills gaps)."""
+    if DefectCase.objects.filter(triage=triage).exists():
+        return
+    case = {
+        "defect_type": triage.final.get("defect_type") or classification.get("defect_type"),
+        "severity": triage.final.get("severity") or classification.get("severity"),
+        "description": triage.final.get("description") or classification.get("description"),
+        "cause": triage.final.get("likely_cause", ""),
+        "resolution": triage.final.get("recommendation", ""),
+        "operation_type": OperationType.objects.filter(operations__id=triage.final.get("operation_id")).first(),
+        "triage": triage,
+    }
+    if all(case[key] for key in ("defect_type", "severity", "description")):
+        # A manual review with no classification cannot become a precedent.
+        add_case(**case)
+
+
 def notify_node(state: TriageState) -> TriageState:
-    """After the decision is final: mark the notification and store the closed case as a precedent."""
+    """
+    After the decision is final: tell the doctor. The send goes through transaction.on_commit so the email
+    leaves only if the apply transaction committed; a mail failure is logged and recorded on the triage, and
+    never raised back into the graph - the apply stands either way.
+    """
     triage = _triage(state)
-    if triage.state == DefectTriage.State.APPLIED and not DefectCase.objects.filter(triage=triage).exists():
-        classification = state.get("classification") or {}
-        case = {
-            "defect_type": triage.final.get("defect_type") or classification.get("defect_type"),
-            "severity": triage.final.get("severity") or classification.get("severity"),
-            "description": triage.final.get("description") or classification.get("description"),
-            "cause": triage.final.get("likely_cause", ""),
-            "resolution": triage.final.get("recommendation", ""),
-            "triage": triage,
-        }
-        if all(case[key] for key in ("defect_type", "severity", "description")):
-            # A manual review with no classification cannot become a precedent.
-            try:
-                add_case(**case)
-            except Exception:
-                logger.exception("failed to store the closed case as a precedent (triage %s)", triage.id)
+    if triage.notified_at:
+        return {"notified": True}  # a replayed run must not mail the doctor twice
+    triage_id = str(triage.id)
+    transaction.on_commit(lambda: _notify_doctor(triage_id))
     triage.notified_at = timezone.now()
     triage.save(update_fields=["notified_at", "updated_at"])
     return {"notified": True}
+
+
+def _notify_doctor(triage_id: str) -> None:
+    triage = DefectTriage.objects.select_related("order__user").get(id=triage_id)
+    doctor = triage.order.user
+    final = triage.final or {}
+    lines = [
+        f"По заказу {triage.order_id} обнаружен дефект.",
+        f"Описание: {final.get('description') or triage.comment}",
+    ]
+    if final.get("likely_cause"):
+        lines.append(f"Причина: {final['likely_cause']}")
+    if final.get("recommendation"):
+        lines.append(f"Решение: {final['recommendation']}")
+    if triage.decision_note:
+        lines.append(f"Комментарий администратора: {triage.decision_note}")
+    try:
+        send_mail(
+            subject=f"Дефект по заказу {triage.order_id}",
+            message="\n".join(lines),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[doctor.email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        logger.exception("failed to notify the doctor about triage %s", triage_id)
+        triage.notify_error = str(exc)[:2000]
+        triage.save(update_fields=["notify_error"])
 
 
 def _reset_operation(operation_id: str) -> None:

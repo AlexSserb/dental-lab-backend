@@ -6,10 +6,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
+from django.core import mail
 from django.test import override_settings
 
 from core.tests import BaseTestCase
-from defects.graph import MAX_REVISIONS, apply_node, build_graph
+from defects.graph import MAX_REVISIONS, apply_node, build_graph, notify_node
 from defects.models import DefectCase, DefectTriage
 from defects.triage.schemas import DefectClassification, RedoProposal
 from langgraph.checkpoint.memory import InMemorySaver
@@ -17,7 +18,8 @@ from langgraph.types import Command
 from llm.exceptions import LlmUnavailable
 from llm.models import LlmCallLog
 from operations.models import Operation, OperationStatus
-from works.models import Work
+from orders.models import OrderStatus
+from works.models import Work, WorkStatus
 
 WORK_ID = "60b5e09a-9d70-486e-a010-64f3504ce0a9"
 ORDER_ID = "c5f7d483-347b-4cbb-93b2-f9de7cd03cc9"
@@ -146,6 +148,10 @@ class FakeLlmFlowTest(GraphTestBase):
         self.assertEqual(operation.operation_status.number, 1)  # sent back to the queue
         self.assertIsNone(operation.exec_start)
         self.assertTrue(operation.is_exec_start_editable)
+        # the order and the defective work are marked with the defect status
+        self.assertEqual(triage.order.status, OrderStatus.get_defect_status())
+        self.assertEqual(triage.works.get().work_status, WorkStatus.get_defect_status())
+        self.assertEqual(triage.order.comment_after_accept, "")  # no note on a plain approve
         self.assertEqual(DefectCase.objects.filter(triage=triage).count(), 1)  # closed case stored as precedent
 
     def test_edit_flow_applies_the_admin_values(self):
@@ -166,6 +172,13 @@ class FakeLlmFlowTest(GraphTestBase):
         self.assertEqual(Operation.objects.get(id=self.other_op.id).operation_status.number, 1)
         # the operation the model proposed is untouched
         self.assertNotEqual(Operation.objects.get(id=FIRST_OPERATION_ID).operation_status.number, 1)
+        # the note reaches the order, and the case keeps the admin-approved values
+        self.assertEqual(triage.order.comment_after_accept, "фрезеровка, а не подготовка")
+        case = DefectCase.objects.get(triage=triage)
+        self.assertEqual(case.cause, "Другая причина.")
+        self.assertEqual(case.resolution, "Другое решение.")
+        self.assertEqual(case.description, "Коронка не садится.")  # filled from the proposal
+        self.assertEqual(case.operation_type_id, self.other_op.operation_type_id)
 
     def test_reject_then_repropose_then_approve(self):
         client = self.run_to_review([
@@ -278,6 +291,11 @@ class DismissFlowTest(GraphTestBase):
         self.assertEqual(triage.final, {})
         self.assertIsNone(triage.applied_at)
         self.assertNotEqual(Operation.objects.get(id=FIRST_OPERATION_ID).operation_status.number, 1)
+        # a dismissal changes nothing in production data
+        self.assertNotEqual(triage.order.status, OrderStatus.get_defect_status())
+        self.assertNotEqual(triage.works.get().work_status, WorkStatus.get_defect_status())
+        self.assertEqual(triage.order.comment_after_accept, "")
+        self.assertEqual(DefectCase.objects.count(), 0)
 
 
 class ManualApproveWithoutOperationTest(GraphTestBase):
@@ -290,13 +308,66 @@ class ManualApproveWithoutOperationTest(GraphTestBase):
 
 
 class NotifyNodeTest(GraphTestBase):
-    def test_notify_survives_embedding_failure(self):
+    def test_the_doctor_is_mailed_after_commit(self):
+        self.run_to_review([completion(classification_obj()), completion(proposal_obj(number=1))])
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"), \
+                self.captureOnCommitCallbacks(execute=True) as callbacks:  # on_commit fires outside the test transaction
+            result = self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
+
+        self.assertTrue(result["notified"])
+        self.assertEqual(len(callbacks), 1)  # the send was deferred to the apply commit
+        triage = DefectTriage.objects.get(id=self.triage.id)
+        self.assertEqual(triage.state, DefectTriage.State.APPLIED)
+        self.assertIsNotNone(triage.notified_at)
+        self.assertEqual(triage.notify_error, "")  # the send went through
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.subject, f"Дефект по заказу {self.triage.order_id}")
+        self.assertIn("Коронка не садится", message.body)  # the comment backs the description up
+        self.assertEqual(message.to, [triage.order.user.email])
+
+    def test_mail_failure_is_recorded_and_does_not_undo_the_apply(self):
+        self.run_to_review([completion(classification_obj()), completion(proposal_obj(number=1))])
+        with patch("defects.graph.send_mail", side_effect=RuntimeError("smtp down")), \
+                override_settings(EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"), \
+                self.captureOnCommitCallbacks(execute=True):
+            result = self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
+
+        self.assertTrue(result["notified"])  # the workflow still finishes
+        triage = DefectTriage.objects.get(id=self.triage.id)
+        self.assertEqual(triage.state, DefectTriage.State.APPLIED)  # the apply stands
+        self.assertIsNotNone(triage.applied_at)
+        self.assertEqual(Operation.objects.get(id=FIRST_OPERATION_ID).operation_status.number, 1)
+        self.assertIn("smtp down", triage.notify_error)  # the failure was recorded on the triage
+        self.assertIsNotNone(triage.notified_at)
+
+    def test_a_notified_triage_is_not_mailed_twice(self):
+        self.run_to_review([completion(classification_obj()), completion(proposal_obj(number=1))])
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"), \
+                self.captureOnCommitCallbacks(execute=True):
+            self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
+        mail.outbox.clear()
+
+        notify_node({"triage_id": str(self.triage.id)})  # a replayed run
+
+        self.assertEqual(len(mail.outbox), 0)
+
+
+class CaseStoreFailureTest(GraphTestBase):
+    def test_a_failed_precedent_rolls_the_whole_apply_back(self):
+        """The case is part of the apply transaction: without it nothing commits - the row stays at review."""
         self.run_to_review([completion(classification_obj()), completion(proposal_obj(number=1))])
         with patch("defects.graph.add_case", side_effect=RuntimeError("embedding endpoint down")):
-            result = self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
-        self.assertTrue(result["notified"])  # the workflow still finishes
-        self.assertEqual(DefectTriage.objects.get(id=self.triage.id).state, DefectTriage.State.APPLIED)
-        self.assertIsNotNone(DefectTriage.objects.get(id=self.triage.id).notified_at)
+            with self.assertRaises(RuntimeError):
+                self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
+
+        triage = DefectTriage.objects.get(id=self.triage.id)
+        self.assertEqual(triage.state, DefectTriage.State.AWAITING_REVIEW)  # nothing was applied
+        self.assertIsNone(triage.applied_at)
+        self.assertEqual(triage.decision, "")  # not even the decision fields were saved
+        self.assertNotEqual(Operation.objects.get(id=FIRST_OPERATION_ID).operation_status.number, 1)
+        self.assertNotEqual(triage.order.status.number, 5)  # the order was not marked
+        self.assertEqual(DefectCase.objects.count(), 0)
 
 
 class RetrievalFailureTest(GraphTestBase):
