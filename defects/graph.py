@@ -30,8 +30,12 @@ from works.models import WorkStatus
 
 logger = logging.getLogger(__name__)
 
-# How many times the administrator can send the proposal back before the workflow gives up and goes manual.
-MAX_REVISIONS = 2
+# Ordering of the confidence labels the model may answer with (DEFECT_MIN_CONFIDENCE compares against it).
+CONFIDENCE_RANK = {"low": 0, "medium": 1, "high": 2}
+
+
+def max_revisions() -> int:
+    return settings.DEFECT_MAX_REVISIONS
 
 
 class Node(StrEnum):
@@ -79,8 +83,9 @@ def classify_node(state: TriageState) -> TriageState:
     except LlmError as exc:
         return {"manual": True, "error": f"classification failed: {exc}"}
     classification = result.model_dump()
-    if classification["confidence"] == "low":
-        # A vague report must not reach the propose step: the administrator classifies it by hand.
+    if CONFIDENCE_RANK[classification["confidence"]] < CONFIDENCE_RANK[settings.DEFECT_MIN_CONFIDENCE]:
+        # A report below the configured confidence must not reach the propose step: the administrator
+        # classifies it by hand. (The rank lookup also rejects an unknown label by design.)
         return {"manual": True, "classification": classification, "error": "classification confidence is low"}
     return {"classification": classification}
 
@@ -95,7 +100,7 @@ def retrieve_node(state: TriageState) -> TriageState:
 
 def propose_node(state: TriageState) -> TriageState:
     triage = _triage(state)
-    if state.get("revisions", 0) >= MAX_REVISIONS:
+    if state.get("revisions", 0) >= max_revisions():
         # The revision budget is spent: no new proposal, the administrator decides by hand.
         return {"manual": True, "proposal": None, "error": "revision limit reached"}
     feedback = ""
@@ -140,7 +145,7 @@ def review_node(state: TriageState) -> TriageState:
         "classification": state.get("classification"),
         "proposal": state.get("proposal"),
         "revisions": state.get("revisions", 0),
-        "max_revisions": MAX_REVISIONS,
+        "max_revisions": max_revisions(),
     })
     if decision.get("action") not in DefectTriage.Decision.values:
         raise ValueError(f"unknown review action {decision.get('action')!r}")
@@ -250,12 +255,14 @@ def _notify_doctor(triage_id: str) -> None:
         lines.append(f"Решение: {final['recommendation']}")
     if triage.decision_note:
         lines.append(f"Комментарий администратора: {triage.decision_note}")
+    # DEFECT_NOTIFY_EMAIL routes the letter away from the doctor (demo mailbox, staging with fake addresses).
+    recipient = settings.DEFECT_NOTIFY_EMAIL or doctor.email
     try:
         send_mail(
             subject=f"Дефект по заказу {triage.order_id}",
             message="\n".join(lines),
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[doctor.email],
+            recipient_list=[recipient],
             fail_silently=False,
         )
     except Exception as exc:

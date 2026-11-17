@@ -10,7 +10,7 @@ from django.core import mail
 from django.test import override_settings
 
 from core.tests import BaseTestCase
-from defects.graph import MAX_REVISIONS, apply_node, build_graph, notify_node
+from defects.graph import apply_node, build_graph, max_revisions, notify_node
 from defects.models import DefectCase, DefectTriage
 from defects.triage.schemas import DefectClassification, RedoProposal
 from langgraph.checkpoint.memory import InMemorySaver
@@ -207,7 +207,7 @@ class FakeLlmFlowTest(GraphTestBase):
         self.assertEqual(triage.revisions, 1)
 
     def test_max_revision_cutoff(self):
-        self.triage.revisions = MAX_REVISIONS  # the budget is spent
+        self.triage.revisions = max_revisions()  # the budget is spent
         self.triage.save(update_fields=["revisions"])
         client = self.run_to_review([completion(classification_obj())])
 
@@ -387,6 +387,61 @@ class LowConfidenceTest(GraphTestBase):
         self.run_to_review([completion(classification_obj(confidence="low"))])
         values = self.assert_paused_at_review(manual=True)
         self.assertEqual(values["classification"]["confidence"], "low")
+
+
+class ConfidenceThresholdTest(GraphTestBase):
+    """DEFECT_MIN_CONFIDENCE widens the manual-review gate: anything below the level goes to a human."""
+
+    def test_min_confidence_medium_sends_low_confidence_to_manual(self):
+        with override_settings(DEFECT_MIN_CONFIDENCE="medium"):
+            self.run_to_review([completion(classification_obj(confidence="low"))])
+            self.assert_paused_at_review(manual=True)
+
+    def test_min_confidence_medium_still_accepts_medium(self):
+        with override_settings(DEFECT_MIN_CONFIDENCE="medium"):
+            self.run_to_review([completion(classification_obj(confidence="medium")),
+                                completion(proposal_obj(number=1))])
+            self.assert_paused_at_review(manual=False)
+
+
+class MaxRevisionsSettingTest(GraphTestBase):
+    """DEFECT_MAX_REVISIONS controls how many re-proposals the workflow tolerates."""
+
+    def test_budget_of_one_gives_one_reproposal_then_manual(self):
+        with override_settings(DEFECT_MAX_REVISIONS=1):
+            client = self.run_to_review([
+                completion(classification_obj()), completion(proposal_obj(number=1)),
+                completion(proposal_obj(number=2)),
+            ])
+
+            self.graph.invoke(Command(resume={
+                "action": "reject", "note": "не то", "decided_by_id": self.admin_id,
+            }), config=self.config)
+            values = self.assert_paused_at_review()  # one re-proposal within the budget
+            self.assertEqual(values["proposal"]["operation_id"], SECOND_OPERATION_ID)
+
+            self.graph.invoke(Command(resume={
+                "action": "reject", "note": "и снова не то", "decided_by_id": self.admin_id,
+            }), config=self.config)
+            values, next_nodes = self.snapshot()  # the budget is spent, no third proposal
+            self.assertEqual(next_nodes, ("review",))
+            self.assertTrue(values["manual"])
+            self.assertIsNone(values["proposal"])
+            self.assertIn("revision limit", values["error"])
+            self.assertEqual(client.parse.call_count, 3)  # classify + two proposals, no more
+
+
+class NotifyRecipientTest(GraphTestBase):
+    """DEFECT_NOTIFY_EMAIL redirects the notification away from the doctor."""
+
+    def test_recipient_override(self):
+        self.run_to_review([completion(classification_obj()), completion(proposal_obj(number=1))])
+        with override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+                               DEFECT_NOTIFY_EMAIL="lab@example.com"), \
+                self.captureOnCommitCallbacks(execute=True):
+            self.graph.invoke(Command(resume=self.approve(operation_id=FIRST_OPERATION_ID)), config=self.config)
+
+        self.assertEqual([message.to for message in mail.outbox], [["lab@example.com"]])
 
 
 class PostgresCheckpointerTest(GraphTestBase):

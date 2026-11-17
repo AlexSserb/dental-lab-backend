@@ -13,7 +13,6 @@ worker killed mid-graph (SIGKILL, OOM) leaves its row in PROCESSING; such rows n
 the run - the checkpointer keeps the state, so re-invoking the thread continues where it stopped.
 """
 import logging
-import os
 import time
 
 from django.conf import settings
@@ -40,7 +39,7 @@ def checkpointer_dsn() -> str:
 class DefectWorker:
     def __init__(self, graph, poll_interval_s: float | None = None):
         self.graph = graph
-        self.poll_interval_s = poll_interval_s or float(os.getenv("DEFECT_WORKER_POLL_S") or 2)
+        self.poll_interval_s = poll_interval_s or settings.DEFECT_WORKER_POLL_S
 
     def run_forever(self) -> None:
         logger.info("defect worker started (poll every %.1fs)", self.poll_interval_s)

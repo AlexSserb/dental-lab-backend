@@ -29,6 +29,18 @@ AI_CONTEXT_TOKENS = int(os.getenv("AI_CONTEXT_TOKENS") or 0)
 AI_PRICE_INPUT_PER_1M = os.getenv("AI_PRICE_INPUT_PER_1M") or "0"
 AI_PRICE_OUTPUT_PER_1M = os.getenv("AI_PRICE_OUTPUT_PER_1M") or "0"
 
+# Defect triage workflow
+# How many times the administrator may send a proposal back before the workflow goes to manual review.
+DEFECT_MAX_REVISIONS = int(os.getenv("DEFECT_MAX_REVISIONS") or 2)
+# Propose step runs only when the classification confidence is at least this (low < medium < high); anything
+# below goes to manual review. "medium" means the model's "low" answers never reach propose automatically.
+DEFECT_MIN_CONFIDENCE = os.getenv("DEFECT_MIN_CONFIDENCE") or "medium"
+# Poll interval of `manage.py run_defect_worker` when there is nothing to do.
+DEFECT_WORKER_POLL_S = float(os.getenv("DEFECT_WORKER_POLL_S") or 2)
+# When set, the "defect found" email goes to this address instead of the ordering doctor (e.g. for a demo
+# mailbox or a staging environment with fake doctor addresses).
+DEFECT_NOTIFY_EMAIL = os.getenv("DEFECT_NOTIFY_EMAIL") or ""
+
 PROMPT_SOURCE = (os.getenv("PROMPT_SOURCE") or "local").lower()
 PROMPT_TAG = os.getenv("PROMPT_TAG") or "production"
 PROMPT_CACHE_TTL_S = float(os.getenv("PROMPT_CACHE_TTL_S") or 300)

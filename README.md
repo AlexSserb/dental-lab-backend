@@ -287,3 +287,19 @@ the model, not a mock. A failed LLM call counts as a miss. The report shows:
 `--limit N` runs a smoke subset, `--verbose` prints every case instead of only the misses. Add a case by
 appending to the JSON file; keep all defect types covered, or the eval cannot catch a bias towards one label.
 Requires a reachable OpenAI-compatible endpoint (local ollama works) - never run in tests.
+
+## Defect triage configuration
+
+The workflow is tuned with env variables (see `.env.example`):
+
+* `DEFECT_MAX_REVISIONS` - how many times the administrator may send a proposal back before the workflow
+  stops proposing and waits for a fully manual decision (default 2).
+* `DEFECT_MIN_CONFIDENCE` - the propose step runs only when the classification confidence is at least this
+  (`low` < `medium` < `high`; default `medium`), otherwise the report goes to manual review.
+* `DEFECT_WORKER_POLL_S` - poll interval of `manage.py run_defect_worker` when there is nothing to do.
+* `DEFECT_NOTIFY_EMAIL` - when set, the "defect found" email goes to this address instead of the ordering
+  doctor (demo mailbox, staging with fake doctor addresses).
+
+Changing `DEFECT_MAX_REVISIONS` or `DEFECT_MIN_CONFIDENCE` affects only new graph runs - a triage already
+paused at review keeps the budget it was started with. To justify the model choice, run
+`manage.py eval_triage` (see above) before and after a change.
