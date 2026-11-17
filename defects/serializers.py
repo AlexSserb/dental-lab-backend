@@ -16,7 +16,7 @@ class TriageListItemSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 
-class WorkSerializer(serializers.Serializer):
+class TriageWorkSerializer(serializers.Serializer):
     id = serializers.UUIDField(read_only=True)
     name = serializers.CharField(read_only=True)
 
@@ -48,7 +48,7 @@ class TriageDetailSerializer(serializers.Serializer):
     order_id = serializers.UUIDField(read_only=True)
     state = serializers.ChoiceField(choices=DefectTriage.State.choices, read_only=True)
     comment = serializers.CharField(read_only=True)
-    works = WorkSerializer(many=True, read_only=True)
+    works = TriageWorkSerializer(many=True, read_only=True)
     proposal = ProposalSerializer(allow_null=True, read_only=True)
     similar_cases = SimilarCaseSerializer(many=True, read_only=True)
     revisions = serializers.IntegerField(read_only=True)
@@ -58,6 +58,9 @@ class TriageDetailSerializer(serializers.Serializer):
     final = serializers.JSONField(read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
     decided_at = serializers.DateTimeField(allow_null=True, read_only=True)
+    applied_at = serializers.DateTimeField(allow_null=True, read_only=True)
+    notified_at = serializers.DateTimeField(allow_null=True, read_only=True)
+    notify_error = serializers.CharField(read_only=True)
 
 
 class TriageDecisionSerializer(serializers.Serializer):
