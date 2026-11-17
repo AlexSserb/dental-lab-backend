@@ -264,3 +264,26 @@ colloquial wording, near-duplicate topics); an easy set scores 100% and cannot s
 
 Run the commands in Docker with `docker compose exec backend python manage.py <command>`. The image copies the
 code and `documents/` at build time, so rebuild (`docker compose up -d --build`) after changing them.
+
+## Defect triage eval
+
+`defects/evals/triage_cases.json` holds labeled cases: the doctor's report (works + comment), the expected
+`defect_type`/`severity`, and the operation list with the 1-based number of the operation that must be redone.
+Run:
+
+```
+python manage.py eval_triage                                  # the configured AI_MODEL
+python manage.py eval_triage --model qwen2.5:7b-instruct --base-url http://localhost:11434/v1
+```
+
+Every case goes through the same production machinery as the real workflow (`classify_defect`, then the propose
+prompt with the same schema and range validator, without the database), so the score measures the prompts plus
+the model, not a mock. A failed LLM call counts as a miss. The report shows:
+
+* **defect type / severity / both** - classification accuracy against the labels;
+* **operation choice** - share of cases where the model picked the labeled operation (scored with the labeled
+  type/severity, so it does not absorb classification mistakes).
+
+`--limit N` runs a smoke subset, `--verbose` prints every case instead of only the misses. Add a case by
+appending to the JSON file; keep all defect types covered, or the eval cannot catch a bias towards one label.
+Requires a reachable OpenAI-compatible endpoint (local ollama works) - never run in tests.
